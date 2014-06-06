@@ -1,3 +1,6 @@
+// Kern base file
+// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+
 var cluster = require("cluster");
 //var hub = require("clusterhub");
 var os = require("os");
@@ -9,6 +12,8 @@ var defaults = {
     port: 3000
     // processCount: specify the number of worker-processes to create
 };
+
+function host( :
 
 /* main export */
 var Kern = function( opts ) {
@@ -24,9 +29,16 @@ var Kern = function( opts ) {
 
     function worker() {
         http.createServer( function( req, res ) {
+            req.kern = {};  // base object for kern modifications
+
             res.writeHead( 200, { 'Content-Type': 'text/plain' } );
-            res.end( "Hello, here is kern.js [" + status.workerId + "]" );
-            debug( "GET, " + status.workerId );
+
+            res.write( "Hello, here is kern.js [" + status.workerId + "] on " + req.url + ", host:"  );
+            console.log( req );
+
+            res.end();
+            debug( "GET " + status.workerId );
+
         }).listen( opts.port );
     }
 
@@ -42,6 +54,12 @@ var Kern = function( opts ) {
                 debug( "Master, starting " + processCount + " workers" );
                 for( var i = 0; i < processCount; i++ )
                     cluster.fork();
+
+                /* respawn dead workers */
+                cluster.on( "exit", function( worker, code, signal ) {
+                    debug( "Worker #" + worker.process.pid + " died, respawning" );
+                    cluster.fork();
+                } );
 
             } else {
                 /* worker */
