@@ -6,10 +6,10 @@
     "start": "node ./node_modules/.bin/supervisor ./bin/www"
   },
   "dependencies": {
-    "debug": "~0.7.4",
     "mysql": "*",
     "bcrypt-nodejs": "*",
     "supervisor": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "clusterhub": "*"
   }
 }
