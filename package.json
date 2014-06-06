@@ -1,0 +1,15 @@
+{
+  "name": "kern.js",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./node_modules/.bin/supervisor ./bin/www"
+  },
+  "dependencies": {
+    "debug": "~0.7.4",
+    "mysql": "*",
+    "bcrypt-nodejs": "*",
+    "supervisor": "*",
+    "underscore": "*"
+  }
+}
