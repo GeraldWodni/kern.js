@@ -1,7 +1,11 @@
-var kern = require("./kern");
+// Sample application file
+// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var app = kern();
-app.debug("App Running in Worker #" + app.status.workerId );
+module.exports = require("./kern")(function( app ){
+    app.debug("App Running in Worker #" + app.status.workerId );
 
-module.exports = app;
+    app.get("/disabled", function( req, res ) {
+        res.write( "kern.js running. talking to worker #" + app.status.workerId + " !");
+    });
+});
 

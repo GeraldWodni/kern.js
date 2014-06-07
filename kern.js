@@ -3,20 +3,21 @@
 
 var cluster = require("cluster");
 //var hub = require("clusterhub");
-var os = require("os");
-var http = require("http");
-var _ = require("underscore");
+var os      = require("os");
+var express = require("express");
+var fs      = require("fs");
+var jade    = require("jade");
+var _       = require("underscore");
 
 /* default value for kern instances */
 var defaults = {
-    port: 3000
+    port: 3000,
+    setupEnabled: true
     // processCount: specify the number of worker-processes to create
 };
 
-function host( :
-
 /* main export */
-var Kern = function( opts ) {
+var Kern = function( callback, opts ) {
     
     opts = _.extend( defaults, opts );
     var status = {
@@ -28,24 +29,50 @@ var Kern = function( opts ) {
     };
 
     function worker() {
-        http.createServer( function( req, res ) {
-            req.kern = {};  // base object for kern modifications
 
-            res.writeHead( 200, { 'Content-Type': 'text/plain' } );
+        /* start express, add kern attributes */
+        var app = express();
+        app.debug = debug;
+        app.worker = worker;
+        app.status = status;
 
-            res.write( "Hello, here is kern.js [" + status.workerId + "] on " + req.url + ", host:"  );
-            console.log( req );
+        app.jadeCache = {};
+        app.renderJade = function( res, filename, locals, opts ) {
+            /* TODO: add cache */
+            //if( filename in app.jadeCache )
+            //    app.jadeCache[ filename ]( locals );
 
-            res.end();
-            debug( "GET " + status.workerId );
+            fs.readFile( filename, 'utf8', function( err, data ) {
+                if( err ) {
+                    console.log( err );
+                    res.send("ERROR: " + err );
+                    return;
+                }
 
-        }).listen( opts.port );
+                var compiledJade = jade.compile( data, opts );
+                var html = compiledJade( locals );
+
+                res.send( html );
+            });
+        };
+
+
+
+        /* register the app's functions */
+        callback( app );
+
+        /* run setup if nothing else catched the request */
+        app.get("/", function( req, res ) {
+            app.renderJade( res, "websites/kern/views/layout.jade" );
+            app.debug( "DONE!" );
+        });
+
+    
+        /* start listener */
+        app.listen( opts.port );
     }
 
     return {
-        debug: debug,
-        worker: worker,
-        status: status,
         run: function() {
 
             if( cluster.isMaster ) {
