@@ -6,7 +6,9 @@
     "start": "node ./node_modules/.bin/supervisor ./bin/www"
   },
   "dependencies": {
+    "morgan": "~1.0.0",
     "mysql": "*",
+    "jade": "~1.3.0",
     "bcrypt-nodejs": "*",
     "supervisor": "*",
     "underscore": "*",
