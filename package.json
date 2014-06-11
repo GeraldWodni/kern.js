@@ -12,6 +12,8 @@
     "bcrypt-nodejs": "*",
     "supervisor": "*",
     "underscore": "*",
-    "clusterhub": "*"
+    "clusterhub": "*",
+    "less": "1.7.*",
+    "express": "4.*"
   }
 }

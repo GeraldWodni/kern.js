@@ -1,2 +1,5 @@
 Express + cluster
 http://rowanmanning.com/posts/node-cluster-and-express/
+
+less: add pathes in kern's domain order and check if they are walked in order, if yes no need to modify the include functions
+maybe the same can be changed for jade!

@@ -128,8 +128,6 @@ var Kern = function( callback, kernOpts ) {
             else
                 app.renderJade( res, "kern", "no-config" );
         });
-
-        app.use( app.router );
     
         /* start listener */
         app.listen( kernOpts.port );
