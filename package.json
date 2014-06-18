@@ -13,6 +13,7 @@
     "supervisor": "*",
     "underscore": "*",
     "clusterhub": "*",
-    "less": "1.7*"
+    "less": "1.7.*",
+    "express": "4.*"
   }
 }
