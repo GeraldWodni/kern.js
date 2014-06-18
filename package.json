@@ -12,6 +12,7 @@
     "bcrypt-nodejs": "*",
     "supervisor": "*",
     "underscore": "*",
-    "clusterhub": "*"
+    "clusterhub": "*",
+    "less-middleware": "1.0*"
   }
 }

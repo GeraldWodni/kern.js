@@ -10,6 +10,7 @@ var fs      = require("fs");
 var jade    = require("jade");
 var logger  = require("morgan");
 var _       = require("underscore");
+var lessMiddleware  = require("less-middleware");
 
 /* kern subsystems */
 var config  = require("./config");
@@ -19,7 +20,8 @@ var defaults = {
     port: 3000,
     setupEnabled: true,
     websitesRoot: 'websites',
-    viewFolder: 'views'
+    viewFolder: 'views',
+    rootFolder: __dirname
     // processCount: specify the number of worker-processes to create
 };
 
@@ -43,6 +45,10 @@ var Kern = function( callback, kernOpts ) {
         /* hide identifiaction */
         app.use(function (req, res, next) {
             res.removeHeader("x-powered-by");
+
+            req.kern = {
+                website: 'kern'
+            };
             next();
         });
 
@@ -82,11 +88,15 @@ var Kern = function( callback, kernOpts ) {
         app.jadeCache = {};
         app.renderJade = function( res, website, filename, locals, opts ) {
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
+            console.log( "RENDER: ", website, filename );
+
             var cacheName = website + '//' + filename;
             if( cacheName in app.jadeCache ) {
                 res.send( app.jadeCache[ cacheName ]( locals ) );
                 return;
             }
+
+            console.log( "CACHE: ", cacheName );
 
             /* compile template */
             var filepath = lookupFile( website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
@@ -118,6 +128,40 @@ var Kern = function( callback, kernOpts ) {
             console.log( this.options );
             return lookupFile( this.options.kernWebsite, path.join( kernOpts.viewFolder, filename + '.jade' ) );
         };
+
+        /* less, circumvent path-processing */
+        /* TODO: fetch WEBSITE FROM req.kern? */
+        var cssPath;
+
+        app.use(lessMiddleware( '.', { preprocess:{ path: function( lessPath, req ){
+
+            console.log( "ORIG-PATH: >" + lessPath + "<" );
+
+            //return '/4data/cube/node.js/kern.js/websites/kern/less/index.less';
+
+            var fullPath =  path.join( kernOpts.rootFolder, lookupFile( req.kern.website, lessPath ) );
+            console.log( 'FULL-PATH: ', fullPath );
+
+            /* convay cssPath to storeCss */
+            cssPath = fullPath.replace( /\.less$/g, '.css' );
+
+            return fullPath;
+        },
+            debug: true,
+            less: function( src, req ) {
+                console.log( "LESS:", src );
+                return src;
+            }
+        },
+            storeCss: function( pathname, css, next ) {
+                pathname = cssPath;
+
+                console.log( "STORE", pathname, css );
+                fs.writeFileSync( pathname, css );
+                next();
+            }
+        
+        }));
 
         callback( app );
 

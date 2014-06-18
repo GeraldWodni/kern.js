@@ -28,4 +28,7 @@ node_modules
 alt
 
 #vim 
-.*.swp
+*.swp
+
+# no less-based css
+websites/*/css/*.css
