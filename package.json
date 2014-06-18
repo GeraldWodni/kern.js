@@ -13,6 +13,6 @@
     "supervisor": "*",
     "underscore": "*",
     "clusterhub": "*",
-    "less-middleware": "1.0*"
+    "less": "1.7*"
   }
 }

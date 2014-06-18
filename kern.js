@@ -10,7 +10,7 @@ var fs      = require("fs");
 var jade    = require("jade");
 var logger  = require("morgan");
 var _       = require("underscore");
-var lessMiddleware  = require("less-middleware");
+var less    = require("less");
 
 /* kern subsystems */
 var config  = require("./config");
@@ -24,6 +24,29 @@ var defaults = {
     rootFolder: __dirname
     // processCount: specify the number of worker-processes to create
 };
+
+
+/* TODO: capsule in RequestData or alike file */
+var ReqData = function( req ) {
+    this.req = req;
+};
+
+ReqData.prototype.raw = function( name ) {
+    return this.req.params[name];
+}
+
+ReqData.prototype.filter = function( name, filter ) {
+    var value = this.raw( name );
+
+    if( value == null )
+        return null;
+        
+    return value.replace( filter, '' );
+}
+
+ReqData.prototype.filename = function( name ) {
+    return this.filter( name, /[^-_.0-9a-zA-Z]/g );
+}
 
 /* main export */
 var Kern = function( callback, kernOpts ) {
@@ -47,7 +70,8 @@ var Kern = function( callback, kernOpts ) {
             res.removeHeader("x-powered-by");
 
             req.kern = {
-                website: 'kern'
+                website: 'kern',
+                data: new ReqData( req )
             };
             next();
         });
@@ -131,37 +155,39 @@ var Kern = function( callback, kernOpts ) {
 
         /* less, circumvent path-processing */
         /* TODO: fetch WEBSITE FROM req.kern? */
-        var cssPath;
+        app.get("/css/:file", function( req, res, next ) {
 
-        app.use(lessMiddleware( '.', { preprocess:{ path: function( lessPath, req ){
+            var filename = req.kern.data.filename( 'file' );
+            var filepath = lookupFile( req.kern.website, path.join( 'css', filename ) );
 
-            console.log( "ORIG-PATH: >" + lessPath + "<" );
+            console.log( "LESS:", filepath );
 
-            //return '/4data/cube/node.js/kern.js/websites/kern/less/index.less';
+            fs.readFile( filepath, 'utf8', function( err, data ) {
+                if( err ) {
+                    console.log( err );
+                    res.send("ERROR: " + err );
+                    return;
+                }
 
-            var fullPath =  path.join( kernOpts.rootFolder, lookupFile( req.kern.website, lessPath ) );
-            console.log( 'FULL-PATH: ', fullPath );
+                /* parse less & convert to css */
+                var parser = new less.Parser({
+                    filename: filepath
+                });
 
-            /* convay cssPath to storeCss */
-            cssPath = fullPath.replace( /\.less$/g, '.css' );
+                parser.parse( data, function( err, tree ) {
+                    if( err ) {
+                        console.log( err );
+                        res.send( "ERROR" + err );
+                        return;
+                    }
 
-            return fullPath;
-        },
-            debug: true,
-            less: function( src, req ) {
-                console.log( "LESS:", src );
-                return src;
-            }
-        },
-            storeCss: function( pathname, css, next ) {
-                pathname = cssPath;
+                    var css = tree.toCSS();
+                    res.send( css );
+                });
 
-                console.log( "STORE", pathname, css );
-                fs.writeFileSync( pathname, css );
                 next();
-            }
-        
-        }));
+            });
+        });
 
         callback( app );
 
@@ -173,7 +199,7 @@ var Kern = function( callback, kernOpts ) {
                 app.renderJade( res, "kern", "no-config" );
         });
 
-        app.use( app.router );
+        //app.use( app.router );
     
         /* start listener */
         app.listen( kernOpts.port );
