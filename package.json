@@ -3,7 +3,8 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
-    "start": "node ./node_modules/.bin/supervisor ./bin/www"
+    "start": "node ./node_modules/.bin/supervisor ./bin/www",
+    "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
     "morgan": "~1.0.0",
@@ -14,6 +15,8 @@
     "underscore": "*",
     "clusterhub": "*",
     "less": "1.7.*",
-    "express": "4.*"
+    "express": "4.*",
+    "mocha": "*",
+    "should": ">= 0.0.1"
   }
 }
