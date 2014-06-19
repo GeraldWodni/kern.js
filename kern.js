@@ -171,21 +171,21 @@ var Kern = function( callback, kernOpts ) {
 
                 /* parse less & convert to css */
                 var parser = new less.Parser({
-                    filename: filepath
+                    filename: filepath,
+		    paths: ['websites/default/css']
                 });
 
                 parser.parse( data, function( err, tree ) {
                     if( err ) {
                         console.log( err );
                         res.send( "ERROR" + err );
+                	next();
                         return;
                     }
 
                     var css = tree.toCSS();
                     res.send( css );
                 });
-
-                next();
             });
         });
 
