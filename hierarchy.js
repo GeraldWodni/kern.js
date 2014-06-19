@@ -4,6 +4,7 @@
 var path    = require("path");
 var fs      = require("fs");
 
+/* TODO: refactor to also extract path-array for less */
 /* locate by hierarchy: cut subdomains, then check 'default' folder  */
 function lookupFile( websitesRoot, website, filename ) {
 
