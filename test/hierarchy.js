@@ -1,5 +1,7 @@
 'use strict';
 
+var should = require( "should" );
+
 var hierarchy = require( "../hierarchy" );
 var path    = require("path");
 
@@ -10,7 +12,7 @@ function testEquals( result, expected ) {
 describe('hierarchy', function () {
 
     /* todo: create test environment for tests */
-    var websitesRoot = path.join( __dirname, "..", "websites" );
+    var websitesRoot = path.join( __dirname, "websites" );
 
     it('resolve to kern', function (done) {
 
@@ -33,14 +35,24 @@ describe('hierarchy', function () {
     });
 
     it('upExists', function(done) {
-        hierarchy.upExists( websitesRoot, "www.wodni.at" ).should.equal( "default" );
+        hierarchy.upExists( websitesRoot, "www.wodni.at" ).should.equal( "wodni.at" );
+        hierarchy.upExists( websitesRoot, "something.unknown.at" ).should.equal( "default" );
         ( hierarchy.upExists( websitesRoot, "default" ) === null ).should.be.true;
 
         done();
     });
 
     it('paths', function(done) {
-        hierarchy.paths( websitesRoot, "www.wodni.at" ).should.equal( "default" );
+        should( hierarchy.paths( websitesRoot, "www.wodni.at", "css" ) ).eql([
+            path.join( websitesRoot, "wodni.at/css" ),
+            path.join( websitesRoot, "default/css" )
+	]);
+
+        should( hierarchy.paths( websitesRoot, "www.wodni.at", "css" ) ).not.eql([
+            path.join( websitesRoot, "wodni.at/css" ),
+            path.join( websitesRoot, "at/css" ),
+            path.join( websitesRoot, "default/css" )
+	]);
 
         done();
     });

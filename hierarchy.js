@@ -44,19 +44,19 @@ function up( website ) {
 }
 
 /* go up until directory exists */
-function upExists( websitesRoot, website ) {
+function upExists( websitesRoot, website, dir ) {
     while( true ) {
         website = up( website );
         if( website == null )
             return null;
 
-        var dirPath = path.join( websitesRoot, website );
+        var dirPath = path.join( websitesRoot, website, dir || '' );
         if( fs.existsSync( dirPath ) )
             return website;
     }
 }
 
-function paths( websitesRoot, website ) {
+function paths( websitesRoot, website, dir ) {
     var paths = []
 
     /* prepend dummy to include website itself */
@@ -66,12 +66,12 @@ function paths( websitesRoot, website ) {
         //website = upExists( websitesRoot, website );
 
         /* TODO: use upExists */
-        website = up( website );
+        website = upExists( websitesRoot, website, dir );
 
         if( website == null )
             break;
 
-        paths.push( path.join( websitesRoot, website ) );
+        paths.push( path.join( websitesRoot, website, dir || '' ) );
     }
 
     return paths;
