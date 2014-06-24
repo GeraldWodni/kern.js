@@ -1,6 +1,7 @@
 Express + cluster
 http://rowanmanning.com/posts/node-cluster-and-express/
 
-less using include-hierarchie
-less: add pathes in kern's domain order and check if they are walked in order, if yes no need to modify the include functions
-maybe the same can be changed for jade!
+test: add test-directory-structure with custom root for testing
+
+== long term ==
+less: check if the same top-down walk include path is possible with less as used in jade

@@ -4,7 +4,6 @@
 var path    = require("path");
 var fs      = require("fs");
 
-/* TODO: refactor to also extract path-array for less */
 /* locate by hierarchy: cut subdomains, then check 'default' folder  */
 function lookupFile( websitesRoot, website, filename ) {
 
@@ -25,6 +24,14 @@ function lookupFile( websitesRoot, website, filename ) {
 
     /* nothing in default, just fail */
     return null;
+}
+
+function lookupFileThrow( websitesRoot, website, filename ) {
+    var filePath = lookupFile( websitesRoot, website, filename );
+    if( filePath == null )
+        throw new Error( "hierarchy-lookupFile: '" + filename + "' not found!" ); 
+
+    return filePath;
 }
 
 /* locate by hierarchy: cut subdomains, then check 'default' folder  */
@@ -63,9 +70,6 @@ function paths( websitesRoot, website, dir ) {
     website = "dummy." + website;
 
     while( true ) {
-        //website = upExists( websitesRoot, website );
-
-        /* TODO: use upExists */
         website = upExists( websitesRoot, website, dir );
 
         if( website == null )
@@ -79,6 +83,7 @@ function paths( websitesRoot, website, dir ) {
 
 
 module.exports.lookupFile = lookupFile;
+module.exports.lookupFileThrow = lookupFileThrow;
 module.exports.up = up;
 module.exports.upExists = upExists;
 module.exports.paths = paths;

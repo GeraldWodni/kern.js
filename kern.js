@@ -13,7 +13,8 @@ var _       = require("underscore");
 var less    = require("less");
 
 /* kern subsystems */
-var config  = require("./config");
+var hierarchy   = require("./hierarchy");
+var config      = require("./config");
 
 /* default value for kern instances */
 var defaults = {
@@ -149,18 +150,17 @@ var Kern = function( callback, kernOpts ) {
 
         /* override jade's resolvePath to use kern-hierarchy */
         jade.Parser.prototype.resolvePath = function (filename, purpose) {
-            console.log( this.options );
-            return lookupFile( this.options.kernWebsite, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            return hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, filename + '.jade' ) );
         };
 
         /* less, circumvent path-processing */
-        /* TODO: fetch WEBSITE FROM req.kern? */
         app.get("/css/:file", function( req, res, next ) {
 
             var filename = req.kern.data.filename( 'file' );
-            var filepath = lookupFile( req.kern.website, path.join( 'css', filename ) );
+            var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename ) );
 
-            console.log( "LESS:", filepath );
+            if( filepath == null )
+                filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
 
             fs.readFile( filepath, 'utf8', function( err, data ) {
                 if( err ) {
@@ -172,7 +172,8 @@ var Kern = function( callback, kernOpts ) {
                 /* parse less & convert to css */
                 var parser = new less.Parser({
                     filename: filepath,
-		    paths: ['websites/default/css']
+		    paths: 
+		    hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
                 });
 
                 parser.parse( data, function( err, tree ) {
@@ -184,6 +185,7 @@ var Kern = function( callback, kernOpts ) {
                     }
 
                     var css = tree.toCSS();
+                    res.set( 'Content-Type', 'text/css' );
                     res.send( css );
                 });
             });
