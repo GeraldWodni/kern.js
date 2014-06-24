@@ -70,9 +70,14 @@ var Kern = function( callback, kernOpts ) {
         app.use(function (req, res, next) {
             res.removeHeader("x-powered-by");
 
+            var website = 'kern';
+
             req.kern = {
-                website: 'kern',
-                data: new ReqData( req )
+                website: website,
+                data: new ReqData( req ),
+                lookupFile: function( filePath ) {
+                    return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
+                }
             };
             next();
         });
@@ -84,31 +89,6 @@ var Kern = function( callback, kernOpts ) {
         /* add kern subsystems */
         app.use( logger('dev') );
 	app.use( config() );
-
-        /* locate by hierarchy: cut subdomains, then check 'default' folder  */
-        function lookupFile( website, filename ) {
-
-            /* file found */
-            var filePath = path.join( kernOpts.websitesRoot, website, filename ) 
-            console.log( filePath );
-            if( fs.existsSync( filePath ) )
-                return filePath;
-
-            /* cut next subdomain */
-            var firstDot = website.indexOf(".");
-            if( firstDot >= 0 )
-                return lookupFile( website.substring( firstDot + 1 ), filename );
-
-            /* if we are at TLD, check default */
-            if( website !== "default" )
-                return lookupFile( "default", filename );
-
-            /* nothing in default, just fail */
-            throw new Error( "kern-lookupFile: '" + filename + "' not found!" ); 
-            return null;
-        }
-
-        app.lookupFile = lookupFile;
 
         app.jadeCache = {};
         app.renderJade = function( res, website, filename, locals, opts ) {
@@ -124,7 +104,7 @@ var Kern = function( callback, kernOpts ) {
             console.log( "CACHE: ", cacheName );
 
             /* compile template */
-            var filepath = lookupFile( website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
 
             opts = opts || {};
             _.extend( opts, {
