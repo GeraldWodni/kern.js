@@ -7,3 +7,12 @@ Currently *KERN ][* or *kern 2* is written in PHP (30k+ lines), this is a rewrit
 As I was often asked to make the PHP version open source, this new rewrite will be free software from the beginning,
 if you are unhappy with GPLv3, write me an email, we can arrange a dual-license for your business case.
 
+## Install
+npm and bower are required to be installed globally. Then install the dependencies:
+
+```
+npm install
+bower install
+
+```
+
