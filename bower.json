@@ -1,0 +1,26 @@
+{
+  "name": "kern.js",
+  "main": "kern.js",
+  "version": "0.3.0",
+  "homepage": "https://github.com/GeraldWodni/kern.js",
+  "authors": [
+    "Gerald Wodni <gerald.wodni@gmail.com>"
+  ],
+  "description": "web-framework for web-applications, also features multi-domain content management with redundancy elimination",
+  "moduleType": [
+    "node"
+  ],
+  "license": "GPLv3",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.1.1",
+    "jquery": "~1.11.0"
+  }
+}
