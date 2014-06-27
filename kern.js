@@ -88,7 +88,7 @@ var Kern = function( callback, kernOpts ) {
 
         /* add kern subsystems */
         app.use( logger('dev') );
-	app.use( config() );
+        app.use( config() );
 
         app.jadeCache = {};
         app.renderJade = function( res, website, filename, locals, opts ) {
@@ -152,15 +152,15 @@ var Kern = function( callback, kernOpts ) {
                 /* parse less & convert to css */
                 var parser = new less.Parser({
                     filename: filepath,
-		    paths: 
-		    hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
+                    paths: 
+                    hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
                 });
 
                 parser.parse( data, function( err, tree ) {
                     if( err ) {
                         console.log( err );
                         res.send( "ERROR" + err );
-                	next();
+                        next();
                         return;
                     }
 
@@ -174,6 +174,10 @@ var Kern = function( callback, kernOpts ) {
         callback( app );
 
         /* show basic hello if nothing else catched up until here */
+        app.get("/kern-setup", function( req, res ) {
+            app.renderJade( res, "kern", "setup" );
+        });
+
         app.get("/", function( req, res ) {
             if( req.config )
                 app.renderJade( res, "websites/kern/views/layout.jade" );

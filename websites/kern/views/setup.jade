@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    h1 Token required
+    form(method="post",role="form")
+        p
+            | Assuming you are entitled to access this system, you would have also started it.
+            | Check the console output for 
+            code AUTHTOKEN
+            |  and enter its value below.
+        div.form-group
+            label(for="token") Token
+            input.form-control(id="token",name="token")
+        button.btn.btn-primary(type="subtmit",name="submitToken",value="yes") Enter
+
+
