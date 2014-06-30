@@ -1,8 +1,6 @@
-// Kern base file
-// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var cluster = require("cluster");
-//var hub = require("clusterhub");
+var hub     = require("clusterhub");
 var os      = require("os");
 var path    = require("path");
 var express = require("express");
@@ -11,10 +9,26 @@ var jade    = require("jade");
 var logger  = require("morgan");
 var _       = require("underscore");
 var less    = require("less");
+var redis   = require("redis");
+var bcrypt  = require("bcrypt-nodejs");
+
+/* TODO: add session support for token and co */
+//var session = require('express-session') , RedisStore = require('connect-redis')(session);
+//app.use(session({ store: new RedisStore(options), secret: 'keyboard cat' }))
 
 /* kern subsystems */
 var hierarchy   = require("./hierarchy");
-var config      = require("./config");
+
+/* serverConfig, load from file if exists */
+var serverConfig = {
+};
+
+try { 
+    serverConfig = JSON.parse( fs.readFileSync("serverConfig.json", { encoding: "utf-8" } ) );
+} catch( err ) {
+}
+
+console.log( "CONFIG:", serverConfig );
 
 /* default value for kern instances */
 var defaults = {
@@ -65,12 +79,22 @@ var Kern = function( callback, kernOpts ) {
 
         /* start express, add kern attributes */
         var app = express();
+        var rdb = redis.createClient();
+
+        rdb.on( "error", function( err ) {
+            console.log( "Redis-error " + err );
+        });
 
         /* hide identifiaction */
         app.use(function (req, res, next) {
             res.removeHeader("x-powered-by");
 
-            var website = 'kern';
+            /* get website from host, use kern if no config is set */
+            var website = hierarchy.website( kernOpts.websitesRoot, req.host ) || "default";
+            if( !( serverConfig.active || false ) )
+                website = "kern";
+
+            console.log( serverConfig.authToken );
 
             req.kern = {
                 website: website,
@@ -88,7 +112,7 @@ var Kern = function( callback, kernOpts ) {
 
         /* add kern subsystems */
         app.use( logger('dev') );
-        app.use( config() );
+        //app.use( config() );
 
         app.jadeCache = {};
         app.renderJade = function( res, website, filename, locals, opts ) {
@@ -197,19 +221,31 @@ var Kern = function( callback, kernOpts ) {
             if( cluster.isMaster ) {
                 /* form workers */
                 var processCount = kernOpts.processCount || os.cpus().length;
+                var authToken = bcrypt.genSaltSync( 42 );
+
                 debug( "Master, starting " + processCount + " workers" );
-                for( var i = 0; i < processCount; i++ )
-                    cluster.fork();
+
+                for( var i = 0; i < processCount; i++ ) {
+                    var child = cluster.fork();
+                    child.send( { authToken: authToken } );
+                }
 
                 /* respawn dead workers */
                 cluster.on( "exit", function( worker, code, signal ) {
                     debug( "Worker #" + worker.process.pid + " died, respawning" );
-                    cluster.fork();
+                    var child = cluster.fork();
+                    child.send( { authToken: authToken } );
                 } );
 
             } else {
                 /* worker */
                 debug( "Worker on Port " + kernOpts.port + ", id:" + status.workerId );
+
+                process.on( "message", function( msg ) {
+                    if( msg.authToken )
+                        serverConfig.authToken = msg.authToken
+                });
+
                 worker();
             }
         }

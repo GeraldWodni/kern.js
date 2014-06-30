@@ -81,9 +81,15 @@ function paths( websitesRoot, website, dir ) {
     return paths;
 }
 
+/* get website without any subdomain */
+function website( websitesRoot, website ) {
+    return upExists( websitesRoot, "dummy." + website );
+}
+
 
 module.exports.lookupFile = lookupFile;
 module.exports.lookupFileThrow = lookupFileThrow;
 module.exports.up = up;
 module.exports.upExists = upExists;
 module.exports.paths = paths;
+module.exports.website = website;
