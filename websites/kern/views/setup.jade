@@ -1,16 +1,22 @@
 extends layout
+include mixins
 
 block content
-    h1 Token required
+    h1 Setup Administrator
     form(method="post",role="form")
         p
             | Assuming you are entitled to access this system, you would have also started it.
             | Check the console output for 
             code AUTHTOKEN
             |  and enter its value below.
-        div.form-group
-            label(for="token") Token
-            input.form-control(id="token",name="token")
+        +text-field('token', 'Token')
+        p
+            | Pick a username and password for the administrative user, which will be used to login to the system.
+            br
+            | The AUTHTOKEN is only used once (now).
+        +text-field('username', 'Username')
+        +password-field('password', 'Password')
+        +password-field('password2', 'Confirm Password')
         button.btn.btn-primary(type="subtmit",name="submitToken",value="yes") Enter
 
 

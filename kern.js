@@ -28,8 +28,6 @@ try {
 } catch( err ) {
 }
 
-console.log( "CONFIG:", serverConfig );
-
 /* default value for kern instances */
 var defaults = {
     port: 3000,
@@ -39,6 +37,9 @@ var defaults = {
     rootFolder: __dirname
     // processCount: specify the number of worker-processes to create
 };
+
+serverConfig = _.extend( defaults, serverConfig );
+console.log( "CONFIG:", serverConfig );
 
 
 /* TODO: capsule in RequestData or alike file */
@@ -66,7 +67,7 @@ ReqData.prototype.filename = function( name ) {
 /* main export */
 var Kern = function( callback, kernOpts ) {
     
-    kernOpts = _.extend( defaults, kernOpts );
+    kernOpts = _.extend( serverConfig, kernOpts );
     var status = {
         workerId: cluster.isMaster ? 0 : cluster.worker.id
     };
@@ -94,7 +95,7 @@ var Kern = function( callback, kernOpts ) {
             if( !( serverConfig.active || false ) )
                 website = "kern";
 
-            console.log( serverConfig.authToken );
+            console.log( "AUTHTOKEN:", serverConfig.authToken );
 
             req.kern = {
                 website: website,
@@ -144,7 +145,8 @@ var Kern = function( callback, kernOpts ) {
                 }
 
                 var compiledJade = jade.compile( data, opts );
-                app.jadeCache[ cacheName ] = compiledJade;
+		// disable cache until dependencies are checked
+                //app.jadeCache[ cacheName ] = compiledJade;
                 var html = compiledJade( locals );
 
                 res.send( html );

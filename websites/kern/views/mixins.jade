@@ -1,0 +1,52 @@
+mixin field(name,type,label)
+    div.form-group
+        label= label
+        input.form-control(type=type,name=name)
+
+mixin text-field(name, label)
+    +field(name, 'text', label)
+
+mixin password-field(name, label)
+    +field(name, 'password', label)
+
+mixin date-field(name, label)
+    div.form-group
+        label= label
+        input.form-control(type='text', rel='date',name=name)
+        - var newName = name + '-alt';
+        input(type='hidden', name=newName)
+
+mixin enum-field(name, label, keyValues)
+    div.form-group
+        label= label
+        select.form-control(name=name)
+            each val, key in keyValues
+                option(value=key)= val
+
+mixin textarea(name, label)
+    div.form-group
+        label= label
+        textarea.form-control(name=name,rows='3')
+            
+
+mixin modal(id,title,saveCaption)
+    div.modal.fade(id=id)
+        div.modal-dialog
+            div.modal-content
+                div.modal-header
+                    button.close(data-dismiss='modal',type='button',aria-hidden='true')
+                        &times;
+                    h4.modal-title= title
+                div.modal-body
+                    block
+                div.modal-footer
+                    button.btn.btn-default(data-dismiss='modal',type='button') Schließen
+                    button.btn.btn-primary(type='button')= saveCaption
+
+mixin modal-add-edit(id,title)
+    - var newId = id + '-add', newTitle = title + ' hinzufügen';
+    +modal(newId, newTitle, 'Hinzufügen')
+        block
+    - newId = id + '-edit'; newTitle = title + ' editieren';
+    +modal(newId, newTitle, 'Änderung speichern')
+        block
