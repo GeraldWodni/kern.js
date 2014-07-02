@@ -18,6 +18,7 @@ var bcrypt  = require("bcrypt-nodejs");
 
 /* kern subsystems */
 var hierarchy   = require("./hierarchy");
+var postman     = require("./postman");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -202,6 +203,12 @@ var Kern = function( callback, kernOpts ) {
         /* show basic hello if nothing else catched up until here */
         app.get("/kern-setup", function( req, res ) {
             app.renderJade( res, "kern", "setup" );
+        });
+
+        app.post("/kern-setup", function( req, res ) {
+            postman( req, res, function( req, res ) {
+                console.log( req.postman.fields );
+            });
         });
 
         app.get("/", function( req, res ) {
