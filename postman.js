@@ -23,8 +23,17 @@ function postman( req, res, callback ) {
         req.postman = {
             fields: fields,
             filter: filter,
-            uint:   function( field ) { return filter(/[^0-9]/g); },
-            int:    function( field ) { return filter(/[^-0-9]/g); }
+            uint:       function( field ) { return filter( field, /[^0-9]/g             ); },
+            int:        function( field ) { return filter( field, /[^-0-9]/g            ); },
+            decimal:    function( field ) { return filter( field, /[^-.,0-9]/g          ).replace(/,/g, '.'); },
+            id:         function( field ) { return filter( field, /[^-_.:a-zA-Z0-9]/g   ); },
+            username:   function( field ) { return filter( field, /[^@-_.a-zA-Z0-9]/g   ); },
+            equals:     function( field, value ) {
+                            return fields[ field ] == value;
+                        },
+            fieldsMatch:function( fieldA, fieldB ) {
+                            return fields[ fieldA ] === fields[ fieldB ];
+                        }
         };
 
         callback( req, res );

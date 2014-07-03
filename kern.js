@@ -81,9 +81,9 @@ var Kern = function( callback, kernOpts ) {
 
         /* start express, add kern attributes */
         var app = express();
-        var rdb = redis.createClient();
+        app.rdb = redis.createClient();
 
-        rdb.on( "error", function( err ) {
+        app.rdb.on( "error", function( err ) {
             console.log( "Redis-error " + err );
         });
 
@@ -146,7 +146,7 @@ var Kern = function( callback, kernOpts ) {
                 }
 
                 var compiledJade = jade.compile( data, opts );
-		// disable cache until dependencies are checked
+                // disable cache until dependencies are checked
                 //app.jadeCache[ cacheName ] = compiledJade;
                 var html = compiledJade( locals );
 
@@ -202,12 +202,47 @@ var Kern = function( callback, kernOpts ) {
 
         /* show basic hello if nothing else catched up until here */
         app.get("/kern-setup", function( req, res ) {
-            app.renderJade( res, "kern", "setup" );
+            app.renderJade( res, "kern", "setup", { messages: [] } );
         });
 
         app.post("/kern-setup", function( req, res ) {
             postman( req, res, function( req, res ) {
+                messages = [];
+                success = true;
+
                 console.log( req.postman.fields );
+
+                /* validate */
+                if( !req.postman.equals( "token", serverConfig.authToken ) ) {
+                    messages.push( { type: "danger", text: "AuthToken not correct" } );
+                    success = false;
+                }
+
+                if( !req.postman.fieldsMatch( "password", "password2" ) ) {
+                    messages.push( { type: "danger", text: "Passwords do not match" } );
+                    success = false;
+                }
+
+                /* abort here on user-error */
+                if( !success ) {
+                    app.renderJade( res, "kern", "setup", { messages: messages } );
+                    return;
+                }
+
+                /* TODO: hash */
+                var username = req.postman.username( "username" );
+                var passhash = bcrypt.hashSync( req.postman.fields.password );
+                
+                app.rdb.hset( "kern.server.admins", username, passhash, function( err ) {
+                    if( err ) {
+                        messages.push( { type: "danger", title: "Redis-Error", text: err } );
+                        app.renderJade( res, "kern", "setup", { messages: messages } );
+                    }
+                    else
+                        app.renderJade( res, "kern", "setupDone" );
+                
+                });
+
             });
         });
 

@@ -35,7 +35,7 @@ mixin modal(id,title,saveCaption)
             div.modal-content
                 div.modal-header
                     button.close(data-dismiss='modal',type='button',aria-hidden='true')
-                        &times;
+                        | &times;
                     h4.modal-title= title
                 div.modal-body
                     block
@@ -50,3 +50,11 @@ mixin modal-add-edit(id,title)
     - newId = id + '-edit'; newTitle = title + ' editieren';
     +modal(newId, newTitle, 'Änderung speichern')
         block
+
+mixin messages(messages)
+    each message in messages || []
+        - var classes = "alert alert-" + ( message.type || "danger" );
+        div(class=classes,role="alert")
+            strong= message.title || "Error:"
+            | 
+            = message.text

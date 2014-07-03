@@ -1,0 +1,21 @@
+extends layout
+include mixins
+
+block content
+    h1 Account created
+    p.lead
+        | Setup completed
+    p
+        | Now that you have created an administrative account, you can use it to 
+        a.btn.btn-primary(href="/kern-admin")
+                | login
+    h3 Additional Accounts
+    p
+        | You can also setup 
+        a(href="/kern-setup") additinal administrators
+        |  using the same token.
+    p
+        | Once you are done disable the setup for security reasons by adding 
+        code setup: false
+        |  to config.json .
+
