@@ -1,3 +1,5 @@
+// Main File, setup kern and spawn workers
+// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var cluster = require("cluster");
 var hub     = require("clusterhub");
@@ -181,6 +183,27 @@ var Kern = function( callback, kernOpts ) {
 
         callback( app );
 
+        /* site-modules */
+        function siteModule( filename ) {
+            /* get site specific script and execute it */
+            target = require( filename );
+
+            var router = express.Router();
+            target.setup({
+                modules: {
+                    postman: postman
+                },
+                router: router,
+                serverConfig: serverConfig,
+                renderJade: app.renderJade,
+                rdb: rdb
+            });
+
+            /* attach new router */
+            target.router = router;
+            return target;
+        };
+
         /* site-specific route */
         var websites = {};
         app.use(function (req, res, next) {
@@ -192,22 +215,9 @@ var Kern = function( callback, kernOpts ) {
                 /* get site specific script and execute it */
                 var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
                 if( siteFilename != null ) {
-                    target = require( './' + siteFilename );
+                    
+                    target = siteModule( './' + siteFilename );
                     websites[ req.kern.website ] = target;
-
-                    var router = express.Router();
-                    target.setup({
-                        modules: {
-                            postman: postman
-                        },
-                        router: router,
-                        serverConfig: serverConfig,
-                        renderJade: app.renderJade,
-                        rdb: rdb
-                    });
-
-                    /* attach new router */
-                    target.router = router;
                 }
                 else
                     next();
@@ -218,6 +228,10 @@ var Kern = function( callback, kernOpts ) {
                 target.router( req, res, next );
         });
 
+        /* administration interface */
+        app.use( "/admin", siteModule( "./" + hierarchy.lookupFile( kernOpts.websitesRoot, "default", "administration.js" ) ).router );
+
+        /* catch all / show 404 */
         app.get("/", function( req, res ) {
             if( req.config )
                 app.renderJade( res, "websites/kern/views/layout.jade" );
