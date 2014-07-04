@@ -38,7 +38,8 @@ var defaults = {
     setupEnabled: true,
     websitesRoot: 'websites',
     viewFolder: 'views',
-    rootFolder: __dirname
+    rootFolder: __dirname,
+    processCount: 1
     // processCount: specify the number of worker-processes to create
 };
 
@@ -114,6 +115,8 @@ var Kern = function( callback, kernOpts ) {
 
             /* compile template */
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            console.log( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            console.log( "FILEPATH:", filepath );
 
             opts = opts || {};
             _.extend( opts, {
