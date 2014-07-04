@@ -81,6 +81,9 @@ var Kern = function( callback, kernOpts ) {
 
         /* start express, add kern attributes */
         var app = express();
+        app.modules = {
+            postman: postman
+        };
         app.rdb = redis.createClient();
 
         app.rdb.on( "error", function( err ) {
@@ -186,7 +189,7 @@ var Kern = function( callback, kernOpts ) {
                 parser.parse( data, function( err, tree ) {
                     if( err ) {
                         console.log( err );
-                        res.send( "ERROR" + err );
+                            res.send( "ERROR" + err );
                         next();
                         return;
                     }
@@ -200,50 +203,41 @@ var Kern = function( callback, kernOpts ) {
 
         callback( app );
 
-        /* show basic hello if nothing else catched up until here */
-        app.get("/kern-setup", function( req, res ) {
-            app.renderJade( res, "kern", "setup", { messages: [] } );
-        });
+        /* site-specific route */
+        var websites = {};
+        app.use(function (req, res, next) {
+            var target;
+            if( req.kern.website in websites )
+                target = websites[ req.kern.website ];
+            else {
 
-        app.post("/kern-setup", function( req, res ) {
-            postman( req, res, function( req, res ) {
-                messages = [];
-                success = true;
+                /* get site specific script and execute it */
+                var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
+                if( siteFilename != null ) {
+                    target = require( './' + siteFilename );
+                    websites[ req.kern.website ] = target;
 
-                console.log( req.postman.fields );
+                    var router = express.Router();
+                    target.setup({
+                        modules: {
+                            postman: postman
+                        },
+                        router: router,
+                        serverConfig: serverConfig,
+                        renderJade: app.renderJade,
+                        rdb: app.rdb
+                    });
 
-                /* validate */
-                if( !req.postman.equals( "token", serverConfig.authToken ) ) {
-                    messages.push( { type: "danger", text: "AuthToken not correct" } );
-                    success = false;
+                    /* attach new router */
+                    target.router = router;
                 }
+                else
+                    next();
+            }
 
-                if( !req.postman.fieldsMatch( "password", "password2" ) ) {
-                    messages.push( { type: "danger", text: "Passwords do not match" } );
-                    success = false;
-                }
-
-                /* abort here on user-error */
-                if( !success ) {
-                    app.renderJade( res, "kern", "setup", { messages: messages } );
-                    return;
-                }
-
-                /* TODO: hash */
-                var username = req.postman.username( "username" );
-                var passhash = bcrypt.hashSync( req.postman.fields.password );
-                
-                app.rdb.hset( "kern.server.admins", username, passhash, function( err ) {
-                    if( err ) {
-                        messages.push( { type: "danger", title: "Redis-Error", text: err } );
-                        app.renderJade( res, "kern", "setup", { messages: messages } );
-                    }
-                    else
-                        app.renderJade( res, "kern", "setupDone" );
-                
-                });
-
-            });
+            /* execute target site-script */
+            if( target != null && "router" in target )
+                target.router( req, res, next );
         });
 
         app.get("/", function( req, res ) {
