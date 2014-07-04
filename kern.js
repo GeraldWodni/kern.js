@@ -18,6 +18,7 @@ var bcrypt  = require("bcrypt-nodejs");
 
 /* kern subsystems */
 var hierarchy   = require("./hierarchy");
+var requestData = require("./requestData");
 var postman     = require("./postman");
 
 /* serverConfig, load from file if exists */
@@ -43,27 +44,6 @@ serverConfig = _.extend( defaults, serverConfig );
 console.log( "CONFIG:", serverConfig );
 
 
-/* TODO: capsule in RequestData or alike file */
-var ReqData = function( req ) {
-    this.req = req;
-};
-
-ReqData.prototype.raw = function( name ) {
-    return this.req.params[name];
-}
-
-ReqData.prototype.filter = function( name, filter ) {
-    var value = this.raw( name );
-
-    if( value == null )
-        return null;
-        
-    return value.replace( filter, '' );
-}
-
-ReqData.prototype.filename = function( name ) {
-    return this.filter( name, /[^-_.0-9a-zA-Z]/g );
-}
 
 /* main export */
 var Kern = function( callback, kernOpts ) {
@@ -81,18 +61,15 @@ var Kern = function( callback, kernOpts ) {
 
         /* start express, add kern attributes */
         var app = express();
-        app.modules = {
-            postman: postman
-        };
-        app.rdb = redis.createClient();
+        app.disable('x-powered-by');
+        
+        var rdb = redis.createClient();
 
-        app.rdb.on( "error", function( err ) {
+        rdb.on( "error", function( err ) {
             console.log( "Redis-error " + err );
         });
 
-        /* hide identifiaction */
         app.use(function (req, res, next) {
-            res.removeHeader("x-powered-by");
 
             /* get website from host, use kern if no config is set */
             var website = hierarchy.website( kernOpts.websitesRoot, req.host ) || "default";
@@ -101,9 +78,10 @@ var Kern = function( callback, kernOpts ) {
 
             console.log( "AUTHTOKEN:", serverConfig.authToken );
 
+            requestData( req );
+
             req.kern = {
                 website: website,
-                data: new ReqData( req ),
                 lookupFile: function( filePath ) {
                     return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
                 }
@@ -166,7 +144,7 @@ var Kern = function( callback, kernOpts ) {
         /* less, circumvent path-processing */
         app.get("/css/:file", function( req, res, next ) {
 
-            var filename = req.kern.data.filename( 'file' );
+            var filename = req.requestData.filename( 'file' );
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename ) );
 
             if( filepath == null )
@@ -225,7 +203,7 @@ var Kern = function( callback, kernOpts ) {
                         router: router,
                         serverConfig: serverConfig,
                         renderJade: app.renderJade,
-                        rdb: app.rdb
+                        rdb: rdb
                     });
 
                     /* attach new router */
@@ -247,8 +225,6 @@ var Kern = function( callback, kernOpts ) {
                 app.renderJade( res, "kern", "no-config" );
         });
 
-        //app.use( app.router );
-    
         /* start listener */
         app.listen( kernOpts.port );
     }
