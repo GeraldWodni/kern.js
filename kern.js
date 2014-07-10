@@ -143,7 +143,10 @@ var Kern = function( callback, kernOpts ) {
 
         /* override jade's resolvePath to use kern-hierarchy */
         jade.Parser.prototype.resolvePath = function (filename, purpose) {
-            return hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            var callerFile = this.filename;
+            var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
+
+            return hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
         };
 
         /* less, circumvent path-processing */

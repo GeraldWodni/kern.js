@@ -7,7 +7,7 @@ module.exports = {
     setup: function( k ) {
 
         k.router.get( "/", function( req, res ) {
-            k.renderJade( res, req.kern.website, "info", {} );
+            k.renderJade( res, req.kern.website, "admin/info", {} );
         });
 
     }
