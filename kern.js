@@ -13,6 +13,7 @@ var _       = require("underscore");
 var less    = require("less");
 var redis   = require("redis");
 var bcrypt  = require("bcrypt-nodejs");
+var cookieParser = require( "cookie-parser" );
 
 /* TODO: add session support for token and co */
 //var session = require('express-session') , RedisStore = require('connect-redis')(session);
@@ -22,6 +23,7 @@ var bcrypt  = require("bcrypt-nodejs");
 var hierarchy   = require("./hierarchy");
 var requestData = require("./requestData");
 var postman     = require("./postman");
+var session     = require("./session");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -97,6 +99,8 @@ var Kern = function( callback, kernOpts ) {
         app.status = status;
 
         /* add kern subsystems */
+	app.use( cookieParser() );
+        app.use( session( rdb ) );
         app.use( logger('dev') );
         //app.use( config() );
 
@@ -243,6 +247,13 @@ var Kern = function( callback, kernOpts ) {
                 app.renderJade( res, "websites/kern/views/layout.jade" );
             else
                 app.renderJade( res, "kern", "no-config" );
+        });
+
+	/* tail functions */
+        app.use( function() {
+            /* save session (so there is one ) */
+            if( req.sessionInterface )
+                req.sessionInterface.save() 
         });
 
         /* start listener */
