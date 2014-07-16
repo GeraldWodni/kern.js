@@ -269,7 +269,6 @@ var Kern = function( callback, kernOpts ) {
 	/* tail functions */
         app.postHooks.push( function( req, res ) {
             /* save session (so there is one ) */
-            console.log( "SESS?" );
             /* TODO: store sessionId in req.sessionId? */
             if( req.sessionInterface )
                 req.sessionInterface.save( req, res, function() {} ) 

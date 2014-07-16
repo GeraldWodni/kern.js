@@ -63,28 +63,22 @@ function session( rdb, opts ) {
         rdb.hgetall( key, function( err, values) {
             req.session = values;
             req.session["session:activity"] = moment().format( "YYYY-MM-DD hh:mm:ss" );
-            console.log( "LOAD ", req.sessionId, req.session );
+            console.log( "LOAD session", req.sessionId );
             next();
         });
     };
 
     function save( req, res, next ) {
         /* start saving the session */
-        console.log( "session saves ...", req.session );
+        console.log( "SAVE session", req.sessionId );
         if( req.session && !req.session.logout ) {
             var sKey = sessionKey( req );
             _.map( req.session, function( value, key ) {
-                console.log( "SET", sKey, key, value );
-                rdb.hset( sKey, key, value, function( err ) {
-                    console.log( "SERR:", err );
-                });
+                rdb.hset( sKey, key, value );
             });
-
-            console.log( "session", req.session );
         }
-        else
-            console.log( "NSESS", req.session );
 
+	/* no need to wait for redis to finish */
         next();
     };
 
