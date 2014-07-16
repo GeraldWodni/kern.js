@@ -74,6 +74,8 @@ var Kern = function( callback, kernOpts ) {
             console.log( "Redis-error " + err );
         });
 
+        app.postHooks = [];
+
         app.use(function (req, res, next) {
 
             /* get website from host, use kern if no config is set */
@@ -91,6 +93,21 @@ var Kern = function( callback, kernOpts ) {
                     return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
                 }
             };
+
+            var ended = false;
+            var end = res.end;
+            res.end = function( chunk, encoding ) {
+                if( ended )
+                    return false;
+                ended = true;
+
+                end.call( res, chunk, encoding );
+
+                app.postHooks.forEach( function( postHook ){
+                    postHook( req, res );
+                });
+            };
+
             next();
         });
 
@@ -250,10 +267,12 @@ var Kern = function( callback, kernOpts ) {
         });
 
 	/* tail functions */
-        app.use( function() {
+        app.postHooks.push( function( req, res ) {
             /* save session (so there is one ) */
+            console.log( "SESS?" );
+            /* TODO: store sessionId in req.sessionId? */
             if( req.sessionInterface )
-                req.sessionInterface.save() 
+                req.sessionInterface.save( req, res, function() {} ) 
         });
 
         /* start listener */
