@@ -78,7 +78,7 @@ function session( rdb, opts ) {
             });
         }
 
-	/* no need to wait for redis to finish */
+        /* no need to wait for redis to finish */
         next();
     };
 

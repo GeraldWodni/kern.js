@@ -24,6 +24,7 @@ var hierarchy   = require("./hierarchy");
 var requestData = require("./requestData");
 var postman     = require("./postman");
 var session     = require("./session");
+var users       = require("./users");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -108,7 +109,7 @@ var Kern = function( callback, kernOpts ) {
                 });
             };
 
-            next();
+            nex();
         });
 
         app.debug = debug;
@@ -160,6 +161,12 @@ var Kern = function( callback, kernOpts ) {
                 res.send( html );
             });
         };
+
+        users( rdb );
+        //rdb.users.create( "wodni.at", { name: "gerald", value: "23" } );
+        rdb.users.load( "wodni.at", "gerald", function( err, data ) {
+            console.log( "User-Load Err:", err, "Data:", data );
+        });
 
 
         /* override jade's resolvePath to use kern-hierarchy */
