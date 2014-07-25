@@ -109,7 +109,7 @@ var Kern = function( callback, kernOpts ) {
                 });
             };
 
-            nex();
+            next();
         });
 
         app.debug = debug;
@@ -117,7 +117,7 @@ var Kern = function( callback, kernOpts ) {
         app.status = status;
 
         /* add kern subsystems */
-	app.use( cookieParser() );
+        app.use( cookieParser() );
         app.use( session( rdb ) );
         app.use( logger('dev') );
         //app.use( config() );
@@ -163,10 +163,13 @@ var Kern = function( callback, kernOpts ) {
         };
 
         users( rdb );
-        //rdb.users.create( "wodni.at", { name: "gerald", value: "23" } );
-        rdb.users.load( "wodni.at", "gerald", function( err, data ) {
+        //rdb.users.create( "wodni.at", { name: "test", password: "1234", value: "23" }, function( err ) { console.log( "User-Create Err:", err ) } );
+        //rdb.users.load( "wodni.at", "gerald", function( err, data ) {
+        //    console.log( "User-Load Err:", err, "Data:", data );
+        //});
+	rdb.users.login( "wodni.at", "test", "1234", function ( err, data ) {
             console.log( "User-Load Err:", err, "Data:", data );
-        });
+	});
 
 
         /* override jade's resolvePath to use kern-hierarchy */
@@ -214,6 +217,10 @@ var Kern = function( callback, kernOpts ) {
                 });
             });
         });
+
+        app.use( rdb.users.loginRequired( function( req, res, next ) {
+            app.renderJade( res, req.kern.website, "admin/login" );
+        }) );
 
         callback( app );
 
@@ -273,7 +280,7 @@ var Kern = function( callback, kernOpts ) {
                 app.renderJade( res, "kern", "no-config" );
         });
 
-	/* tail functions */
+        /* tail functions */
         app.postHooks.push( function( req, res ) {
             /* save session (so there is one ) */
             /* TODO: store sessionId in req.sessionId? */
