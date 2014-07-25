@@ -92,7 +92,8 @@ var Kern = function( callback, kernOpts ) {
                 website: website,
                 lookupFile: function( filePath ) {
                     return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
-                }
+                },
+                renderJade: app.renderJade
             };
 
             var ended = false;

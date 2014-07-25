@@ -101,6 +101,7 @@ module.exports = function( rdb ) {
         });
     };
 
+    /* loginRenderer: function( req, res ) or jade-filename */
     function loginRequired( loginRenderer ) {
         return function( req, res, next ) {
             if( req.session && req.session.loggedInUsername )
@@ -112,7 +113,10 @@ module.exports = function( rdb ) {
                     return next();
                 });
 
-            loginRenderer( req, res, next );
+            if( typeof loginRenderer === "function" )
+                loginRenderer( req, res, next );
+            else
+                req.kern.renderJade( res, req.kern.website, loginRenderer );
         };
     };
 

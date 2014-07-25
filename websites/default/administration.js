@@ -6,6 +6,8 @@ var bcrypt  = require("bcrypt-nodejs");
 module.exports = {
     setup: function( k ) {
 
+        k.router.use( k.rdb.users.loginRequired( "admin/login" ) );
+
         k.router.get( "/", function( req, res ) {
             k.renderJade( res, req.kern.website, "admin/info", {} );
         });
