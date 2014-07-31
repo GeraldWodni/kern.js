@@ -13,6 +13,7 @@ var _       = require("underscore");
 var less    = require("less");
 var redis   = require("redis");
 var bcrypt  = require("bcrypt-nodejs");
+var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );
 
 /* TODO: add session support for token and co */
@@ -38,7 +39,7 @@ try {
 /* default value for kern instances */
 var defaults = {
     port: 3000,
-    setupEnabled: true,
+    setupEnabled: false,
     websitesRoot: 'websites',
     viewFolder: 'views',
     rootFolder: __dirname,
@@ -84,7 +85,8 @@ var Kern = function( callback, kernOpts ) {
             if( !( serverConfig.active || false ) )
                 website = "kern";
 
-            console.log( "AUTHTOKEN:", serverConfig.authToken );
+            if( kernOpts.setupEnabled )
+                console.log( "AUTHTOKEN:", serverConfig.authToken );
 
             requestData( req );
 
@@ -159,6 +161,7 @@ var Kern = function( callback, kernOpts ) {
                 //app.jadeCache[ cacheName ] = compiledJade;
                 var html = compiledJade( locals );
 
+                console.log( "SENDING HTML".red, filename.green.bold );
                 res.send( html );
             });
         };
@@ -168,6 +171,7 @@ var Kern = function( callback, kernOpts ) {
         //rdb.users.load( "wodni.at", "gerald", function( err, data ) {
         //    console.log( "User-Load Err:", err, "Data:", data );
         //});
+        //rdb.users.create( "kern", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
 	rdb.users.login( "wodni.at", "test", "1234", function ( err, data ) {
             console.log( "User-Load Err:", err, "Data:", data );
 	});
@@ -219,9 +223,9 @@ var Kern = function( callback, kernOpts ) {
             });
         });
 
-        app.use( rdb.users.loginRequired( function( req, res, next ) {
-            app.renderJade( res, req.kern.website, "admin/login" );
-        }) );
+        //app.use( rdb.users.loginRequired( function( req, res, next ) {
+        //    app.renderJade( res, req.kern.website, "admin/login" );
+        //}) );
 
         callback( app );
 

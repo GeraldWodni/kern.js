@@ -6,7 +6,8 @@ var moment  = require("moment");
 var _       = require("underscore");
 var defaults = {
     cookie: "kernSession",
-    timeout: 30 /* in seconds */
+    timeout: 3000, /* in seconds */
+    autostart: false
 }
 
 /* rdb: redis database */
@@ -39,6 +40,8 @@ function session( rdb, opts ) {
         if( typeof req.session !== "undefined" )
             throw "Session already started";
 
+        console.log( "START session" );
+
         randomHash( function( id ) {
             req.sessionId = id;
             req.session = {
@@ -70,8 +73,8 @@ function session( rdb, opts ) {
 
     function save( req, res, next ) {
         /* start saving the session */
-        console.log( "SAVE session", req.sessionId );
         if( req.session && !req.session.logout ) {
+            console.log( "SAVE session", req.sessionId );
             var sKey = sessionKey( req );
             _.map( req.session, function( value, key ) {
                 rdb.hset( sKey, key, value );
@@ -106,8 +109,10 @@ function session( rdb, opts ) {
             req.sessionId = req.cookies[ opts.cookie ];
             load( req, res, next );
         }
-        else
+        else if( opts.autostart )
             start( req, res, next );
+        else
+            next();
     };
 }
 

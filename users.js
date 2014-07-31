@@ -4,6 +4,8 @@
 var _       = require("underscore");
 var bcrypt  = require("bcrypt-nodejs");
 
+var postman = require("./postman");
+
 module.exports = function( rdb ) {
     /* this keys are not stored in the database */
     var forbiddenKeys = [ "id", "prefix", "password" ];
@@ -73,6 +75,7 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
+        console.log( "Loading", getNamesKey( prefix ), "::::", name );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
@@ -101,22 +104,55 @@ module.exports = function( rdb ) {
         });
     };
 
+    function executeOrRender( req, res, next, renderer, locals ) {
+        if( typeof loginRenderer === "function" )
+            loginRenderer( req, res, next, locals );
+        else
+            req.kern.renderJade( res, req.kern.website, renderer, locals );
+    }
+
+    /* TODO: save prefix in session to avoid cross-site hack-validation */
     /* loginRenderer: function( req, res ) or jade-filename */
     function loginRequired( loginRenderer ) {
         return function( req, res, next ) {
-            if( req.session && req.session.loggedInUsername )
-                loadByName( req.session.loggedInUsername, function( err, data ) {
+            /* already logged in, load user and resume */
+            console.log( "SESS", req.session );
+            if( req.session && req.session.loggedInUsername ) {
+                loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
                     if( err )
                         return next( err, null );
 
                     req.user = data;
-                    return next();
+                    next();
                 });
+                return;
+            }
 
-            if( typeof loginRenderer === "function" )
-                loginRenderer( req, res, next );
-            else
-                req.kern.renderJade( res, req.kern.website, loginRenderer );
+            /* check for credentials */
+            if( req.method === "POST" )
+                postman( req, res, function() {
+                    /* all fields available? */
+                        console.log( req.postman.fields );
+                    if( req.postman.exists( ["login", "username", "password"] ) ) {
+                        var username = req.postman.username();
+                        login( req.kern.website, username, req.postman.password(), function( err, data ) {
+                            if( err )
+                                return executeOrRender( req, res, next, loginRenderer, { error: err } );
+
+                            req.sessionInterface.start( req, res, function() {
+                                req.session.loggedInUsername = username;
+                                req.user = data;
+                                next();
+                            });
+                        });
+                    }
+                    else
+                        executeOrRender( req, res, next, loginRenderer );
+                });
+            /* show login form */
+            else {
+                executeOrRender( req, res, next, loginRenderer );
+            }
         };
     };
 

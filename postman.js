@@ -1,7 +1,8 @@
 // Receive and handle post data
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var qs = require( "qs" );
+var qs  = require( "qs" );
+var _   = require("underscore");
 
 function postman( req, res, callback ) {
     var body = '';
@@ -27,7 +28,16 @@ function postman( req, res, callback ) {
             int:        function( field ) { return filter( field, /[^-0-9]/g            ); },
             decimal:    function( field ) { return filter( field, /[^-.,0-9]/g          ).replace(/,/g, '.'); },
             id:         function( field ) { return filter( field, /[^-_.:a-zA-Z0-9]/g   ); },
-            username:   function( field ) { return filter( field, /[^@-_.a-zA-Z0-9]/g   ); },
+            username:   function( field ) { return filter( field || "username", /[^@-_.a-zA-Z0-9]/g   ); },
+            password:   function( field ) { return fields[ field || "password" ];                        },
+            exists:     function( field ) {
+                            /* allow passing of single value or array */
+                            if( ! _.isArray( field ) )
+                                field = [ field ];
+                            return _.every( field, function( f ) {
+                                return f in fields;
+                            });
+                        },
             equals:     function( field, value ) {
                             return fields[ field ] == value;
                         },

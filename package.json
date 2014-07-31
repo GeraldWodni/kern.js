@@ -7,20 +7,22 @@
     "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
+    "bcrypt-nodejs": "0.0.x",
+    "clusterhub": "0.2.x",
+    "colors": "^0.6.2",
     "cookie-parser": "~1.3.2",
+    "express": "4.4.x",
+    "express-error-handler": "^0.5.4",
+    "jade": "1.3.x",
+    "less": "1.7.x",
+    "mocha": "1.20.x",
     "moment": "~2.7.0",
     "morgan": "1.0.x",
     "mysql": "2.3.x",
-    "jade": "1.3.x",
-    "bcrypt-nodejs": "0.0.x",
-    "supervisor": "0.6.x",
-    "underscore": "1.6.x",
-    "clusterhub": "0.2.x",
-    "less": "1.7.x",
-    "express": "4.4.x",
-    "mocha": "1.20.x",
-    "should": "4.0.x",
+    "qs": "~0.6.6",
     "redis": "~0.10.3",
-    "qs": "~0.6.6"
+    "should": "4.0.x",
+    "supervisor": "0.6.x",
+    "underscore": "1.6.x"
   }
 }
