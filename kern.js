@@ -128,20 +128,16 @@ var Kern = function( callback, kernOpts ) {
         app.jadeCache = {};
         app.renderJade = function( res, website, filename, locals, opts ) {
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
-            console.log( "RENDER: ", website, filename );
 
             var cacheName = website + '//' + filename;
             if( cacheName in app.jadeCache ) {
+                console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
                 res.send( app.jadeCache[ cacheName ]( locals ) );
                 return;
             }
 
-            console.log( "CACHE: ", cacheName );
-
             /* compile template */
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
-            console.log( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
-            console.log( "FILEPATH:", filepath );
 
             opts = opts || {};
             _.extend( opts, {
@@ -161,7 +157,7 @@ var Kern = function( callback, kernOpts ) {
                 //app.jadeCache[ cacheName ] = compiledJade;
                 var html = compiledJade( locals );
 
-                console.log( "SENDING HTML".red, filename.green.bold );
+                console.log( "Jade Rendered ".grey, filename.green, website.grey );
                 res.send( html );
             });
         };

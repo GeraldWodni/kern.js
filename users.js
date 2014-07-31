@@ -67,7 +67,6 @@ module.exports = function( rdb ) {
     };
 
     function loadById( prefix, id, next ) {
-        console.log( "loadById", prefix, "ID:", id );
         rdb.hgetall( getKey( prefix, id ), function( err, data ) {
             data = _.extend( data, { id: id, prefix: prefix } );
             next( err, data );
@@ -75,7 +74,6 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
-        console.log( "Loading", getNamesKey( prefix ), "::::", name );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
@@ -116,7 +114,6 @@ module.exports = function( rdb ) {
     function loginRequired( loginRenderer ) {
         return function( req, res, next ) {
             /* already logged in, load user and resume */
-            console.log( "SESS", req.session );
             if( req.session && req.session.loggedInUsername ) {
                 loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
                     if( err )
@@ -132,7 +129,6 @@ module.exports = function( rdb ) {
             if( req.method === "POST" )
                 postman( req, res, function() {
                     /* all fields available? */
-                        console.log( req.postman.fields );
                     if( req.postman.exists( ["login", "username", "password"] ) ) {
                         var username = req.postman.username();
                         login( req.kern.website, username, req.postman.password(), function( err, data ) {

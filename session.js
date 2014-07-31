@@ -66,7 +66,7 @@ function session( rdb, opts ) {
         rdb.hgetall( key, function( err, values) {
             req.session = values;
             req.session["session:activity"] = moment().format( "YYYY-MM-DD hh:mm:ss" );
-            console.log( "LOAD session", req.sessionId );
+            //console.log( "LOAD session", req.sessionId );
             next();
         });
     };
@@ -74,7 +74,7 @@ function session( rdb, opts ) {
     function save( req, res, next ) {
         /* start saving the session */
         if( req.session && !req.session.logout ) {
-            console.log( "SAVE session", req.sessionId );
+            //console.log( "SAVE session", req.sessionId );
             var sKey = sessionKey( req );
             _.map( req.session, function( value, key ) {
                 rdb.hset( sKey, key, value );
