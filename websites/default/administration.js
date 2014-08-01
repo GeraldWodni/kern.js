@@ -3,6 +3,7 @@
 
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
+var util    = require("util");
 
 module.exports = {
     setup: function( k ) {
@@ -27,10 +28,9 @@ module.exports = {
 
         k.router.use( function( req, res ) {
             console.log( "Done".green.bold );
-            res.end( "DONE" );
-            console.log( JSON.stringify( req ) );
-            }
-        );
+            res.end( "DONE\n\n" );
+            console.log( util.inspect( req ) );
+        });
 
     }
 };

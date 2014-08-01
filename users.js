@@ -120,7 +120,6 @@ module.exports = function( rdb ) {
                         return next( err, null );
 
                     req.user = data;
-                    req.method = "GET";
                     next();
                 });
                 return;
@@ -139,6 +138,7 @@ module.exports = function( rdb ) {
                             req.sessionInterface.start( req, res, function() {
                                 req.session.loggedInUsername = username;
                                 req.user = data;
+                                req.method = "GET";
                                 next();
                             });
                         });

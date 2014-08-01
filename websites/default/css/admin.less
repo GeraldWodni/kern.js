@@ -1,0 +1,51 @@
+@import "bootstrap";
+
+@only-xs:  ~"(max-width: @{screen-xs-max})";
+@from-sm:  ~"(min-width: @{screen-sm-min})";
+
+body {
+    background-color: '#CCC';
+    padding-top: @navbar-height;
+}
+
+.navbar {
+    background: url(/images/orion-nebula-space-galaxy.jpg);
+    background-size: cover;
+
+    div.navbar-header {
+        float: left;
+    }
+
+    a, a.navbar-brand {
+
+        color: #FFF;
+        padding: 15px;
+        display: inline-block;
+        font-size: 18px;
+        line-height: 18px;
+        height: 50px;
+
+        text-decoration: none;
+        text-shadow: #000 0 0 1px;
+
+        &:hover {
+            background: rgba( 100, 100, 100, 0.7 );
+        }
+    }
+
+    ul {
+        margin: 0;
+        li {
+            display: inline;
+        }
+    }
+}
+
+#logout {
+}
+
+footer {
+    margin-top: 40px;
+    padding-top: 5px;
+    border-top: 1px solid #CCC;
+}

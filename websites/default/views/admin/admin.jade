@@ -15,17 +15,17 @@ html
         title admin - kern.js
         link(rel="stylesheet", type="text/css" href="/css/admin.css")
     body
-        div.navbar.navbar-inverse.navbar-fixed-top(role='navigation')
+        div.navbar.navbar-fixed-top(role='navigation')
             div.container
                 div.navbar-header
                     a.navbar-brand(href="/")
                         | kern.js
-                ul.nav.navbar-nav
-                        +menuItem("",           "info-sign",    "Info"      )
-                        +menuItem("navigation", "list",         "Navigation")
-                        +menuItem("media",      "folder-open",  "Media"     )
-                        +menuItem("user",       "user",         "Users"     )
-                        +menuItem("logout",     "log-out",      "Logout"    )
+                ul
+                    +menuItem("",           "info-sign",    "Info"      )
+                    +menuItem("navigation", "list",         "Navigation")
+                    +menuItem("media",      "folder-open",  "Media"     )
+                    +menuItem("user",       "user",         "Users"     )
+                    +menuItem("logout",     "log-out",      "Logout"    )
 
         div.container.main-content
             block content
