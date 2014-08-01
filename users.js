@@ -120,6 +120,7 @@ module.exports = function( rdb ) {
                         return next( err, null );
 
                     req.user = data;
+                    req.method = "GET";
                     next();
                 });
                 return;

@@ -1,3 +1,17 @@
+- var scriptSources = [];
+
+// add script to required script stack
+mixin script(src)
+    - scriptSources.push( src );
+
+// include every required script exactly once
+mixin scripts()
+    - var usedScripts = []
+    each scriptSource in scriptSources
+        if usedScripts.indexOf( scriptSource ) == -1
+            - usedScripts.push( scriptSource )
+            script(type='text/javascript',src='#{scriptSource}')
+
 mixin field(name,type,label)
     div.form-group
         label= label

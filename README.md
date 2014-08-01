@@ -13,6 +13,6 @@ npm and bower are required to be installed globally. Then install the dependenci
 ```
 npm install
 bower install
-
+npm start
 ```
 

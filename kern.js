@@ -43,7 +43,8 @@ var defaults = {
     websitesRoot: 'websites',
     viewFolder: 'views',
     rootFolder: __dirname,
-    processCount: 1
+    processCount: 1,
+    cacheJade: false // disable cache until dependencies are checked
     // processCount: specify the number of worker-processes to create
 };
 
@@ -153,10 +154,11 @@ var Kern = function( callback, kernOpts ) {
                 }
 
                 var compiledJade = jade.compile( data, opts );
-                // disable cache until dependencies are checked
-                //app.jadeCache[ cacheName ] = compiledJade;
-                var html = compiledJade( locals );
 
+                if( kernOpts.cacheJade )
+                    app.jadeCache[ cacheName ] = compiledJade;
+
+                var html = compiledJade( locals );
                 console.log( "Jade Rendered ".grey, filename.green, website.grey );
                 res.send( html );
             });
@@ -180,6 +182,26 @@ var Kern = function( callback, kernOpts ) {
 
             return hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
         };
+
+        /* serve static content like images and javascript */
+        function serveStatic( directory, req, res ) {
+            var filename = req.requestData.filename( 'file' );
+            var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, path.join( directory, filename ) );
+
+            res.sendfile( filepath );
+        };
+
+        app.get("/images/:file", function( req, res, next ) {
+            serveStatic( "images", req, res );
+        });
+
+        app.get("/js/:file", function( req, res, next ) {
+            serveStatic( "js", req, res );
+        });
+
+        app.get("/fonts/:file", function( req, res, next ) {
+            serveStatic( "fonts", req, res );
+        });
 
         /* less, circumvent path-processing */
         app.get("/css/:file", function( req, res, next ) {

@@ -73,7 +73,7 @@ function session( rdb, opts ) {
 
     function save( req, res, next ) {
         /* start saving the session */
-        if( req.session && !req.session.logout ) {
+        if( req.session ) {
             //console.log( "SAVE session", req.sessionId );
             var sKey = sessionKey( req );
             _.map( req.session, function( value, key ) {
@@ -90,7 +90,7 @@ function session( rdb, opts ) {
             res.clearCookie( opts.cookie );
             rdb.del( sessionKey( req ) );
 
-            req.session.logout = true;
+            req.session = undefined;
         }
 
         next();
@@ -101,7 +101,8 @@ function session( rdb, opts ) {
         /* add interface hooks */
         req.sessionInterface = {
             start: start,
-            save: save
+            save: save,
+            destroy: destroy
         }
 
         /* if kernSession-cookie exists, attempt to load session */
