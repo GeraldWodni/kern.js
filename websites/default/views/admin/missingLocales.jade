@@ -1,0 +1,21 @@
+extends admin
+
+block content
+    if members.length > 0
+        - var text = members[0];
+        h1
+            = members.length
+            | 
+            = __('Missing Locales')
+
+        form(method='post',role='form')
+            +hidden-field( 'key', text )
+            each locale in locales
+                +text-field( "text[" + locale + "]", "[" + locale + "] " + text)
+
+            button.btn.btn-primary(type='submit',name='next',value='next')= __('Next')
+    else
+        h1= __('No missing Locales')
+        
+
+

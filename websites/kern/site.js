@@ -8,7 +8,7 @@ module.exports = {
 
         /* show basic hello if nothing else catched up until here */
         k.router.get("/kern-setup", function( req, res ) {
-            k.renderJade( res, "kern", "setup", { messages: [] } );
+            k.renderJade( req, res, "setup", { messages: [] }, { website: "kern" } );
         });
         
         k.router.post("/kern-setup", function( req, res ) {
@@ -31,7 +31,7 @@ module.exports = {
         
                 /* abort here on user-error */
                 if( !success ) {
-                    k.renderJade( res, "kern", "setup", { messages: messages } );
+                    k.renderJade( req, res, "setup", { messages: messages }, { website: "kern" } );
                     return;
                 }
         
@@ -41,10 +41,10 @@ module.exports = {
                 k.rdb.hset( "kern.server.admins", username, passhash, function( err ) {
                     if( err ) {
                         messages.push( { type: "danger", title: "Redis-Error", text: err } );
-                        k.renderJade( res, "kern", "setup", { messages: messages } );
+                        k.renderJade( req, res, "setup", { messages: messages }, { website: "kern" } );
                     }
                     else
-                        k.renderJade( res, "kern", "setupDone" );
+                        k.renderJade( req, res, "setupDone", {}, { website: "kern" } );
                 
                 });
         

@@ -1,6 +1,40 @@
 extends admin
 
 block content
-    h1 Welcome to kern.js
+    h1
+        | Welcome to kern.js
     p.lead
-        | This is a brief tutorial how to administrate kern
+        | This is a brief tutorial how to administrate your website with kern
+
+    h2
+        +glyph("info-sign")
+        |  Info
+    p
+        | Show this short introduction, news about kern.js 
+
+    h2
+        +glyph("list")
+        |  Navigation
+    p
+        | Configure what templates are displayed at what link for.
+        | This is also where user access to the items it managed.
+
+    h2
+        +glyph("folder-open")
+        |  Media
+    p
+        | Upload images, videos and other files.
+        | Configure user access on a folder level.
+
+    h2 
+        +glyph("user")
+        |  Users
+ 
+    p
+        | Manage user accounts: add new users, reset forgotten passwords
+
+    h2
+        +glyph("log-out")
+        |  Logout
+    p
+        | Safely leave the administration system.

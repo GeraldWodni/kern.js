@@ -5,26 +5,28 @@ var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var util    = require("util");
 
+
 module.exports = {
     setup: function( k ) {
 
         k.router.use( k.rdb.users.loginRequired( "admin/login" ) );
 
+        k.router.get( "/navigation", function( req, res ) {
+            k.renderJade( req, res, "admin/navigation" );
+        });
+
+
+        k.router.use( "/locales", k.siteModule( "./" + k.modules.hierarchy.lookupFile( k.kernOpts.websitesRoot, "default", "missingLocales.js" ) ).router );
+
         k.router.get( "/logout", function( req, res ) {
             req.sessionInterface.destroy( req, res, function() {
-                k.renderJade( res, req.kern.website, "admin/logout", {} );
+                k.renderJade( req, res, "admin/logout" );
             });
         });
 
         k.router.get( "/", function( req, res ) {
-            k.renderJade( res, req.kern.website, "admin/info", {} );
+            k.renderJade( req, res, "admin/info" );
         });
-
-        /* TODO: remove this and change method from POST to GET upon successfull login */
-        //k.router.post( "/", function( req, res ) {
-        //    console.log( "POST admin".red.bold );
-        //    req.kern.renderJade( res, "kern", "no-config" );
-        //});
 
         k.router.use( function( req, res ) {
             console.log( "Done".green.bold );

@@ -11,12 +11,12 @@ block content
 
         form(method='post',role='form')
             div.form-group
-                label(for='username') Benutzer
+                label(for='username')= __("Benutzer")
                 input.form-control(id='username',type='text',name='username',placeholder='Name')
             div.form-group
                 label(for='password') Passwort
                 input.form-control(id='password',type='password',name='password',placeholder='Passwort')
             button.btn.btn-default(type='submit',name='login',value='yes') Login
 
-    script(type='text/javascript',src='/js/jquery.min.js')
-    script(type='text/javascript',src='/js/bootstrap.min.js')
+    +script('/js/jquery.min.js')
+    +script('/js/bootstrap.min.js')

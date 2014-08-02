@@ -20,6 +20,9 @@ mixin field(name,type,label)
 mixin text-field(name, label)
     +field(name, 'text', label)
 
+mixin hidden-field(name, value)
+    input(type='hidden', name=name, value=value)
+
 mixin password-field(name, label)
     +field(name, 'password', label)
 
@@ -65,6 +68,9 @@ mixin modal-add-edit(id,title)
     +modal(newId, newTitle, 'Änderung speichern')
         block
 
+mixin glyph(icon)
+            i.glyphicon.glyphicon(class="glyphicon-#{icon}")
+
 mixin messages(messages)
     each message in messages || []
         - var classes = "alert alert-" + ( message.type || "danger" );
@@ -72,3 +78,4 @@ mixin messages(messages)
             strong= message.title || "Error:"
             | 
             = message.text
+

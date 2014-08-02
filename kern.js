@@ -26,6 +26,7 @@ var requestData = require("./requestData");
 var postman     = require("./postman");
 var session     = require("./session");
 var users       = require("./users");
+var locales     = require("./locales");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -127,8 +128,18 @@ var Kern = function( callback, kernOpts ) {
         //app.use( config() );
 
         app.jadeCache = {};
-        app.renderJade = function( res, website, filename, locals, opts ) {
+        app.renderJade = function( req, res, filename, locals, opts ) {
+
+            /* allow website override */
+            var website = req.kern.website;
+            if( opts && opts.website )
+                website = opts.website;
+
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
+
+            locals = _.extend( locals || {}, {
+                __: req.locales.__
+            });
 
             var cacheName = website + '//' + filename;
             if( cacheName in app.jadeCache ) {
@@ -241,6 +252,9 @@ var Kern = function( callback, kernOpts ) {
             });
         });
 
+        /* enable dynamic-modules ( not needed for static files ) */
+        app.use( locales( rdb ) );
+
         //app.use( rdb.users.loginRequired( function( req, res, next ) {
         //    app.renderJade( res, req.kern.website, "admin/login" );
         //}) );
@@ -255,12 +269,15 @@ var Kern = function( callback, kernOpts ) {
             var router = express.Router();
             target.setup({
                 modules: {
+                    hierarchy: hierarchy,
                     postman: postman
                 },
+                siteModule: siteModule,
                 router: router,
                 serverConfig: serverConfig,
                 renderJade: app.renderJade,
-                rdb: rdb
+                rdb: rdb,
+                kernOpts: kernOpts
             });
 
             /* attach new router */
@@ -298,9 +315,9 @@ var Kern = function( callback, kernOpts ) {
         /* catch all / show 404 */
         app.get("/", function( req, res ) {
             if( req.config )
-                app.renderJade( res, "websites/kern/views/layout.jade" );
+                app.renderJade( req, res, "websites/kern/views/layout.jade" );
             else
-                app.renderJade( res, "kern", "no-config" );
+                app.renderJade( req, res, "no-config", {}, { website: "kern" } );
         });
 
         /* tail functions */

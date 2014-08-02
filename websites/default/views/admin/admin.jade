@@ -5,7 +5,7 @@ include ../mixins
 mixin menuItem( link, icon, text )
     li
         a(href="/admin/#{link}")
-            i.glyphicon.glyphicon(class="glyphicon-#{icon}")
+            +glyph(icon)
             span.hidden-xs
                 | 
                 = text

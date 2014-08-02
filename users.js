@@ -106,7 +106,7 @@ module.exports = function( rdb ) {
         if( typeof loginRenderer === "function" )
             loginRenderer( req, res, next, locals );
         else
-            req.kern.renderJade( res, req.kern.website, renderer, locals );
+            req.kern.renderJade( req, res, renderer, locals );
     }
 
     /* TODO: save prefix in session to avoid cross-site hack-validation */

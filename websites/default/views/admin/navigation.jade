@@ -1,0 +1,18 @@
+extends admin
+
+block content
+    h1 Navigation
+
+    div.row
+        div.col-sm-4
+            div
+                | hallo würstchen!
+        div.col-sm-8
+            form(method='post',role='form')
+                +text-field("name", "Name")
+                +text-field("link", "Link")
+                +enum-field("type", "Typ", {text: "Text", view: "View", function:"Function" })
+                button.btn.btn-default(type='submit',name='login',value='yes') Login
+
+
+
