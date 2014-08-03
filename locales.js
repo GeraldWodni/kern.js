@@ -9,6 +9,7 @@ module.exports = function( rdb, defaultLocale ) {
 
     var locales = {};
     var localeNames = [];
+    var languages = [];
     var folder = "locales";
     defaultLocale = defaultLocale || 'en-US';
 
@@ -20,6 +21,7 @@ module.exports = function( rdb, defaultLocale ) {
             var name = filename.replace( /\.json$/, '' );
 	    if( /^[a-z]{2}-[A-Z]{2}\.json$/.test( filename ) ) {
                 localeNames.push( name );
+                languages.push( name.substring( 0, 2 ) );
                 locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
                 console.log( "Found Locale", name );
             }
@@ -35,6 +37,28 @@ module.exports = function( rdb, defaultLocale ) {
         for( var i = 0; i < localeNames.length; i++ )
             if( localeNames[i].indexOf( language ) == 0 )
                 return localeNames[i];
+
+        return defaultLocale;
+    }
+
+    function getBestMatch( requests ) {
+        for( var i = 0; i < requests.length; i++ ) {
+            var request = requests[i].trim();
+            if( request.length == 0 )
+                continue;
+
+            /* ignore weights */
+            if( request.indexOf( "q=" ) == 0 )
+                continue;
+
+            /* perfect match */
+            if( localeNames.indexOf( request ) >= 0 )
+                return request;
+
+            /* language match */
+            if( languages.indexOf( request.substring( 0, 2  ) ) >= 0 )
+                return getClosest( request );
+        }
 
         return defaultLocale;
     }
@@ -61,9 +85,8 @@ module.exports = function( rdb, defaultLocale ) {
 
     return function( req, res, next ) {
     	/* TODO: get from user agent */
-        var current = getClosest( "de-DE" );
-
         var requested = req.headers["accept-language"];
+        var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 
         console.log( requested );
         console.log("Closest:", current );
