@@ -18,9 +18,11 @@ module.exports = function( rdb, defaultLocale ) {
 
         _.each( fs.readdirSync( folder ), function( filename ) {
             var name = filename.replace( /\.json$/, '' );
-            localeNames.push( name );
-            locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
-            console.log( "Found Locale", name );
+	    if( /^[a-z]{2}_[A-Z]{2}\.json$/.test( filename ) ) {
+                localeNames.push( name );
+                locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
+                console.log( "Found Locale", name );
+            }
         });
     };
 
@@ -48,8 +50,8 @@ module.exports = function( rdb, defaultLocale ) {
     
     /* TODO: finish this function, always yields notFound */
     function __( locale, text ) {
-        var resolved = locales[ locale ];
-        if( resolved == undefined );
+        var resolved = locales[ locale ][ text ];
+        if( resolved == undefined )
             return notFound( text );
 
         return resolved;
@@ -58,6 +60,7 @@ module.exports = function( rdb, defaultLocale ) {
     reload();
 
     return function( req, res, next ) {
+    	/* TODO: get from user agent */
         var current = getClosest( "de_DE" );
         console.log("Closest:", current );
 
