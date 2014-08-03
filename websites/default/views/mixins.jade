@@ -12,13 +12,13 @@ mixin scripts()
             - usedScripts.push( scriptSource )
             script(type='text/javascript',src='#{scriptSource}')
 
-mixin field(name,type,label)
+mixin field(name,type,label,value)
     div.form-group
         label= label
-        input.form-control(type=type,name=name)
+        input.form-control(type=type,name=name,value=value)
 
-mixin text-field(name, label)
-    +field(name, 'text', label)
+mixin text-field(name, label, value)
+    +field(name, 'text', label, value)
 
 mixin hidden-field(name, value)
     input(type='hidden', name=name, value=value)

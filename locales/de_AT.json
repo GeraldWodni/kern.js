@@ -1,1 +1,21 @@
-{"No missing Locales":"Keine unbekannten Lokalisierungen","Missing Locales":"Unbekannte Lokalisierungen","Next":"Weiter"}
+{
+    "No missing Locales": "Keine unbekannten Lokalisierungen",
+    "Missing Locales": "Unbekannte Lokalisierungen",
+    "Next": "Weiter",
+    "Media": "Medien",
+    "Navigation": "Navigation",
+    "Username": "Benutzer",
+    "Logged Out": "Ausgelogged",
+    "Authentification required": "Autentifikation erforderlich",
+    "Users": "Benutzer",
+    "Have a nice day": "Haben sie einen schönen Tag",
+    "Logout": "Ausloggen",
+    "Password": "Passwort",
+    "Info": "Info",
+    "Name": "Name",
+    "Add": "Hinzufügen",
+    "Link": "Link",
+    "Function": "Funktion",
+    "Type": "Typ",
+    "Text": "Text"
+}

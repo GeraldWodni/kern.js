@@ -6,13 +6,13 @@ block content
     div.row
         div.col-sm-4
             div
-                | hallo würstchen!
+                | Display Tree
         div.col-sm-8
             form(method='post',role='form')
-                +text-field("name", "Name")
-                +text-field("link", "Link")
-                +enum-field("type", "Typ", {text: "Text", view: "View", function:"Function" })
-                button.btn.btn-default(type='submit',name='login',value='yes') Login
+                +text-field("name", __("Name"))
+                +text-field("link", __("Link"))
+                +enum-field("type", __("Type"), {text: __("Text"), view: "View", function: __("Function") })
+                button.btn.btn-default(type='submit',name='add',value='yes')= __("Add")
 
 
 

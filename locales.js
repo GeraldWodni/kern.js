@@ -62,6 +62,10 @@ module.exports = function( rdb, defaultLocale ) {
     return function( req, res, next ) {
     	/* TODO: get from user agent */
         var current = getClosest( "de_DE" );
+
+        var requested = req.headers["accept-language"];
+
+        console.log( requested );
         console.log("Closest:", current );
 
         req.locales = {

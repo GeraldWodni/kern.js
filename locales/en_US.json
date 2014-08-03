@@ -1,1 +1,21 @@
-{"No missing Locales":"No missing Locales","Missing Locales":"Missing Locales","Next":"Next"}
+{
+    "No missing Locales": "No missing Locales",
+    "Missing Locales": "Missing Locales",
+    "Next": "Next",
+    "Media": "Media",
+    "Navigation": "Navigation",
+    "Username": "Username",
+    "Logged Out": "Logged out",
+    "Authentification required": "Authentification required",
+    "Users": "Users",
+    "Have a nice day": "Have a nice day",
+    "Logout": "Logout",
+    "Password": "Password",
+    "Info": "Info",
+    "Name": "Name",
+    "Add": "Add",
+    "Link": "Link",
+    "Function": "Function",
+    "Type": "Type",
+    "Text": "Text"
+}
