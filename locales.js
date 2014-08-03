@@ -10,7 +10,7 @@ module.exports = function( rdb, defaultLocale ) {
     var locales = {};
     var localeNames = [];
     var folder = "locales";
-    defaultLocale = defaultLocale || 'en_US';
+    defaultLocale = defaultLocale || 'en-US';
 
     function reload() {
         locales = {};
@@ -18,7 +18,7 @@ module.exports = function( rdb, defaultLocale ) {
 
         _.each( fs.readdirSync( folder ), function( filename ) {
             var name = filename.replace( /\.json$/, '' );
-	    if( /^[a-z]{2}_[A-Z]{2}\.json$/.test( filename ) ) {
+	    if( /^[a-z]{2}-[A-Z]{2}\.json$/.test( filename ) ) {
                 localeNames.push( name );
                 locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
                 console.log( "Found Locale", name );
@@ -61,7 +61,7 @@ module.exports = function( rdb, defaultLocale ) {
 
     return function( req, res, next ) {
     	/* TODO: get from user agent */
-        var current = getClosest( "de_DE" );
+        var current = getClosest( "de-DE" );
 
         var requested = req.headers["accept-language"];
 
