@@ -17,5 +17,10 @@
     "Link": "Link",
     "Function": "Funktion",
     "Type": "Typ",
-    "Text": "Text"
+    "Text": "Text",
+    "Change": "Ändern",
+    "Delete pending items": "Offene Einträge löschen",
+    "Target": "Ziel",
+    "Item added": "Eintrag hinzugefügt",
+    "Success": "Erfolg"
 }

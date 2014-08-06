@@ -19,7 +19,7 @@ module.exports = function( rdb, defaultLocale ) {
 
         _.each( fs.readdirSync( folder ), function( filename ) {
             var name = filename.replace( /\.json$/, '' );
-	    if( /^[a-z]{2}-[A-Z]{2}\.json$/.test( filename ) ) {
+            if( /^[a-z]{2}-[A-Z]{2}\.json$/.test( filename ) ) {
                 localeNames.push( name );
                 languages.push( name.substring( 0, 2 ) );
                 locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
@@ -84,7 +84,7 @@ module.exports = function( rdb, defaultLocale ) {
     reload();
 
     return function( req, res, next ) {
-    	/* TODO: get from user agent */
+        /* TODO: get from user agent */
         var requested = req.headers["accept-language"];
         var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 

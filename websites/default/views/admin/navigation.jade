@@ -1,18 +1,33 @@
 extends admin
 
+
 block content
     h1 Navigation
 
+    +messages( messages )
+
     div.row
         div.col-sm-4
-            div
-                | Display Tree
+            ul#links
+                each link in links || []
+                    li= link
         div.col-sm-8
-            form(method='post',role='form')
+
+            mixin navigationFields()
                 +text-field("name", __("Name"))
                 +text-field("link", __("Link"))
-                +enum-field("type", __("Type"), {text: __("Text"), view: "View", function: __("Function") })
-                button.btn.btn-default(type='submit',name='add',value='yes')= __("Add")
+                +enum-field("type", __("Type"), {text: __("Text"), function: __("Function") })
+                +text-field("target", __("Target"))
+
+            form#add(method='post',role='form')
+                h2= __("Add")
+                +navigationFields
+                button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
+
+            form#edit.hidden(method="post",role="form")
+                h2= __("Change")
+                +navigationFields
+                button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
 
 
 

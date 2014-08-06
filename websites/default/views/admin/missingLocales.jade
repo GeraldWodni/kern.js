@@ -17,6 +17,7 @@ block content
                     +text-field( "text[" + locale + "]", "[" + locale + "] " + text)
 
             button.btn.btn-primary(type='submit',name='next',value='next')= __('Next')
+            button.btn.btn-danger.pull-right(type="submit",name="reset",value="reset")=__("Delete pending items")
     else
         h1= __('No missing Locales')
         

@@ -15,6 +15,7 @@ var redis   = require("redis");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );
+var async   = require( "async" );
 
 /* TODO: add session support for token and co */
 //var session = require('express-session') , RedisStore = require('connect-redis')(session);
@@ -27,6 +28,7 @@ var postman     = require("./postman");
 var session     = require("./session");
 var users       = require("./users");
 var locales     = require("./locales");
+var navigation  = require("./navigation");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -78,6 +80,69 @@ var Kern = function( callback, kernOpts ) {
             console.log( "Redis-error " + err );
         });
 
+        /* get hash by index-hash */
+        rdb.hhgetall = function( indexHash, prefix, itemname, callback ) {
+            rdb.hget( indexHash, itemname, function( err, data ) {
+                if( err )
+                    return callback( err );
+
+                rdb.hgetall( prefix + data, function( err, data ) {
+                    if( err )
+                        return callback( err );
+
+                    return callback( null, data );
+                });
+            });
+        };
+
+        rdb.sall = function( setname, worker, callback ) {
+            rdb.smembers( setname, function( err, data ) {
+                if( err )
+                    return callback( err );
+
+                async.map( data, worker, callback );
+            });
+        };
+
+        rdb.shgetall = function( setname, prefix, callback ) {
+            rdb.sall( setname, function( item, next ) {
+                rdb.hgetall( prefix + item, next );
+            }, callback );
+        }
+
+        rdb.lall = function( listname, worker, callback ) {
+            rdb.lrange( listname, 0, -1, function( err, data ) {
+                if( err )
+                    return callback( err );
+
+                async.map( data, worker, callback );
+            });
+        };
+
+        /* delete all keys from index-list */
+        rdb.ldel = function( listname, prefix, callback ) {
+            rdb.lall( listname, prefix, function( item, next ) {
+                rdb.del( prefix + "item", next );
+            }, callback );
+        };
+
+        /* get all hash-items by list */
+	rdb.lhgetall = function( listname, prefix, callback ) {
+            rdb.lrange( listname, 0, -1, function( err, data ) {
+                if( err )
+                    return callback( err );
+
+                async.map( data, function( item, next ) {
+                    rdb.hgetall( prefix + item, function( err, data ) {
+                        if( err )
+                            callback( err );
+                        else
+                            callback( null, _.extend( data, { hkey: item } ) );
+                    });
+                }, callback );
+            });
+	};
+
         app.postHooks = [];
 
         app.use(function (req, res, next) {
@@ -99,6 +164,8 @@ var Kern = function( callback, kernOpts ) {
                 },
                 renderJade: app.renderJade
             };
+
+            req.messages = [];
 
             var ended = false;
             var end = res.end;
@@ -262,9 +329,13 @@ var Kern = function( callback, kernOpts ) {
         callback( app );
 
         /* site-modules */
-        function siteModule( filename ) {
+        function siteModule( website, filename, opts ) {
             /* get site specific script and execute it */
-            target = require( filename );
+
+            if( !opts || !opts.exactFilename )
+                filename = "./" + hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filename );
+
+            target = require( filename )
 
             var router = express.Router();
             target.setup({
@@ -273,6 +344,10 @@ var Kern = function( callback, kernOpts ) {
                     postman: postman
                 },
                 siteModule: siteModule,
+                useSiteModule: function( prefix, website, filename, opts ) {
+                    var subTarget = siteModule( website, filename, opts );
+                    router.use( prefix, subTarget.router );
+                },
                 router: router,
                 serverConfig: serverConfig,
                 renderJade: app.renderJade,
@@ -297,7 +372,7 @@ var Kern = function( callback, kernOpts ) {
                 var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
                 if( siteFilename != null ) {
                     
-                    target = siteModule( './' + siteFilename );
+                    target = siteModule( '', './' + siteFilename, { exactFilename: true } );
                     websites[ req.kern.website ] = target;
                 }
                 else
@@ -308,12 +383,17 @@ var Kern = function( callback, kernOpts ) {
             if( target != null && "router" in target )
                 target.router( req, res, next );
         });
+        
+        app.use( "/", navigation( rdb ) );
 
         /* administration interface */
-        app.use( "/admin", siteModule( "./" + hierarchy.lookupFile( kernOpts.websitesRoot, "default", "administration.js" ) ).router );
+        app.use( "/admin", siteModule( "default", "administration.js" ).router );
 
         /* catch all / show 404 */
-        app.get("/", function( req, res ) {
+        app.use(function( err, req, res, next ) {
+            if( err.status !== 404 )
+                return next();
+                
             if( req.config )
                 app.renderJade( req, res, "websites/kern/views/layout.jade" );
             else

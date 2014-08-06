@@ -17,5 +17,10 @@
     "Link": "Link",
     "Function": "Function",
     "Type": "Type",
-    "Text": "Text"
+    "Text": "Text",
+    "Change": "Change",
+    "Delete pending items": "Delete pending items",
+    "Target": "Target",
+    "Item added": "Item added",
+    "Success": "Success"
 }

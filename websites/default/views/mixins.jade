@@ -75,7 +75,7 @@ mixin messages(messages)
     each message in messages || []
         - var classes = "alert alert-" + ( message.type || "danger" );
         div(class=classes,role="alert")
-            strong= message.title || "Error:"
+            strong= message.title || __("Error") + ":"
             | 
-            = message.text
+            = message.text || ""
 

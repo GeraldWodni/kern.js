@@ -11,12 +11,8 @@ module.exports = {
 
         k.router.use( k.rdb.users.loginRequired( "admin/login" ) );
 
-        k.router.get( "/navigation", function( req, res ) {
-            k.renderJade( req, res, "admin/navigation" );
-        });
-
-
-        k.router.use( "/locales", k.siteModule( "./" + k.modules.hierarchy.lookupFile( k.kernOpts.websitesRoot, "default", "missingLocales.js" ) ).router );
+        k.useSiteModule( "/navigation", "default", "navigation.js" );
+        k.useSiteModule( "/locales",    "default", "missingLocales.js" );
 
         k.router.get( "/logout", function( req, res ) {
             req.sessionInterface.destroy( req, res, function() {
@@ -31,7 +27,7 @@ module.exports = {
         k.router.use( function( req, res ) {
             console.log( "Done".green.bold );
             res.end( "DONE\n\n" );
-            console.log( util.inspect( req ) );
+            //console.log( util.inspect( req ) );
         });
 
     }

@@ -29,6 +29,11 @@ module.exports = {
             k.modules.postman( req, res, function() {
                 console.log( req.postman.fields );
 
+                if( req.postman.exists( "reset" ) ) {
+                    k.rdb.del( "missing-locales", next );
+                    return;
+                }
+
                 /* TODO: create postman.each or alike interface */
                 var name = req.postman.fields.key;
                 var fields = req.postman.fields.text;
