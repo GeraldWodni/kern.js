@@ -6,6 +6,22 @@ var _   = require("underscore");
 
 function postman( req, res, callback ) {
     var body = '';
+
+    function filterText( text, text ) {
+        return text.replace( filter, "" );
+    }
+
+    req.filters = {
+        uint:       function( text ) { return filterText( text, /[^0-9]/g               ); },
+        int:        function( text ) { return filterText( text, /[^-0-9]/g              ); },
+        decimal:    function( text ) { return filterText( text, /[^-.,0-9]/g            ).replace(/,/g, '.'); },
+        id:         function( text ) { return filterText( text, /[^-_.:a-zA-Z0-9]/g     ); },
+        alnum:      function( text ) { return filterText( text, /[^a-zA-Z0-9]/g         ); },
+        link:       function( text ) { return filterText( text, /[^-_a-zA-Z0-9\/]/g     ); },
+        linkItem:   function( text ) { return filterText( text, /[^-_a-zA-Z0-9]/g       ); },
+        username:   function( text ) { return filterText( text, /[^@-_.a-zA-Z0-9]/g     ); }
+    };
+
     req.on( 'data', function( data ) {
         body += data;
 
@@ -21,7 +37,7 @@ function postman( req, res, callback ) {
             return fields[ field ].replace( filter, '' );
         };
 
-        req.postman = {
+        req.postman = _.extend( req.postman || {}, {
             fields: fields,
             filter: filter,
             uint:       function( field ) { return filter( field, /[^0-9]/g             ); },
@@ -46,7 +62,7 @@ function postman( req, res, callback ) {
             fieldsMatch:function( fieldA, fieldB ) {
                             return fields[ fieldA ] === fields[ fieldB ];
                         }
-        };
+        } );
 
         callback( req, res );
     });

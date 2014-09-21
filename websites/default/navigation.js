@@ -22,6 +22,18 @@ module.exports = {
             next();
         });
 
+        //k.router.get( "/item/:link", function( req, res, next ) {
+        k.router.get( "/item", function( req, res, next ) {
+            res.send( "OKAY!");
+
+            //k.rdb.navigation.read( req.website, req.filters.linkPart( req.param.link ), function( err, item ) {
+            //    if( err )
+            //        next( err );
+
+            //    res.send( item );
+            //});
+        } );
+
         k.router.post( "/", function( req, res, next ) {
             console.log( "POSTY".red.bold ); 
 
@@ -35,7 +47,7 @@ module.exports = {
                         target: req.postman.alnum( "target" )
                     }
 
-                    k.rdb.navigation.saveLink( req.website, link, function( err ) {
+                    k.rdb.navigation.create( req.website, link, function( err ) {
                         if( err )
                             return next( err );
 
@@ -61,12 +73,24 @@ module.exports = {
 
 
 
-        k.router.get( "/all",   function( req, res ) { res.send(  ) } );
+        k.router.get( "/all",   function( req, res, next ) { 
+		k.rdb.navigation.readAll( k.website, function( err, data ) {
+			console.log( err );
+			if( err )
+				return next( err );
+			res.send( data );
+		});
+	});
 
         k.router.get( "/asd",   function( req, res ) { k.renderJade( req, res, "admin/info" ); } );
         k.router.get( "/",      function( req, res ) {
-
-                    console.log( "RENDER".red.bold );
-        k.renderJade( req, res, "admin/navigation", { messages: req.messages } ); } );
+            k.rdb.navigation.readAll( req.website, function( err, items ) {
+                if( err )
+                    next( err );
+            
+                console.log( "RENDER".red.bold );
+                k.renderJade( req, res, "admin/navigation", { messages: req.messages, items: items } );
+            });
+        });
     }
 };

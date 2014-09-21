@@ -8,9 +8,13 @@ block content
 
     div.row
         div.col-sm-4
-            ul#links
-                each link in links || []
-                    li= link
+            h2= __("Items")
+            ul#links.list-group
+                each item in items || []
+                    li.list-group-item
+                        = item.link
+                        button.btn.btn-default(type='button').btn-xs.pull-right
+                            +glyph("pencil")
         div.col-sm-8
 
             mixin navigationFields()

@@ -29,6 +29,7 @@ var session     = require("./session");
 var users       = require("./users");
 var locales     = require("./locales");
 var navigation  = require("./navigation");
+var crud        = require("./crud");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -127,7 +128,7 @@ var Kern = function( callback, kernOpts ) {
         };
 
         /* get all hash-items by list */
-	rdb.lhgetall = function( listname, prefix, callback ) {
+        rdb.lhgetall = function( listname, prefix, callback ) {
             rdb.lrange( listname, 0, -1, function( err, data ) {
                 if( err )
                     return callback( err );
@@ -141,7 +142,10 @@ var Kern = function( callback, kernOpts ) {
                     });
                 }, callback );
             });
-	};
+        };
+
+        /* setup crud interface */
+        crud( rdb );
 
         app.postHooks = [];
 
@@ -248,9 +252,9 @@ var Kern = function( callback, kernOpts ) {
         //    console.log( "User-Load Err:", err, "Data:", data );
         //});
         //rdb.users.create( "kern", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
-	rdb.users.login( "wodni.at", "test", "1234", function ( err, data ) {
+        rdb.users.login( "wodni.at", "test", "1234", function ( err, data ) {
             console.log( "User-Load Err:", err, "Data:", data );
-	});
+        });
 
 
         /* override jade's resolvePath to use kern-hierarchy */

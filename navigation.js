@@ -13,41 +13,14 @@ module.exports = function( rdb ) {
 
     function getIndexKey( prefix ) {
         return prefix + ":navigation";
-    }
+    };
 
     function getKey( prefix, link ) {
         return prefix + ":navigation:" + ( link || "" );
-    }
-
-    function updateLink( website, oldLink, newLink, callback ) {
-        async.series( [
-            function( d ) { deleteLink( website, oldLink, d ); },
-            function( d ) { saveLink( website, newLink, d ); }
-        ], callback );
-    }
-
-    function saveLink( website, link, callback ) {
-        async.series( [
-            function( done ) { rdb.sadd( getIndexKey( website ), link.link, done ); },
-            function( done ) { rdb.hmset( getKey( website, link.link ), link, done ); }
-        ], callback );
-    }
-
-    function deleteLink( website, link, callback ) {
-        async.parallel( [
-            function( done ) { rdb.del( getKey( website, link ), done ); },
-            function( done ) { rdb.srem( getIndexKey( website ), link, done ); },
-        ], callback );
-    }
-
-    function getLinks( website, callback ) {
-        rdb.shgetall( getIndexKey( website ), getKey( website ), function( err, data ) {
-            callback( err, data );
-        });
     };
 
     function loadWebsite( website, callback ) {
-        getLinks( website, function( err, data ) {
+        rdb.navigation.readAll( website, function( err, data ) {
             if( err )
                 return callback( err );
 
@@ -69,14 +42,9 @@ module.exports = function( rdb ) {
             websites[ website ] = router;
             callback( null, router );
         });
-    }
-
-    rdb.navigation = {
-        getLinks:   getLinks,
-        saveLink:   saveLink,
-        updateLink: updateLink,
-        deleteLink: deleteLink
     };
+
+    rdb.navigation = rdb.crud.setHash( "navigation" );
 
     return function( req, res, next ) {
         if( req.website in websites )
