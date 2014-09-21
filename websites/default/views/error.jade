@@ -1,0 +1,9 @@
+extends layout
+
+block content
+    h1= message
+    h2= error.status
+    pre #{error.stack}
+
+    script(type='text/javascript',src='/js/jquery.min.js')
+    script(type='text/javascript',src='/js/bootstrap.min.js')

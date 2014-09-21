@@ -211,6 +211,8 @@ var Kern = function( callback, kernOpts ) {
             if( opts && opts.website )
                 website = opts.website;
 
+            console.log( "RENDER: ", website );
+
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
 
             locals = _.extend( locals || {}, {
@@ -381,9 +383,13 @@ var Kern = function( callback, kernOpts ) {
                 var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
                 if( siteFilename != null ) {
                     console.log( "Using ".red.bold, siteFilename );
-                    
-                    target = siteModule( '', './' + siteFilename, { exactFilename: true } );
-                    websites[ req.kern.website ] = target;
+
+                    try {
+                        target = siteModule( '', './' + siteFilename, { exactFilename: true } );
+                        websites[ req.kern.website ] = target;
+                    } catch( err ) {
+                        return next( err );
+                    }
                 }
                 else
                     next();
@@ -399,8 +405,18 @@ var Kern = function( callback, kernOpts ) {
         /* administration interface */
         app.use( "/admin", siteModule( "default", "administration.js" ).router );
 
+        app.use(function(err, req, res, next) {
+            res.status(err.status || 500);
+            console.log( "ERROR HANDLER!".red.bold, err );
+            app.renderJade( req, res, "error", {
+                message: err.message,
+                error: err
+            });
+        });
+
         /* catch all / show 404 */
         app.use(function( err, req, res, next ) {
+            console.log( "ERROR HANDLER2".red.bold, err );
             if( err.status !== 404 )
                 return next();
                 
