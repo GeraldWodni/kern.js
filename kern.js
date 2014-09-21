@@ -55,6 +55,9 @@ var defaults = {
 serverConfig = _.extend( defaults, serverConfig );
 console.log( "CONFIG:", serverConfig );
 
+/* TODO: comment out following line before shipment */
+serverConfig.active = true;
+
 
 
 /* main export */
@@ -153,8 +156,10 @@ var Kern = function( callback, kernOpts ) {
 
             /* get website from host, use kern if no config is set */
             var website = hierarchy.website( kernOpts.websitesRoot, req.host ) || "default";
+            console.log( "WS1:", website );
             if( !( serverConfig.active || false ) )
                 website = "kern";
+            console.log( "WS2:", website );
 
             if( kernOpts.setupEnabled )
                 console.log( "AUTHTOKEN:", serverConfig.authToken );
@@ -375,6 +380,7 @@ var Kern = function( callback, kernOpts ) {
                 /* get site specific script and execute it */
                 var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
                 if( siteFilename != null ) {
+                    console.log( "Using ".red.bold, siteFilename );
                     
                     target = siteModule( '', './' + siteFilename, { exactFilename: true } );
                     websites[ req.kern.website ] = target;
