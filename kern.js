@@ -156,10 +156,8 @@ var Kern = function( callback, kernOpts ) {
 
             /* get website from host, use kern if no config is set */
             var website = hierarchy.website( kernOpts.websitesRoot, req.host ) || "default";
-            console.log( "WS1:", website );
             if( !( serverConfig.active || false ) )
                 website = "kern";
-            console.log( "WS2:", website );
 
             if( kernOpts.setupEnabled )
                 console.log( "AUTHTOKEN:", serverConfig.authToken );
@@ -286,6 +284,9 @@ var Kern = function( callback, kernOpts ) {
 
         app.get("/js/:file", function( req, res, next ) {
             serveStatic( "js", req, res );
+        });
+        app.get("/js/:directory/:file", function( req, res, next ) {
+            serveStatic( "js/" + req.requestData.filename( 'directory' ), req, res );
         });
 
         app.get("/fonts/:file", function( req, res, next ) {
