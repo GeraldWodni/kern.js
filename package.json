@@ -20,6 +20,7 @@
     "moment": "~2.7.0",
     "morgan": "1.0.x",
     "mysql": "2.3.x",
+    "nodejs-websocket": "^1.0.0",
     "qs": "~0.6.6",
     "redis": "~0.10.3",
     "should": "4.0.x",

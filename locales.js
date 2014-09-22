@@ -85,7 +85,7 @@ module.exports = function( rdb, defaultLocale ) {
 
     return function( req, res, next ) {
         /* TODO: get from user agent */
-        var requested = req.headers["accept-language"];
+        var requested = req.headers["accept-language"] || "en-us";
         var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 
         console.log( requested );
