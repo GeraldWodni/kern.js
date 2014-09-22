@@ -76,7 +76,10 @@ var Kern = function( callback, kernOpts ) {
 
         /* start express, add kern attributes */
         var app = express();
-        app.disable('x-powered-by');
+        app.disable( 'x-powered-by' );
+
+        /* websocket support */
+        require( "express-ws" )( app );
         
         var rdb = redis.createClient();
 
@@ -354,6 +357,9 @@ var Kern = function( callback, kernOpts ) {
                 modules: {
                     hierarchy: hierarchy,
                     postman: postman
+                },
+                ws: function() {
+                    app.ws.apply( this, arguments );
                 },
                 siteModule: siteModule,
                 useSiteModule: function( prefix, website, filename, opts ) {
