@@ -1,7 +1,6 @@
-Express + cluster
-http://rowanmanning.com/posts/node-cluster-and-express/
-
 test: add test-directory-structure with custom root for testing
+
+theforth.net clean up user interface
 
 == long term ==
 less: check if the same top-down walk include path is possible with less as used in jade

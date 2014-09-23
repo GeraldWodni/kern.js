@@ -1,4 +1,5 @@
 - var scriptSources = [];
+- var styleSources = [];
 
 // add script to required script stack
 mixin script(src)
@@ -11,6 +12,16 @@ mixin scripts()
         if usedScripts.indexOf( scriptSource ) == -1
             - usedScripts.push( scriptSource )
             script(type='text/javascript',src='#{scriptSource}')
+
+mixin style(href)
+    - styleSources.push( href );
+
+mixin styles()
+    - var usedStyles = []
+    each styleSource in styleSources
+        if usedStyles.indexOf( styleSource ) == -1
+            - usedStyles.push( styleSource );
+            link(rel='stylesheet', type='text/css' href='#{styleSource}')
 
 mixin field(name,type,label,value)
     div.form-group
