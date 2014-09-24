@@ -36,6 +36,8 @@ var serverConfig = {
 };
 
 try { 
+    /* TODO: use os.hostname, rename serverConfig? */
+    os.hostname();
     serverConfig = JSON.parse( fs.readFileSync("serverConfig.json", { encoding: "utf-8" } ) );
 } catch( err ) {
 }
@@ -370,7 +372,8 @@ var Kern = function( callback, kernOpts ) {
                 serverConfig: serverConfig,
                 renderJade: app.renderJade,
                 rdb: rdb,
-                kernOpts: kernOpts
+                kernOpts: kernOpts,
+                hostname: os.hostname()
             });
 
             /* attach new router */
