@@ -42,7 +42,7 @@ try {
 
 /* default value for kern instances */
 var defaults = {
-    port: 3000,
+    port: 8000,
     setupEnabled: false,
     websitesRoot: 'websites',
     viewFolder: 'views',
