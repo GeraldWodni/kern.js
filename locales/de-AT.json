@@ -23,5 +23,8 @@
     "Target": "Ziel",
     "Item added": "Eintrag hinzugefügt",
     "Success": "Erfolg",
-    "Items": "Einträge"
+    "Items": "Einträge",
+    "Save": "Speichern",
+    "Load": "Laden",
+    "Run": "Ausführen"
 }

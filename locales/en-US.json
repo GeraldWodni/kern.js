@@ -23,5 +23,8 @@
     "Target": "Target",
     "Item added": "Item added",
     "Success": "Success",
-    "Items": "Items"
+    "Items": "Items",
+    "Save": "Save",
+    "Load": "Load",
+    "Run": "Run"
 }
