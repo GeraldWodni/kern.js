@@ -25,6 +25,7 @@
     "jquery-ui": "~1.11.1",
     "ace-builds": "~1.1.7",
     "jq-console": "~2.10.0",
-    "reconnectingWebsocket": "*"
+    "reconnectingWebsocket": "*",
+    "impress.js": "~0.5.3"
   }
 }
