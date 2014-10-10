@@ -2,8 +2,11 @@
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
 function requestData( req ) {
-    var filter = function( field, filter ) {
+    var filter = function( field, filter, preFunction ) {
         var value = req.params[ field ];
+
+        if( preFunction )
+            value = preFunction( value );
 
         if( value == null )
             return null;
@@ -13,8 +16,9 @@ function requestData( req ) {
 
     req.requestData = {
         filter: filter,
-        int:        function( field ) { return filter( field, /[^-0-9]/g            ); },
-        filename:   function( field ) { return filter( field, /[^-_.0-9a-zA-Z]/g    ); }
+        int:                function( field ) { return filter( field, /[^-0-9]/g            ); },
+        escapedLink:        function( field ) { return filter( field, /[^-_a-zA-Z0-9\/]/g, decodeURIComponent   ); },
+        filename:           function( field ) { return filter( field, /[^-_.0-9a-zA-Z]/g    ); }
     }
 }
 

@@ -74,6 +74,7 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
+        console.log( "loadByName:", getNamesKey( prefix ) );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );

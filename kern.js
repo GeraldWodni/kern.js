@@ -261,10 +261,7 @@ var Kern = function( callback, kernOpts ) {
         //rdb.users.load( "wodni.at", "gerald", function( err, data ) {
         //    console.log( "User-Load Err:", err, "Data:", data );
         //});
-        //rdb.users.create( "kern", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
-        rdb.users.login( "wodni.at", "test", "1234", function ( err, data ) {
-            console.log( "User-Load Err:", err, "Data:", data );
-        });
+        //rdb.users.create( "default", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
 
 
         /* override jade's resolvePath to use kern-hierarchy */

@@ -13,25 +13,28 @@ block content
                 each item in items || []
                     li.list-group-item
                         = item.link
-                        button.btn.btn-default(type='button').btn-xs.pull-right
+                        a.btn.btn-default(href='/admin/navigation/edit/#{item.escapedLink}').btn-xs.pull-right
                             +glyph("pencil")
         div.col-sm-8
 
-            mixin navigationFields()
-                +text-field("name", __("Name"))
-                +text-field("link", __("Link"))
+            mixin navigationFields(values)
+                - values = values || {}
+                +text-field("name", __("Name"), values.name)
+                +text-field("link", __("Link"), values.link)
                 +enum-field("type", __("Type"), {text: __("Text"), function: __("Function") })
-                +text-field("target", __("Target"))
+                +text-field("target", __("Target"), values.target)
 
-            form#add(method='post',role='form')
-                h2= __("Add")
-                +navigationFields
-                button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
+            if values
+                form#edit(method="post",role="form")
+                    h2= __("Change")
+                    +navigationFields(values)
+                    button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
+            else
+                form#add(method='post',role='form')
+                    h2= __("Add")
+                    +navigationFields
+                    button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
 
-            form#edit.hidden(method="post",role="form")
-                h2= __("Change")
-                +navigationFields
-                button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
 
 
 
