@@ -1,11 +1,11 @@
 - var scriptSources = [];
 - var styleSources = [];
 
-// add script to required script stack
+//- add script to required script stack
 mixin script(src)
     - scriptSources.push( src );
 
-// include every required script exactly once
+//- include every required script exactly once
 mixin scripts()
     - var usedScripts = []
     each scriptSource in scriptSources
