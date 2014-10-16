@@ -26,5 +26,7 @@
     "Items": "Items",
     "Save": "Save",
     "Load": "Load",
-    "Run": "Run"
+    "Run": "Run",
+    "Delete": "Delete",
+    "New": "New"
 }

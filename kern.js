@@ -86,7 +86,8 @@ var Kern = function( callback, kernOpts ) {
         var rdb = redis.createClient();
 
         rdb.on( "error", function( err ) {
-            console.log( "Redis-error " + err );
+            console.log( "Redis-error ".red.bold, err.stack.yellow );
+            //console.trace();
         });
 
         /* get hash by index-hash */

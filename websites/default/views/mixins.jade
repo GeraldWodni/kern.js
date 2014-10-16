@@ -79,8 +79,9 @@ mixin modal-add-edit(id,title)
     +modal(newId, newTitle, 'Änderung speichern')
         block
 
-mixin glyph(icon)
-            i.glyphicon.glyphicon(class="glyphicon-#{icon}")
+mixin glyph(icon, classes)
+    - if( classes ) classes = ' ' + classes; else classes = '';
+    i.glyphicon.glyphicon(class="glyphicon-#{icon}#{classes}")
 
 mixin messages(messages)
     each message in messages || []

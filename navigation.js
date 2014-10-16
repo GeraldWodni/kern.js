@@ -29,6 +29,8 @@ module.exports = function( rdb ) {
             
             var i = 0;
 
+            console.log( "DATA:", data );
+
             data.sort( function( a, b ) {
                 return b.link.length - a.link.length;
             });

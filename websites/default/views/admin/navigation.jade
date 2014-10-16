@@ -15,6 +15,10 @@ block content
                         = item.link
                         a.btn.btn-default(href='/admin/navigation/edit/#{item.escapedLink}').btn-xs.pull-right
                             +glyph("pencil")
+                li.list-group-item
+                    = __("New")
+                    a.btn.btn-primary(href='/admin/navigation').btn-xs.pull-right
+                        +glyph("plus")
         div.col-sm-8
 
             mixin navigationFields(values)
@@ -26,12 +30,17 @@ block content
 
             if values
                 form#edit(method="post",role="form")
-                    h2= __("Change")
+                    h2
+                        = " " + __("Change")
+                        +glyph("pencil", "pull-right")
                     +navigationFields(values)
                     button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
+                    button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{values.link}')= __("Delete")
             else
                 form#add(method='post',role='form')
-                    h2= __("Add")
+                    h2
+                        +glyph("plus", "pull-right")
+                        = " " + __("Add")
                     +navigationFields
                     button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
 

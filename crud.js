@@ -92,6 +92,9 @@ module.exports = function( rdb ) {
 
         /* crud */
         function create( prefix, id, obj, callback ) {
+            if( typeof callback != "function" )
+                throw new Error( "crud.create: invalid callback provided" );
+
             async.series( [
                 function( done ) { rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
                 function( done ) { rdb.hmset( opts.getKey( prefix, id ), obj, done ); }

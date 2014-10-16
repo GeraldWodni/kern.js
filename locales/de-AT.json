@@ -26,5 +26,7 @@
     "Items": "Einträge",
     "Save": "Speichern",
     "Load": "Laden",
-    "Run": "Ausführen"
+    "Run": "Ausführen",
+    "Delete": "Löschen",
+    "New": "Neu"
 }

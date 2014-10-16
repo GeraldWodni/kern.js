@@ -41,14 +41,14 @@ module.exports = {
             k.modules.postman( req, res, function() {
 
                 if( req.postman.exists( "add" ) ) {
-                    var link = {
+                    var obj = {
                         name: req.postman.fields["name"],
                         link: req.postman.link(),
                         type: req.postman.alnum( "type" ),
                         target: req.postman.alnum( "target" )
                     }
 
-                    k.rdb.navigation.create( req.website, link, function( err ) {
+                    k.rdb.navigation.create( req.website, obj.link, obj, function( err ) {
                         if( err )
                             return next( err );
 
@@ -86,6 +86,7 @@ module.exports = {
         k.router.get( "/asd",   function( req, res ) { k.renderJade( req, res, "admin/info" ); } );
 
         function renderAll( req, res, values ) {
+            console.log("Render All", values);
             k.rdb.navigation.readAll( req.website, function( err, items ) {
                 if( err )
                     next( err );
