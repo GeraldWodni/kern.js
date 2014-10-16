@@ -81,7 +81,7 @@ module.exports = function( rdb ) {
             return prefix + separator + module + separator;
         };
         function getKey( prefix, id ) {
-            return getKeyBase() + id;
+            return getKeyBase( prefix ) + id;
         };
 
         opts = _.extend( {
@@ -108,8 +108,8 @@ module.exports = function( rdb ) {
         };
         function del( prefix, id, callback ) {
             async.parallel( [
-                function( done ) { rdb.srem( getIndexKey( website ), link, done ); },
-                function( done ) { rdb.del( getKey( website, link ), done ); },
+                function( done ) { rdb.srem( getIndexKey( prefix ), id, done ); },
+                function( done ) { rdb.del( getKey( prefix, id ), done ); },
             ], callback );
         };
         function update( prefix, oldId, newId, obj, callback ) {

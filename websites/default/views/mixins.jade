@@ -23,6 +23,9 @@ mixin styles()
             - usedStyles.push( styleSource );
             link(rel='stylesheet', type='text/css' href='#{styleSource}')
 
+mixin favicon(path)
+    link(rel="shortcut icon",href=path)
+
 mixin field(name,type,label,value)
     div.form-group
         label= label
