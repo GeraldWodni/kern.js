@@ -128,7 +128,68 @@ module.exports = function( rdb ) {
         }
     }
 
+    function setSet( module, opts ) {
+
+        opts = opts || {};
+        
+        /* default key construction */
+        var separator = opts.separator || ":";
+        function getIndexKey( prefix ) {
+            return prefix + separator + module;
+        };
+        function getKeyBase( prefix ) {
+            return prefix + separator + module + separator;
+        };
+        function getKey( prefix, id ) {
+            return getKeyBase( prefix ) + id;
+        };
+
+        opts = _.extend( {
+            getIndexKey: getIndexKey,
+            getKeyBase: getKeyBase,
+            getKey: getKey
+        }, opts);
+
+        /* crud */
+        function create( prefix, id, obj, callback ) {
+            if( typeof callback != "function" )
+                throw new Error( "crud.create: invalid callback provided" );
+
+            async.series( [
+                function( done ) { rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
+                function( done ) { rdb.sadd( opts.getKey( prefix, id ), obj, done ); }
+            ], callback );
+        };
+        function readAll( prefix, callback) {
+            rdb.ssgetall( opts.getIndexKey( prefix ), opts.getKeyBase( prefix ), callback );
+        };
+        function read( prefix, id, callback ){
+            rdb.smembers( opts.getKey( prefix, id ), callback );
+        };
+        function del( prefix, id, callback ) {
+            async.parallel( [
+                function( done ) { rdb.srem( getIndexKey( prefix ), id, done ); },
+                function( done ) { rdb.srem( getKey( prefix, id ), done ); },
+            ], callback );
+        };
+        function update( prefix, oldId, newId, obj, callback ) {
+            async.series( [
+                function( d ) { del( prefix, oldId, d ); },
+                function( d ) { create( prefix, newId, obj, d ); }
+            ], callback );
+        }
+
+        return {
+            create: create,
+            read:   read,
+            readAll:readAll,
+            update: update,
+            del:    del
+        }
+    }
+
     rdb.crud = {
-        setHash: setHash
+        setHash: setHash,
+        setSet: setSet
     };
 };

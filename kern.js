@@ -120,6 +120,17 @@ var Kern = function( callback, kernOpts ) {
             }, callback );
         }
 
+        rdb.ssgetall = function( setname, prefix, callback ) {
+            rdb.sall( setname, function( item, next ) {
+                rdb.smembers( prefix + item, function( err, data ) {
+                    if( err )
+                        return next( err );
+
+                    return next( null, data );
+                });
+            }, callback );
+        }
+
         rdb.lall = function( listname, worker, callback ) {
             rdb.lrange( listname, 0, -1, function( err, data ) {
                 if( err )
