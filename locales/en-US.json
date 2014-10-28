@@ -28,5 +28,7 @@
     "Load": "Load",
     "Run": "Run",
     "Delete": "Delete",
-    "New": "New"
+    "New": "New",
+    "Item deleted": "Item deleted",
+    "Item updated": "Item updated"
 }

@@ -28,5 +28,7 @@
     "Load": "Laden",
     "Run": "Ausführen",
     "Delete": "Löschen",
-    "New": "Neu"
+    "New": "Neu",
+    "Item deleted": "Eintrag gelöscht",
+    "Item updated": "Eintrag geändert"
 }

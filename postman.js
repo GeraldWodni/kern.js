@@ -43,7 +43,7 @@ function postman( req, res, callback ) {
             uint:       function( field ) { return filter( field, /[^0-9]/g             ); },
             int:        function( field ) { return filter( field, /[^-0-9]/g            ); },
             decimal:    function( field ) { return filter( field, /[^-.,0-9]/g          ).replace(/,/g, '.'); },
-            id:         function( field ) { return filter( field, /[^-_.:a-zA-Z0-9]/g   ); },
+            id:         function( field ) { return filter( field || "id", /[^-_.:a-zA-Z0-9]/g   ); },
             alnum:      function( field ) { return filter( field, /[^a-zA-Z0-9]/g   ); },
             link:       function( field ) { return filter( field || "link", /[^-_a-zA-Z0-9\/]/g   ); },
             username:   function( field ) { return filter( field || "username", /[^@-_.a-zA-Z0-9]/g   ); },
