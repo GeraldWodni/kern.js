@@ -188,8 +188,89 @@ module.exports = function( rdb ) {
         }
     }
 
+    function router( k, path, crud, opts ) {
+        opts = _.extend( {
+            id: "id",
+            readFields: function( req ) {
+                return {
+                    id: req.postman.id(),
+                    name: req.postman.alnum["name"],
+                    value: req.postman.alnum["value"]
+                };
+            },
+            success: function( req, res, next ) {
+                req.method = "GET";
+                next();
+            }
+        }, opts );
+
+        opts = _.extend( {
+            getRequestId: function( req ) {
+                return req.requestData.escapedLink( opts.id );
+            }
+        }, opts );
+
+        function handlePost( req, res, next )  {
+
+            k.modules.postman( req, res, function() {
+
+                if( req.postman.exists( "add" ) ) {
+                    var obj = opts.readFields( req );
+
+                    crud.create( req.website, obj[ opts.id ], obj, function( err ) {
+                        if( err )
+                            return next( err );
+
+                        req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added") } );
+                        opts.success( req, res, next );
+                    });
+                }
+                else if( req.postman.exists( "update" ) ) {
+                    var id = opts.getRequestId( req );
+                    var obj = opts.readFields( req );
+
+                    crud.update( req.website, id, obj[ opts.id ], obj, function( err ) {
+                        if( err )
+                            return next( err );
+
+                        req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item updated") } );
+                        opts.success( req, res, next );
+                    });
+                }
+                else if( req.postman.exists( "delete" ) ) {
+                    var id = opts.getRequestId( req );
+
+                    crud.del( req.website, id, function( err ) {
+                        if( err )
+                            return next( err );
+
+                        req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item deleted") } );
+                        opts.success( req, res, next );
+                    });
+                }
+                else {
+                    next();
+                }
+            });
+        };
+
+        /* set post routes */
+        if( path instanceof Array )
+            path.forEach( function( p ) {
+                k.router.post( p, handlePost );
+            });
+        else
+            k.router.post( path, handlePost );
+
+        return  {
+            handlePost: handlePost
+        };
+
+    }
+
     rdb.crud = {
         setHash: setHash,
-        setSet: setSet
+        setSet: setSet,
+        router: router
     };
 };
