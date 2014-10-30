@@ -30,5 +30,10 @@
     "Delete": "Delete",
     "New": "New",
     "Item deleted": "Item deleted",
-    "Item updated": "Item updated"
+    "Item updated": "Item updated",
+    "Error": "Error",
+    "Username exists": "Username exists",
+    "Confirm password": "Confirm password",
+    "Passwords do not match": "Passwords do not match",
+    "Password to short, minimum: {0}": "Password to short, minimum: {0}"
 }

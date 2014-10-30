@@ -30,5 +30,10 @@
     "Delete": "Löschen",
     "New": "Neu",
     "Item deleted": "Eintrag gelöscht",
-    "Item updated": "Eintrag geändert"
+    "Item updated": "Eintrag geändert",
+    "Error": "Fehler",
+    "Username exists": "Benutzername vergeben",
+    "Confirm password": "Passwort wiederholen",
+    "Passwords do not match": "Passwörter stimmen nicht überein",
+    "Password to short, minimum: {0}": "Passwort zu kurz, Mindestlänge: {0} Zeichen"
 }

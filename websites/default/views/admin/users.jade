@@ -2,7 +2,7 @@ extends admin
 
 
 block content
-    h1= __("Navigation")
+    h1= __("Users")
 
     +messages( messages )
 
@@ -12,21 +12,20 @@ block content
             ul#links.list-group
                 each item in items || []
                     li.list-group-item
-                        = item.link
-                        a.btn.btn-default(href='/admin/navigation/edit/#{item.escapedLink}').btn-xs.pull-right
+                        = item.name
+                        a.btn.btn-default(href='/admin/users/edit/#{item.id}').btn-xs.pull-right
                             +glyph("pencil")
                 li.list-group-item
                     = __("New")
-                    a.btn.btn-primary(href='/admin/navigation').btn-xs.pull-right
+                    a.btn.btn-primary(href='/admin/users').btn-xs.pull-right
                         +glyph("plus")
         div.col-sm-8
 
             mixin navigationFields(values)
                 - values = values || {}
                 +text-field("name", __("Name"), values.name)
-                +text-field("link", __("Link"), values.link)
-                +enum-field("type", __("Type"), {text: __("Text"), function: __("Function") })
-                +text-field("target", __("Target"), values.target)
+                +password-field('password', __("Password"))
+                +password-field('password2', __("Confirm password"))
 
             if values
                 form#edit(method="post",role="form")

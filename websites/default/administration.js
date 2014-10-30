@@ -13,6 +13,7 @@ module.exports = {
 
         k.useSiteModule( "/navigation", "default", "navigation.js" );
         k.useSiteModule( "/locales",    "default", "missingLocales.js" );
+        k.useSiteModule( "/users",      "default", "users.js" );
 
         k.router.get( "/logout", function( req, res ) {
             req.sessionInterface.destroy( req, res, function() {

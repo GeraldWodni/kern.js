@@ -22,6 +22,7 @@ var async   = require( "async" );
 //app.use(session({ store: new RedisStore(options), secret: 'keyboard cat' }))
 
 /* kern subsystems */
+require("./strings");
 var hierarchy   = require("./hierarchy");
 var requestData = require("./requestData");
 var postman     = require("./postman");

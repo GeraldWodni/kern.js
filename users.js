@@ -2,6 +2,7 @@
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var _       = require("underscore");
+var async   = require("async");
 var bcrypt  = require("bcrypt-nodejs");
 
 var postman = require("./postman");
@@ -48,6 +49,7 @@ module.exports = function( rdb ) {
         var userCounter = prefix + ":users";
 
         var name = obj[ "name" ];
+        console.log( "Create new User".bold.green, getNamesKey( prefix ), name );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
@@ -74,7 +76,6 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
-        console.log( "loadByName:", getNamesKey( prefix ) );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
@@ -83,6 +84,17 @@ module.exports = function( rdb ) {
                 return next( "Unknown user '" + name + "'", null );
 
             loadById( prefix, userId, next );
+        });
+    };
+
+    function readAll( prefix, next ) {
+        rdb.hgetall( getNamesKey( prefix ), function( err, data ) {
+            if( err )
+                return next( err );
+
+            async.map( _.values( data ), function( id, done ) {
+                loadById( prefix, id, done );
+            }, next );
         });
     };
 
@@ -155,7 +167,16 @@ module.exports = function( rdb ) {
     };
 
     var users = {
+        minPasswordLength: 4,
         create: create,
+        read:   loadById,
+        readAll:readAll,
+        update: function( prefix, id, obj, callback ) {
+            save( obj, prefix, id, callback );
+        },
+        del: function( prefix, id, callback ) {
+            return callback( new Error( "users.del not implemented" ) );
+        },
         save:   save,
         load:   loadByName,
 	login:	login,
