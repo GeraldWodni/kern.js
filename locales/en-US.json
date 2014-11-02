@@ -38,5 +38,6 @@
     "Password to short, minimum: {0}": "Password to short, minimum: {0}",
     "Permissions": "Permissions",
     "Insufficient permissions to view this site": "Insufficient permissions to view this site",
-    "Access Denied": "Access denied"
+    "Access Denied": "Access denied",
+    "Documentation": "Documentation"
 }

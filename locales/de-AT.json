@@ -38,5 +38,6 @@
     "Password to short, minimum: {0}": "Passwort zu kurz, Mindestlänge: {0} Zeichen",
     "Permissions": "Berechtigungen",
     "Insufficient permissions to view this site": "Unzureichende Berechtigungen um diese Seite darzustellen",
-    "Access Denied": "Zugriff verweigert"
+    "Access Denied": "Zugriff verweigert",
+    "Documentation": "Dokumentation"
 }
