@@ -2,7 +2,6 @@
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var cluster = require("cluster");
-var hub     = require("clusterhub");
 var os      = require("os");
 var path    = require("path");
 var express = require("express");
@@ -353,7 +352,8 @@ var Kern = function( callback, kernOpts ) {
         //    app.renderJade( res, req.kern.website, "admin/login" );
         //}) );
 
-        callback( app );
+        if( typeof callback === 'function' )
+            callback( app );
 
         /* site-modules */
         function siteModule( website, filename, opts ) {
@@ -468,17 +468,29 @@ var Kern = function( callback, kernOpts ) {
 
                 debug( "Master, starting " + processCount + " workers" );
 
+                cluster.on('fork', function(worker) {
+                    console.log('worker ' + worker.process.pid + ' fork');
+                });
+                cluster.on('online', function(worker) {
+                    console.log('worker ' + worker.process.pid + ' online');
+                });
+                cluster.on('listening', function(worker) {
+                    console.log('worker ' + worker.process.pid + ' listening');
+                });
+                cluster.on('disconnect', function(worker) {
+                    console.log('worker ' + worker.process.pid + ' disconnect');
+                });
+                  /* respawn dead workers */
+                cluster.on('exit', function(worker) {
+                    debug( "Worker #" + worker.process.pid + " died, respawning" );
+                    var child = cluster.fork();
+                    child.send( { authToken: authToken } );
+                });
+
                 for( var i = 0; i < processCount; i++ ) {
                     var child = cluster.fork();
                     child.send( { authToken: authToken } );
                 }
-
-                /* respawn dead workers */
-                cluster.on( "exit", function( worker, code, signal ) {
-                    debug( "Worker #" + worker.process.pid + " died, respawning" );
-                    var child = cluster.fork();
-                    child.send( { authToken: authToken } );
-                } );
 
             } else {
                 /* worker */
@@ -495,5 +507,12 @@ var Kern = function( callback, kernOpts ) {
     };
 };
 
-module.exports = Kern;
+var main = function() {
+    Kern().run();
+}
+
+if( require.main === module )
+    main();
+else
+    module.exports = Kern;
 
