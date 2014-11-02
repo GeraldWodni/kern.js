@@ -21,18 +21,19 @@ block content
                         +glyph("plus")
         div.col-sm-8
 
-            mixin navigationFields(values)
+            mixin userFields(values)
                 - values = values || {}
                 +text-field("name", __("Name"), values.name)
                 +password-field('password', __("Password"))
                 +password-field('password2', __("Confirm password"))
+                +text-field("permissions", __("Permissions"), values.permissions)
 
             if values
                 form#edit(method="post",role="form")
                     h2
                         = " " + __("Change")
                         +glyph("pencil", "pull-right")
-                    +navigationFields(values)
+                    +userFields(values)
                     button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
                     button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{values.link}')= __("Delete")
             else
@@ -40,7 +41,7 @@ block content
                     h2
                         +glyph("plus", "pull-right")
                         = " " + __("Add")
-                    +navigationFields
+                    +userFields
                     button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
 
 

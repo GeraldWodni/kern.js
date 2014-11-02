@@ -76,14 +76,19 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
+        console.log( "LOAD ", prefix, name );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
 
-            if( userId == null )
-                return next( "Unknown user '" + name + "'", null );
-
-            loadById( prefix, userId, next );
+            if( userId == null ) {
+                if( prefix == "default" )
+                   return next( "Unknown user '" + name + "'", null );
+                else
+                   loadByName( "default", name, next );
+            }
+            else
+                loadById( prefix, userId, next );
         });
     };
 

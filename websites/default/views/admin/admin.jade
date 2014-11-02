@@ -21,12 +21,8 @@ html
                     a.navbar-brand(href="/")
                         | kern.js
                 ul
-                    +menuItem("",           "info-sign",    __("Info"      ) )
-                    +menuItem("navigation", "list",         __("Navigation") )
-                    +menuItem("media",      "folder-open",  __("Media"     ) )
-                    +menuItem("users",      "user",         __("Users"     ) )
-                    +menuItem("locales",    "comment",      ""               )
-                    +menuItem("logout",     "log-out",      __("Logout"    ) )
+                    each menuItem in menu || []
+                        +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
         div.container.main-content
             block content

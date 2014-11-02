@@ -17,6 +17,7 @@ function postman( req, res, callback ) {
         decimal:    function( text ) { return filterText( text, /[^-.,0-9]/g            ).replace(/,/g, '.'); },
         id:         function( text ) { return filterText( text, /[^-_.:a-zA-Z0-9]/g     ); },
         alnum:      function( text ) { return filterText( text, /[^a-zA-Z0-9]/g         ); },
+        alnumList:  function( text ) { return filterText( text, /[^,a-zA-Z0-9]/g        ); },
         link:       function( text ) { return filterText( text, /[^-_a-zA-Z0-9\/]/g     ); },
         linkItem:   function( text ) { return filterText( text, /[^-_a-zA-Z0-9]/g       ); },
         username:   function( text ) { return filterText( text, /[^@-_.a-zA-Z0-9]/g     ); }
@@ -45,6 +46,7 @@ function postman( req, res, callback ) {
             decimal:    function( field ) { return filter( field, /[^-.,0-9]/g          ).replace(/,/g, '.'); },
             id:         function( field ) { return filter( field || "id", /[^-_.:a-zA-Z0-9]/g   ); },
             alnum:      function( field ) { return filter( field, /[^a-zA-Z0-9]/g   ); },
+            alnumList:  function( field ) { return filter( field, /[^,a-zA-Z0-9]/g   ); },
             link:       function( field ) { return filter( field || "link", /[^-_a-zA-Z0-9\/]/g   ); },
             username:   function( field ) { return filter( field || "username", /[^@-_.a-zA-Z0-9]/g   ); },
             password:   function( field ) { return fields[ field || "password" ];                        },

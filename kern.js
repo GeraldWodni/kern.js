@@ -356,13 +356,21 @@ var Kern = function( callback, kernOpts ) {
             callback( app );
 
         /* site-modules */
+        var registeredSiteModules = {};
         function siteModule( website, filename, opts ) {
             /* get site specific script and execute it */
+            opts = opts || {};
 
-            if( !opts || !opts.exactFilename )
+            if( !opts.exactFilename )
                 filename = "./" + hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filename );
 
             target = require( filename )
+
+            /* register module */
+            if( opts.register ) {
+                console.log( "Register SiteModule".magenta.bold, opts.register );
+                registeredSiteModules[ opts.register ] = target;
+            }
 
             var router = express.Router();
             target.setup({
@@ -383,7 +391,10 @@ var Kern = function( callback, kernOpts ) {
                 renderJade: app.renderJade,
                 rdb: rdb,
                 kernOpts: kernOpts,
-                hostname: os.hostname()
+                hostname: os.hostname(),
+                reg: function( name ) {
+                    return registeredSiteModules[ name ];
+                }
             });
 
             /* attach new router */
@@ -423,7 +434,7 @@ var Kern = function( callback, kernOpts ) {
         app.use( "/", navigation( rdb ) );
 
         /* administration interface */
-        app.use( "/admin", siteModule( "default", "administration.js" ).router );
+        app.use( "/admin", siteModule( "default", "administration.js", { register: "admin" } ).router );
 
         app.use(function(err, req, res, next) {
             res.status(err.status || 500);

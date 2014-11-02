@@ -45,7 +45,7 @@ module.exports = {
             
                 console.log( "RENDER".red.bold );
                 /* TODO: generic non-JS version */
-                k.renderJade( req, res, "admin/navigation", { messages: req.messages, items: items, values: values } );
+                k.renderJade( req, res, "admin/navigation", k.reg("admin").values( req, { messages: req.messages, items: items, values: values } ) );
             });
         }
 

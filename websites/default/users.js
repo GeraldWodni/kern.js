@@ -18,7 +18,8 @@ module.exports = {
         k.rdb.crud.router( k, ["/", "/edit/:id"], k.rdb.users, {
             readFields: function ( req ) {
                 var fields = {
-                    name: req.postman.alnum("name")
+                    name: req.postman.alnum("name"),
+                    permissions: req.postman.alnumList("permissions")
                 };
 
                 var password = req.postman.password();
@@ -46,7 +47,7 @@ module.exports = {
                     item.escapedLink = encodeURIComponent( item.link );
                 });
             
-                k.renderJade( req, res, "admin/users", { messages: req.messages, items: items, values: values } );
+                k.renderJade( req, res, "admin/users", k.reg("admin").values( req, { messages: req.messages, items: items, values: values } ) );
             });
         }
 
