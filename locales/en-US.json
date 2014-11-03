@@ -39,5 +39,8 @@
     "Permissions": "Permissions",
     "Insufficient permissions to view this site": "Insufficient permissions to view this site",
     "Access Denied": "Access denied",
-    "Documentation": "Documentation"
+    "Documentation": "Documentation",
+    "About": "About",
+    "Downloads": "Downloads",
+    "Commissioning": "Commissioning"
 }

@@ -44,7 +44,6 @@ module.exports = {
         menu = function( req ) {
 
             var modules = _.union( subModules.early.menu, subModules.main.menu, subModules.admin.menu, subModules.late.menu, subModules.final.menu );
-            console.log( "MENU".green.bold, modules );
             var menuItems = _.map( modules, function( module ) {
                 return _.extend( module, {
                     name: module.english != "" ? req.locales.__( module.english ) : ""
@@ -58,8 +57,6 @@ module.exports = {
 
         /* add site modules */
         addSiteModule = function( link, website, filename, name, glyph, opts ) {
-            console.log( "addSiteModule".magenta.bold, link, name );
-    
             opts = opts || {};
             var subRouter = subModules[ opts.router || "main" ].router;
             var subMenu = subModules[ opts.menu || opts.router || "main" ].menu;
@@ -72,7 +69,6 @@ module.exports = {
 
             subRouter.use( "/" + link, target );
             subMenu.push( { link: link, glyph: glyph, english: name } );
-            console.log( subMenu );
         };
 
         /* main admin modules */

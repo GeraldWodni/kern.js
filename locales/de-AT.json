@@ -39,5 +39,8 @@
     "Permissions": "Berechtigungen",
     "Insufficient permissions to view this site": "Unzureichende Berechtigungen um diese Seite darzustellen",
     "Access Denied": "Zugriff verweigert",
-    "Documentation": "Dokumentation"
+    "Documentation": "Dokumentation",
+    "About": "About",
+    "Downloads": "Downloads",
+    "Commissioning": "Inbetriebnahme"
 }

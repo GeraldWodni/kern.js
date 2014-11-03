@@ -19,7 +19,7 @@ module.exports = {
             readFields: function ( req ) {
                 var fields = {
                     name: req.postman.alnum("name"),
-                    permissions: req.postman.alnumList("permissions")
+                    permissions: req.postman.linkList("permissions")
                 };
 
                 var password = req.postman.password();
