@@ -18,7 +18,7 @@ module.exports = {
         k.rdb.crud.router( k, ["/", "/edit/:id"], k.rdb.users, {
             readFields: function ( req ) {
                 var fields = {
-                    name: req.postman.alnum("name"),
+                    name: req.postman.username("name"),
                     permissions: req.postman.linkList("permissions")
                 };
 
