@@ -7,66 +7,63 @@ var async   = require("async");
 module.exports = function( rdb ) {
 
     /* TODO: sql CRUD */
-    function sqlCrud( sql, opts ) {
-        function create( obj ) {
+    function sqlCrud( db, opts ) {
+
+        opts = opts || {};
+
+        opts = _.extend( {
+            key: "id",
+            orderBy: "id",
+            selectFields: "",
+            nestTables: false
+        }, opts );
+
+        opts = _.extend( {
+            insertQuery: "INSERT INTO ?? SET ?",
+            updateQuery: "UPDATE ?? SET ? WHERE ??=?",
+            deleteQuery: "DELETE FROM ?? WHERE ??=?",
+            selectAllQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? ORDER BY ??", nestTables: opts.nestTables } ,
+            selectIdQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? WHERE ??=?", nestTables: opts.nestTables }
+        }, opts );
+
+
+        function create( obj, callback ) {
+            /* TODO: DEBUG */
+            db.query( opts.insertQuery, [ opts.table, obj ], callback );
+        }
+
+        function read( key, callback ) {
+            db.query( opts.selectIdQuery, [ opts.table, opts.key, key ], function( err, data ) {
+                if( err )
+                    callback( err );
+                else if( data.length == 0 )
+                    callback( null, [] );
+                else
+                    callback( null, data[0] );
+            });
+        }
+
+        function readAll( callback ) {
+            db.query( opts.selectAllQuery, [ opts.table, opts.orderBy ], callback );
+        }
+
+        function update( key, obj, callback ) {
+            db.query( opts.updateQuery, [ opts.table, obj, opts.key, key ], callback );
+        }
+
+        function del( key, callback ) {
+            db.query( opts.deleteQuery, [ opts.table, opts.key, key ], callback );
         }
 
         return _.extend(
             {
-                create: create
+                create: create,
+                read:   read,
+                readAll:readAll,
+                update: update,
+                del:    del
             }, opts );
     }
-
-    function post( router, module, id, fields, crud, opts ) {
-
-        opts = _.extend( {
-            getId: function( req ) {
-                return req.postman.number( id );
-            },
-            getPrefix: function( req ) {
-                return req.kern.website;
-            }
-        }, opts );
-
-        function response( err, res ) {
-            if( !err )
-                res.send( "okay" );
-            else
-                res.sendError( 404, err );
-        };
-
-        return function( req, res, next ) {
-            console.log( "CRUD POST".red.bold ); 
-            k.modules.postman( req, res, function() {
-
-                function readFields() {
-                    /* TODO: correctly parse all fields */
-
-                    next( "Not enough fields" );
-                };
-
-                if( req.postman.exists( "create" ) ) {
-                    crud.create( opts.getPrefix( req ), getId( req ), readFields(), response );
-                }
-                else if( req.postman.exists( "update"  ) ) {
-
-                }
-                else if( req.postman.exists( "delete" ) ) {
-                    
-                }
-                else
-                    next();
-            });
-        }
-
-
-
-        /* TODO: which one is better?
-        router.post();...
-
-        return function( req, res, next )...
-        */
-    };
 
     function setHash( module, opts ) {
 
@@ -236,8 +233,10 @@ module.exports = function( rdb ) {
                             opts.success( req, res, next );
                         };
 
+                        if( crud.create.length == 2 )
+                            crud.create( obj, handleCreate );
                         /* predetermined id */
-                        if( crud.create.length == 3 )
+                        else if( crud.create.length == 3 )
                             crud.create( req.kern.website, obj, handleCreate);
                         /* dynamic id */
                         else
@@ -255,8 +254,11 @@ module.exports = function( rdb ) {
                             opts.success( req, res, next );
                         };
 
+                        /* sql */
+                        if( crud.update.length == 3 )
+                            crud.update( id, obj, handleUpdate );
                         /* fixed id */
-                        if( crud.update.length == 4 )
+                        else if( crud.update.length == 4 )
                             crud.update( req.kern.website, id, obj, handleUpdate );
                         /* id change permitted */
                         else
@@ -265,13 +267,18 @@ module.exports = function( rdb ) {
                     else if( req.postman.exists( "delete" ) ) {
                         var id = opts.getRequestId( req );
 
-                        crud.del( req.kern.website, id, function( err ) {
+                        function handleDelete( err ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item deleted") } );
                             opts.success( req, res, next );
-                        });
+                        };
+
+                        if( crud.del.length == 2 )
+                            crud.del( id, handleDelete );
+                        else
+                            crud.del( req.kern.website, id, handleDelete );
                     }
                     else {
                         next();
@@ -303,6 +310,7 @@ module.exports = function( rdb ) {
     rdb.crud = {
         setHash: setHash,
         setSet: setSet,
+        sql: sqlCrud,
         router: router
     };
 };

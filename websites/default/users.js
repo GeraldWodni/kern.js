@@ -41,7 +41,7 @@ module.exports = {
         function renderAll( req, res, values ) {
             k.rdb.users.readAll( req.kern.website, function( err, items ) {
                 if( err )
-                    next( err );
+                    return next( err );
 
                 items.forEach( function( item ) {
                     item.escapedLink = encodeURIComponent( item.link );
@@ -54,7 +54,7 @@ module.exports = {
         k.router.get( "/edit/:link?", function( req, res ) {
             k.rdb.users.read(req.kern.website, req.requestData.escapedLink( 'link' ), function( err, data ) {
                 if( err )
-                    next( err );
+                    return next( err );
 
                 renderAll( req, res, data );
             });
