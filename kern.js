@@ -388,6 +388,12 @@ var Kern = function( callback, kernOpts ) {
                 },
                 router: router,
                 serverConfig: serverConfig,
+        	serverStaticFile: function serveStatic( filename ) {
+                    return function( req, res ) {
+                        var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, filename );
+                        res.sendfile( filepath );
+                    }
+                },
                 renderJade: app.renderJade,
                 rdb: rdb,
                 kernOpts: kernOpts,
