@@ -34,6 +34,16 @@ mixin field(name,type,label,value)
 mixin text-field(name, label, value)
     +field(name, 'text', label, value)
 
+mixin checkbox-field(name, label, value)
+    div.form-group
+        div.checkbox
+            label
+                if(value)
+                    input(type='checkbox',name=name,checked="checked")
+                else
+                    input(type='checkbox',name=name)
+                =label
+
 mixin hidden-field(name, value)
     input(type='hidden', name=name, value=value)
 
@@ -47,12 +57,15 @@ mixin date-field(name, label)
         - var newName = name + '-alt';
         input(type='hidden', name=newName)
 
-mixin enum-field(name, label, keyValues)
+mixin enum-field(name, label, keyValues, value)
     div.form-group
         label= label
         select.form-control(name=name)
             each val, key in keyValues
-                option(value=key)= val
+                if(key == value)
+                    option(value=key,selected='selected')= val
+                else
+                    option(value=key)= val
 
 mixin textarea(name, label)
     div.form-group

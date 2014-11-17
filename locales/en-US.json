@@ -45,5 +45,12 @@
     "Commissioning": "Commissioning",
     "Questionnaires": "Questionnaires",
     "Devices": "Devices",
-    "Groups": "Groups"
+    "Groups": "Groups",
+    "Fullscreen": "Fullscreen",
+    "GPS": "GPS",
+    "Auto advance": "Auto advance",
+    "Display on": "Display on",
+    "Test version": "Test version",
+    "Group": "Group",
+    "Device id": "Device id"
 }

@@ -7,7 +7,7 @@ var _   = require("underscore");
 function postman( req, res, callback ) {
     var body = '';
 
-    function filterText( text, text ) {
+    function filterText( text, filter ) {
         return text.replace( filter, "" );
     }
 
@@ -35,7 +35,7 @@ function postman( req, res, callback ) {
         var fields = qs.parse( body );
 
         var filter = function( field, filter ) {
-            return fields[ field ].replace( filter, '' );
+            return (fields[ field ] || "").replace( filter, '' );
         };
 
         req.postman = _.extend( req.postman || {}, {

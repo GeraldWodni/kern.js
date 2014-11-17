@@ -45,5 +45,12 @@
     "Commissioning": "Inbetriebnahme",
     "Questionnaires": "Fragebögen",
     "Devices": "Geräte",
-    "Groups": "Gruppen"
+    "Groups": "Gruppen",
+    "Fullscreen": "Vollbild",
+    "GPS": "GPS",
+    "Auto advance": "Autovoran",
+    "Display on": "Anzeige ein",
+    "Test version": "Testversion",
+    "Group": "Gruppe",
+    "Device id": "Geräte-Id"
 }

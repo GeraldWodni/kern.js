@@ -13,6 +13,7 @@ module.exports = function( rdb ) {
 
         opts = _.extend( {
             key: "id",
+            foreignName: "name",
             orderBy: "id",
             selectFields: "",
             nestTables: false
@@ -22,8 +23,9 @@ module.exports = function( rdb ) {
             insertQuery: "INSERT INTO ?? SET ?",
             updateQuery: "UPDATE ?? SET ? WHERE ??=?",
             deleteQuery: "DELETE FROM ?? WHERE ??=?",
-            selectAllQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? ORDER BY ??", nestTables: opts.nestTables } ,
-            selectIdQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? WHERE ??=?", nestTables: opts.nestTables }
+            selectAllQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? ORDER BY ??", nestTables: opts.nestTables },
+            selectIdQuery: { sql: "SELECT * " + opts.selectFields + " FROM ?? WHERE ??=?", nestTables: opts.nestTables },
+            selectForeignKeyQuery: "SELECT ??, ?? FROM ?? ORDER BY ??"
         }, opts );
 
 
@@ -47,6 +49,21 @@ module.exports = function( rdb ) {
             db.query( opts.selectAllQuery, [ opts.table, opts.orderBy ], callback );
         }
 
+        function readForeignKey( callback ) {
+            db.query( opts.selectForeignKeyQuery, [ opts.key, opts.foreignName, opts.table, opts.orderBy ], function( err, data ) {
+                if( err )
+                    callback( err );
+                else {
+                    var keyValues = _.reduce( data, function( obj, row ) {
+                        obj[ row[ opts.key ] ] = row[ opts.foreignName ];
+                        return obj;
+                    }, {} );
+
+                    callback( err, keyValues );
+                }
+            });
+        }
+
         function update( key, obj, callback ) {
             db.query( opts.updateQuery, [ opts.table, obj, opts.key, key ], callback );
         }
@@ -60,6 +77,7 @@ module.exports = function( rdb ) {
                 create: create,
                 read:   read,
                 readAll:readAll,
+                readForeignKey: readForeignKey,
                 update: update,
                 del:    del
             }, opts );
