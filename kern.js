@@ -231,7 +231,8 @@ var Kern = function( callback, kernOpts ) {
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
 
             locals = _.extend( locals || {}, {
-                __: req.locales.__
+                __: req.locales.__,
+                os: os
             });
 
             var cacheName = website + '//' + filename;

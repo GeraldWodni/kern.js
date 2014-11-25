@@ -17,7 +17,7 @@ function requestData( req ) {
     req.requestData = {
         filter: filter,
         int:                function( field ) { return filter( field, /[^-0-9]/g            ); },
-        escapedLink:        function( field ) { return filter( field, /[^-_a-zA-Z0-9\/]/g, decodeURIComponent   ); },
+        escapedLink:        function( field ) { return filter( field, /[^-_.a-zA-Z0-9\/]/g, decodeURIComponent   ); },
         filename:           function( field ) { return filter( field, /[^-_.0-9a-zA-Z]/g    ); }
     }
 }

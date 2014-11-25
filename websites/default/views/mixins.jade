@@ -85,7 +85,8 @@ mixin modal(id,title,saveCaption)
                     block
                 div.modal-footer
                     button.btn.btn-default(data-dismiss='modal',type='button') Schließen
-                    button.btn.btn-primary(type='button')= saveCaption
+                    if saveCaption
+                        button.btn.btn-primary(type='button')= saveCaption
 
 mixin modal-add-edit(id,title)
     - var newId = id + '-add', newTitle = title + ' hinzufügen';

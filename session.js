@@ -64,8 +64,12 @@ function session( rdb, opts ) {
         setCookie( req, res );
 
         rdb.hgetall( key, function( err, values) {
-            req.session = values;
-            req.session["session:activity"] = moment().format( "YYYY-MM-DD hh:mm:ss" );
+
+            /* only assign a session containing data (i.e. cookie sent which does not match session) */
+            if( values ) {
+                req.session = values;
+                req.session["session:activity"] = moment().format( "YYYY-MM-DD hh:mm:ss" );
+            }
             //console.log( "LOAD session", req.sessionId );
             next();
         });
