@@ -52,5 +52,7 @@
     "Display on": "Display on",
     "Test version": "Test version",
     "Group": "Group",
-    "Device id": "Device id"
+    "Device id": "Device id",
+    "Service Unavailable": "Service Unavailable",
+    "The server is currently unavailable, or you have reached an unconfigured host.": "The server is currently unavailable, or you have reached an unconfigured host."
 }

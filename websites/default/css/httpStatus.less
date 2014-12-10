@@ -1,0 +1,43 @@
+@import "normalize.less";
+
+@flag-height: 48px;
+
+body {
+    background-color: #333;
+
+    #error {
+        margin: 100px auto;
+        width: 512px;
+        color: #DDD;
+        background-color: #555;
+        border: 1px solid red;
+
+        h1 {
+            background-color: #800;
+            margin: 0;
+            padding: 3px 10px;
+        }
+
+        h2 {
+            margin: 20px 20px 0 20px;
+            padding: 0 10px;
+
+            height: @flag-height;
+            line-height: @flag-height;
+            vertical-align: middle;
+
+            background-image: url(/images/flags/uk.png);
+            background-position: top right;
+            background-repeat: no-repeat;
+        }
+
+        .native h2 {
+            background-image: url(/images/flags/at.png);
+        }
+
+        p {
+            margin: 5px 20px 20px 20px;
+            padding: 3px 10px;
+        }
+    }
+}

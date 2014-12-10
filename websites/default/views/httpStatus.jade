@@ -1,0 +1,15 @@
+doctype html
+html
+    head
+        title= code + " " + title
+        link(rel="stylesheet", type="text/css" href="/css/httpStatus.css")
+    body
+        div#error
+            h1= code
+            div.native
+                h2= __( title )
+                p= __( text )
+            div.english
+                h2= title
+                p= text
+

@@ -13,6 +13,7 @@ mixin menuItem( link, icon, text )
 html
     head
         title admin - kern.js
+        meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
         link(rel="stylesheet", type="text/css" href="/css/admin.css")
         each style in styles || []
             link(rel="stylesheet", type="text/css" href=style)
@@ -33,11 +34,18 @@ html
             div.container
                 div.row
                     div.col-xs-4
-                        a(href='https://github.com/GeraldWodni/kern.js') kern.js
-                        |  on 
-                        = os.hostname()
+                        a(href='https://github.com/GeraldWodni/kern.js')
+                            span.visible-xs
+                                = os.hostname()
+                            span.hidden-xs
+                                | kern.js
+                        span.hidden-xs
+                            |  on 
+                            = os.hostname()
                     div.col-xs-8.text-right
-                        | ©copyright 2014 by 
+                        | ©copyright 
+                        span.hidden-xs
+                            | 2014 by 
                         a(href='http://wodni.at') Gerald Wodni
 
         +script('/js/bootstrap.min.js')

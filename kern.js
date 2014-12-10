@@ -4,6 +4,7 @@
 var cluster = require("cluster");
 var os      = require("os");
 var path    = require("path");
+var url     = require("url");
 var express = require("express");
 var fs      = require("fs");
 var jade    = require("jade");
@@ -23,6 +24,7 @@ var async   = require( "async" );
 /* kern subsystems */
 require("./strings");
 var hierarchy   = require("./hierarchy");
+var httpStati   = require("./httpStati");
 var requestData = require("./requestData");
 var postman     = require("./postman");
 var session     = require("./session");
@@ -244,6 +246,11 @@ var Kern = function( callback, kernOpts ) {
 
             /* compile template */
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+            if( !filepath ) {
+                var message = "Unable to locate view " + filename + " in " + website;
+                res.status(500).end( message );
+                throw new Error( message.bold.red );
+            }
 
             opts = opts || {};
             _.extend( opts, {
@@ -267,6 +274,14 @@ var Kern = function( callback, kernOpts ) {
                 console.log( "Jade Rendered ".grey, filename.green, website.grey );
                 res.send( html );
             });
+        };
+
+        app.renderHttpStatus = function( req, res, code , opts ) {
+            if( !_.has( httpStati, code ) )
+                code = 501;
+
+            res.status( code );
+            app.renderJade( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ] ) );
         };
 
         users( rdb );
@@ -293,9 +308,34 @@ var Kern = function( callback, kernOpts ) {
             res.sendfile( filepath );
         };
 
-        app.get("/images/:file", function( req, res, next ) {
-            serveStatic( "images", req, res );
-        });
+        function prefixServeStatic( prefix ) {
+
+            app.use( function( req, res, next ) {
+                var pathname = url.parse( req.url ).pathname;
+                pathname = path.normalize( pathname );
+                console.log( pathname );
+
+                /* contain in directory */
+                if( pathname.indexOf( ".." ) >= 0 )
+                    return app.renderHttpStatus( req, res, 403 );
+
+                if( pathname.indexOf( prefix ) == 0 ) {
+                    var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, pathname );
+                    return res.sendfile( filepath );
+                }
+
+                next();
+            });
+        };
+
+        /* load locales now to support locale error messages */
+        app.use( locales( rdb ) );
+
+        prefixServeStatic( "/images/" );
+
+        //app.get("/images/:file", function( req, res, next ) {
+        //    serveStatic( "images", req, res );
+        //});
 
         app.get("/js/:file", function( req, res, next ) {
             serveStatic( "js", req, res );
@@ -347,7 +387,6 @@ var Kern = function( callback, kernOpts ) {
         });
 
         /* enable dynamic-modules ( not needed for static files ) */
-        app.use( locales( rdb ) );
 
         //app.use( rdb.users.loginRequired( function( req, res, next ) {
         //    app.renderJade( res, req.kern.website, "admin/login" );
@@ -388,6 +427,7 @@ var Kern = function( callback, kernOpts ) {
                     router.use( prefix, subTarget.router );
                 },
                 router: router,
+		httpStatus: app.renderHttpStatus,
                 serverConfig: serverConfig,
         	serverStaticFile: function serveStatic( filename ) {
                     return function( req, res ) {
