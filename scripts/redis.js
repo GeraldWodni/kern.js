@@ -101,7 +101,7 @@ function restore( file ) {
             if( type === "string" )
                 func = "set";
             else if( type === "hash" )
-                func = "hsetall";
+                func = "hmset";
             else
                 error( "Unknown Type: ", type );
 
@@ -111,7 +111,8 @@ function restore( file ) {
         /* execute */
         async.map( data, function( item, d ) {
             rdb[ item.func ]( item.key, item.data, d );
-        }, function( res ) {
+        }, function( errs, res ) {
+            error( errs );
             rdb.quit();
             console.error( "Restored" );
         });
