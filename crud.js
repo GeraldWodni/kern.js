@@ -207,22 +207,16 @@ module.exports = function( rdb ) {
         opts = _.extend( {
             id: "id",
             filters: {
-                text:   { filter: "alnum"       },
-                tel:    { filter: "telephone"   },
-                email:  { filter: "email"       },
-                "datetime-local": { filter: "dateTime" }
+                "datetime-local": "dateTime",
+                email:      "email",
+                tel:        "telephone",
+                text:       "alnum",
+                textarea:   "text"
             },
-	    fields: {
-		id:     { postman: "id" },
-		name:   { postman: "alnum" },
-                value:  { postman: "allocnum" }
-	    },
-            readFields: function( req ) {
-                return {
-                    id: req.postman.id(),
-                    name: req.postman.alnum["name"],
-                    value: req.postman.alnum["value"]
-                };
+            fields: {
+                id:     { type: "id" },
+                name:   { type: "alnum" },
+                value:  { type: "allocnum" }
             },
             success: function( req, res, next ) {
                 req.method = "GET";
@@ -239,8 +233,21 @@ module.exports = function( rdb ) {
                 next();
             }
         }, opts );
-
         opts = _.extend( {
+            readFields: function( req ) {
+                var values = {};
+                _.each( opts.fields, function( fieldOpts, field ) {
+                    var source = fieldOpts.source || "postman";
+                    var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ];
+
+                    if( !_.has( req.filters, filterName ) )
+                        throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
+
+                    values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+                });
+
+                return values;
+            },
             getRequestId: function( req ) {
                 return req.requestData.escapedLink( opts.id );
             }
