@@ -206,6 +206,17 @@ module.exports = function( rdb ) {
     function router( k, path, crud, opts ) {
         opts = _.extend( {
             id: "id",
+            filters: {
+                text:   { filter: "alnum"       },
+                tel:    { filter: "telephone"   },
+                email:  { filter: "email"       },
+                "datetime-local": { filter: "dateTime" }
+            },
+	    fields: {
+		id:     { postman: "id" },
+		name:   { postman: "alnum" },
+                value:  { postman: "allocnum" }
+	    },
             readFields: function( req ) {
                 return {
                     id: req.postman.id(),

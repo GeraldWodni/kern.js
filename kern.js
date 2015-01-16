@@ -25,6 +25,7 @@ var async   = require( "async" );
 require("./strings");
 var hierarchy   = require("./hierarchy");
 var httpStati   = require("./httpStati");
+var filters     = require("./filters");
 var requestData = require("./requestData");
 var postman     = require("./postman");
 var session     = require("./session");
@@ -181,6 +182,7 @@ var Kern = function( callback, kernOpts ) {
             if( kernOpts.setupEnabled )
                 console.log( "AUTHTOKEN:", serverConfig.authToken );
 
+            filters( req );
             requestData( req );
 
             req.kern = {
@@ -427,9 +429,9 @@ var Kern = function( callback, kernOpts ) {
                     router.use( prefix, subTarget.router );
                 },
                 router: router,
-		httpStatus: app.renderHttpStatus,
+                httpStatus: app.renderHttpStatus,
                 serverConfig: serverConfig,
-        	serverStaticFile: function serveStatic( filename ) {
+                serverStaticFile: function serveStatic( filename ) {
                     return function( req, res ) {
                         var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, filename );
                         res.sendfile( filepath );
