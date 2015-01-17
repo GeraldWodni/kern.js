@@ -21,7 +21,7 @@ function filters( req ) {
         alnumList:  function( t ) { return f( t, /[^,a-zA-Z0-9]/g               ); },
         dateTime:   function( t ) { return f( t, /[^-: 0-9]/g                   ); },
         decimal:    function( t ) { return f( t, /[^-.,0-9]/g                   ).replace(/,/g, '.'); },
-        email:      function( t ) { return f( t, /[^-+_.0-9a-zA-Z]/g            ); },
+        email:      function( t ) { return f( t, /[^-@+_.0-9a-zA-Z]/g            ); },
         escapedLink:function( t ) { return f( decodeURIComponent( t ), /[^-_.a-zA-Z0-9\/]/g ); },
         filename:   function( t ) { return f( t, /[^-_.0-9a-zA-Z]/g             ); },
         id:         function( t ) { return f( t, /[^-_.:a-zA-Z0-9]/g            ); },
@@ -29,12 +29,13 @@ function filters( req ) {
         link:       function( t ) { return f( t, /[^-_a-zA-Z0-9\/]/g            ); },
         linkItem:   function( t ) { return f( t, /[^-_a-zA-Z0-9]/g              ); },
         linkList:   function( t ) { return f( t, /[^-,_a-zA-Z0-9]/g             ); },
+        password:   function( t ) { return t;                                      },
         raw:        function( t ) { return t;                                      },
         singleLine: function( t ) { return f( t, /[^-_\/ a-zA-Z0-9äöüßÄÖÜ]/g    ); },
         telephone:  function( t ) { return f( t, /[^-+ 0-9]/g                   ); },
         text:       function( t ) { return t;                                      },
         uint:       function( t ) { return f( t, /[^0-9]/g                      ); },
-        username:   function( t ) { return f( t, /[^@-_.a-zA-Z0-9]/g            ); }
+        username:   function( t ) { return f( t, /[^-@_.a-zA-Z0-9]/g            ); }
     };
 
     /* return a new fetcher which supports all registered filters */
@@ -42,7 +43,7 @@ function filters( req ) {
         var filters = {};
         _.each( req.filters, function( filter, name ) {
             filters[ name ] = function( field ) {
-                return filter( fetch( field ) );
+                return filter( fetch( field || name ) );
             }
         });
         return filters;

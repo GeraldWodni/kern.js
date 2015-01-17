@@ -34,6 +34,15 @@ mixin field(name,type,label,value)
 mixin text-field(name, label, value)
     +field(name, 'text', label, value)
 
+mixin email-field(name, label, value)
+    +field(name, 'email', label, value)
+
+mixin tel-field(name, label, value)
+    +field(name, 'tel', label, value)
+
+mixin url-field(name, label, value)
+    +field(name, 'url', label, value)
+
 mixin checkbox-field(name, label, value)
     div.form-group
         div.checkbox
@@ -50,12 +59,12 @@ mixin hidden-field(name, value)
 mixin password-field(name, label)
     +field(name, 'password', label)
 
-mixin date-field(name, label)
+mixin date-field(name, label, value)
     div.form-group
         label= label
-        input.form-control(type='text', rel='date',name=name)
+        input.form-control(type='text', rel='date', name=name, value=value)
         - var newName = name + '-alt';
-        input(type='hidden', name=newName)
+        input(type='hidden', name=newName, value=value)
 
 mixin enum-field(name, label, keyValues, value)
     div.form-group
@@ -67,11 +76,15 @@ mixin enum-field(name, label, keyValues, value)
                 else
                     option(value=key)= val
 
-mixin textarea(name, label)
+mixin textarea-field(name, label, value) 
     div.form-group
         label= label
         textarea.form-control(name=name,rows='3')
-            
+            = value
+
+
+mixin textarea(name, label)
+    +textarea-field(name, label, "")
 
 mixin modal(id,title,saveCaption)
     div.modal.fade(id=id)

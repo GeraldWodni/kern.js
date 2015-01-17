@@ -387,6 +387,9 @@ var Kern = function( callback, kernOpts ) {
                 });
             });
         });
+        app.get("/css/:directory/:file", function( req, res, next ) {
+            serveStatic( "css/" + req.requestData.filename( 'directory' ), req, res );
+        });
 
         /* enable dynamic-modules ( not needed for static files ) */
 

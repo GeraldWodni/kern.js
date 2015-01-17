@@ -11,7 +11,7 @@ block content
         form(method='post',role='form')
             +hidden-field( 'key', text )
             each locale in locales
-                if( locale.indexOf( "en_" ) == 0 )
+                if( locale.indexOf( "en-" ) == 0 )
                     +text-field( "text[" + locale + "]", "[" + locale + "] " + text, text )
                 else
                     +text-field( "text[" + locale + "]", "[" + locale + "] " + text)

@@ -1,6 +1,10 @@
 doctype html
 include ../mixins
+include ../crud
 +script('/js/jquery.min.js')
++script('/js/jquery-ui.min.js')
++script('/js/datepicker-de-AT.js')
++script('/js/bootstrap.min.js')
 
 mixin menuItem( link, icon, text )
     li
@@ -10,13 +14,16 @@ mixin menuItem( link, icon, text )
                 | 
                 = text
 
-html
+html(lang=__('current-locale'))
     head
         title admin - kern.js
         meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
         link(rel="stylesheet", type="text/css" href="/css/admin.css")
-        each style in styles || []
-            link(rel="stylesheet", type="text/css" href=style)
+        +style("/css/jquery-ui-smoothness.min.css")
+        +style("/css/admin.css")
+        +styles()
+        //each style in styles || []
+        //    link(rel="stylesheet", type="text/css" href=style)
     body
         div.navbar.navbar-fixed-top(role='navigation')
             div.container
@@ -48,5 +55,5 @@ html
                             | 2014 by 
                         a(href='http://wodni.at') Gerald Wodni
 
-        +script('/js/bootstrap.min.js')
+        +script('/js/admin.js')
         +scripts

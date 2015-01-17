@@ -1,0 +1,63 @@
+// (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+// complete crud
+mixin crud( opts )
+    div.row
+        div.col-sm-4
+            h2= __("Items")
+            +crudList( opts )
+        div.col-sm-8
+            if opts.values
+                +crudEdit( opts )
+            else
+                +crudAdd( opts )
+
+
+// item selection list
+mixin crudList( opts )
+    - opts.idField = opts.idField || "id";
+    ul.list-group.crud-list
+        li.list-group-item.crud-new
+            = __("New")
+            a.btn.btn-primary(href=opts.link).btn-xs.pull-right
+                +glyph("plus")
+        each item in opts.items || []
+            li.list-group-item.crud-item
+                b= item.name
+                |  
+                = item.firstName
+                a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
+                    +glyph("pencil")
+
+
+// standard fields
+mixin crudFields( opts )
+    - opts.values = opts.values || {}
+    each field, name in opts.fields || {}
+        if field.mixinType == "enum-field"
+            +enum-field( name, __( field.text ), field.keyValues, opts.values[ name ] )
+        else
+            +#{field.mixinType}( name, __( field.text ), opts.values[ name ] )
+
+
+// edit form
+mixin crudEdit( opts )
+    form.crud-edit(method="post",role="form")
+        h2
+            = " " + __("Change")
+            +glyph("pencil", "pull-right")
+
+        +crudFields( opts )
+
+        button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
+        button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{opts.values.link}')= __("Delete")
+
+
+// add form
+mixin crudAdd( opts )
+    form.crud-add(method='post',role='form')
+        h2
+            +glyph("plus", "pull-right")
+            = " " + __("Add")
+        +crudFields( opts )
+        button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
+

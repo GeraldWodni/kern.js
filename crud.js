@@ -3,6 +3,7 @@
 
 var _       = require("underscore");
 var async   = require("async");
+var moment  = require("moment");
 
 module.exports = function( rdb ) {
 
@@ -207,11 +208,20 @@ module.exports = function( rdb ) {
         opts = _.extend( {
             id: "id",
             filters: {
-                "datetime-local": "dateTime",
+                date:       "dateTime",
                 email:      "email",
+                enum:       "alnum",
                 tel:        "telephone",
                 text:       "alnum",
                 textarea:   "text"
+            },
+            elements: {
+                date:       "date-field",
+                email:      "email-field",
+                enum:       "enum-field",
+                tel:        "tel-field",
+                text:       "text-field",
+                textarea:   "textarea-field"
             },
             fields: {
                 id:     { type: "id" },
@@ -244,6 +254,10 @@ module.exports = function( rdb ) {
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
                     values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+
+                    /* local date format to iso */
+                    if( fieldOpts.type == "date" )
+                        values[ field ] = moment( values[ field ], req.locales.__( "date-format-moment" ) ).format("YYYY-MM-DD hh:mm:ss");
                 });
 
                 return values;
@@ -338,9 +352,53 @@ module.exports = function( rdb ) {
             k.router.post( path, handlePost );
 
         return  {
-            handlePost: handlePost
-        };
+            handlePost: handlePost,
+            getFields: function( req ) {
+                var jadeFields =  {}
+                _.each( opts.fields, function( fieldOpts, field ) {
+                    /* ignore fields with no type (idsignore fields with no type (ids)) */
+                    if( fieldOpts.type ) {
+                        var element = "text-field"
+                        if( _.has( opts.elements, fieldOpts.type ) )
+                            element = opts.elements[ fieldOpts.type];
+                        else
+                            throw new Error( "CRUD Unknown Element " + fieldOpts.type );
+                        //console.error( "CRUD Element ".magenta.bold, element, "(" + field + ": " + fieldOpts.type + ")" );
 
+                        /** some fields require special  **/
+                        /* translate values */
+                        if( _.has( fieldOpts, "keys" ) && !_.has( fieldOpts, "keyValues" ) ) {
+                            fieldOpts.keyValues = {}
+                            _.each( fieldOpts.keys, function( key ) {
+                                fieldOpts.keyValues[ key ] = req.locales.__( key );
+                            });
+                        }
+
+                        jadeFields[ field ] = _.extend( fieldOpts, {
+                            mixinType: element
+                        });
+                    }
+                } );
+
+                return jadeFields;
+            },
+            getValues: function( req, fields, values ) {
+                _.each( values, function( value, key ) {
+                    if( !_.has( fields, key ) )
+                        return;
+
+                    if( fields[ key ].mixinType == "date-field" ) {
+                        var t = moment( values[ key ] );
+                        if( t.isValid() )
+                            values[ key ] = t.format( req.locales.__( "date-format-moment" ) );
+                        else
+                            values[ key ] = "";
+                    }
+                });
+
+                return values;
+            }
+        };
     }
 
     rdb.crud = {
