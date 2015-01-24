@@ -33,3 +33,4 @@ alt
 
 # no less-based css
 websites/*/css/*.css
+websites/*.*
