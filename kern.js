@@ -230,7 +230,7 @@ var Kern = function( callback, kernOpts ) {
             if( opts && opts.website )
                 website = opts.website;
 
-            console.log( "RENDER: ", website );
+            console.log( "Render: ".grey, website.green, filename.cyan );
 
             /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
 
@@ -315,7 +315,7 @@ var Kern = function( callback, kernOpts ) {
             app.use( function( req, res, next ) {
                 var pathname = url.parse( req.url ).pathname;
                 pathname = path.normalize( pathname );
-                console.log( pathname );
+                //console.log( pathname );
 
                 /* contain in directory */
                 if( pathname.indexOf( ".." ) >= 0 )

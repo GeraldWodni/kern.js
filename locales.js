@@ -88,8 +88,8 @@ module.exports = function( rdb, defaultLocale ) {
         var requested = req.headers["accept-language"] || "en-us";
         var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 
-        console.log( requested );
-        console.log("Closest:", current );
+        //console.log( requested );
+        //console.log("Closest:", current );
 
         req.locales = {
             current:    current,

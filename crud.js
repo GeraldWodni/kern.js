@@ -21,6 +21,7 @@ module.exports = function( rdb ) {
         }, opts );
 
         opts = _.extend( {
+            idField: opts.id,
             insertQuery: "INSERT INTO ?? SET ?",
             updateQuery: "UPDATE ?? SET ? WHERE ??=?",
             deleteQuery: "DELETE FROM ?? WHERE ??=?",
@@ -263,7 +264,7 @@ module.exports = function( rdb ) {
                 return values;
             },
             getRequestId: function( req ) {
-                return req.requestData.escapedLink( opts.id );
+                return req.requestData.escapedLink( opts.idField );
             }
         }, opts );
 
@@ -315,7 +316,7 @@ module.exports = function( rdb ) {
                             crud.update( req.kern.website, id, obj[ opts.id ], obj, handleUpdate );
                     }
                     else if( req.postman.exists( "delete" ) ) {
-                        var id = opts.getRequestId( req );
+                        var id = req.postman.uint( "delete" );
 
                         function handleDelete( err ) {
                             if( err )
@@ -353,6 +354,7 @@ module.exports = function( rdb ) {
 
         return  {
             handlePost: handlePost,
+            getRequestId: opts.getRequestId,
             getFields: function( req ) {
                 var jadeFields =  {}
                 _.each( opts.fields, function( fieldOpts, field ) {
@@ -397,14 +399,70 @@ module.exports = function( rdb ) {
                 });
 
                 return values;
-            }
+            },
+            crud: crud
         };
-    }
+    };
+
+    function presenter( k, crud, opts ) {	
+        opts = _.extend( {
+            id: "id",
+            addPath: "/",
+            title: "Crud",
+            path: "/admin/crud",
+            idField: "id",
+            editPath: "/edit/:id?",
+            jadeFile: "admin/crud"
+        }, opts);
+
+        var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
+
+        function renderAll( req, res, next, values ) {
+            r.crud.readAll( function( err, items ) {
+                if( err ) {
+                    return next( err );
+                }
+
+                var fields = r.getFields( req );
+
+                var jadeCrudOpts = {
+                    items: items,
+                    idField: opts.id,
+                    link: opts.path,
+                    fields: fields,
+                    values: r.getValues( req, fields, values )
+                };
+
+                k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+            });
+        }
+
+        k.router.get(opts.editPath, function( req, res, next ) {
+            crud.read( r.getRequestId( req ), function( err, data ) {
+                if( err )
+                    return next( err );
+
+                /* no matching dataset, render "add" */
+                if( _.isArray( data ) ) {
+                    req.messages.push( { type: "danger", title: req.locales.__("Error"), text: req.locales.__( "Unknown ID" ) } );
+                    renderAll( req, res, next );
+                }
+                /* dataset found, render "edit" */
+                else
+                    renderAll( req, res, next, data );
+            });
+        });
+
+        k.router.get( opts.addPath, function( req, res, next ) {
+            renderAll( req, res, next );
+        });
+    };
 
     rdb.crud = {
         setHash: setHash,
         setSet: setSet,
         sql: sqlCrud,
-        router: router
+        router: router,
+        presenter: presenter
     };
 };

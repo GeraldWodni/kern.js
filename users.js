@@ -76,7 +76,7 @@ module.exports = function( rdb ) {
     };
 
     function loadByName( prefix, name, next ) {
-        console.log( "LOAD ", prefix, name );
+        console.log( "Load user".grey, prefix.green, name.cyan );
         rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );

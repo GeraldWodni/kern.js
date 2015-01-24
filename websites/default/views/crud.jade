@@ -49,7 +49,8 @@ mixin crudEdit( opts )
         +crudFields( opts )
 
         button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
-        button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{opts.values.link}')= __("Delete")
+    form(method="post",action=opts.link,class="deleteWrapper")
+        button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{opts.values[opts.idField]}')= __("Delete")
 
 
 // add form

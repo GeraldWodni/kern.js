@@ -75,5 +75,6 @@
     "projectGroup": "Projektgruppe",
     "employee": "Mitarbeiter",
     "current-locale": "de-AT",
-    "date-format-moment": "DD.MM.YYYY"
+    "date-format-moment": "DD.MM.YYYY",
+    "Unknown ID": "Unbekannte ID"
 }
