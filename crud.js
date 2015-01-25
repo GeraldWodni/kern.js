@@ -208,6 +208,7 @@ module.exports = function( rdb ) {
     function router( k, path, crud, opts ) {
         opts = _.extend( {
             id: "id",
+            idField: opts.id || "id",
             filters: {
                 date:       "dateTime",
                 email:      "email",
@@ -316,7 +317,7 @@ module.exports = function( rdb ) {
                             crud.update( req.kern.website, id, obj[ opts.id ], obj, handleUpdate );
                     }
                     else if( req.postman.exists( "delete" ) ) {
-                        var id = req.postman.uint( "delete" );
+                        var id = req.postman.escapedLink( "delete" );
 
                         function handleDelete( err ) {
                             if( err )

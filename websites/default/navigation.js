@@ -34,8 +34,7 @@ module.exports = {
         });
 
         function renderAll( req, res, values ) {
-            console.log("Render All", values);
-            k.rdb.navigation.readAll( req.website, function( err, items ) {
+            k.rdb.navigation.readAll( req.kern.website, function( err, items ) {
                 if( err )
                     next( err );
                     
@@ -43,17 +42,17 @@ module.exports = {
                     item.escapedLink = encodeURIComponent( item.link );
                 });
             
-                console.log( "RENDER".red.bold );
                 /* TODO: generic non-JS version */
                 k.renderJade( req, res, "admin/navigation", k.reg("admin").values( req, { messages: req.messages, items: items, values: values } ) );
             });
         }
 
         k.router.get( "/edit/:link?", function( req, res ) {
-            k.rdb.navigation.read(req.website, req.requestData.escapedLink( 'link' ), function( err, data ) {
+            k.rdb.navigation.read(req.kern.website, req.requestData.escapedLink( 'link' ), function( err, data ) {
                 if( err )
-                    next( err );
+                    return next( err );
 
+                data.escapedLink = encodeURIComponent( data.link );
                 renderAll( req, res, data );
             });
         });

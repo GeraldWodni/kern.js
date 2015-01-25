@@ -35,7 +35,8 @@ block content
                         +glyph("pencil", "pull-right")
                     +navigationFields(values)
                     button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
-                    button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{values.link}')= __("Delete")
+                form(method="post",action="/admin/navigation",class="deleteWrapper")
+                    button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{values.escapedLink}')= __("Delete")
             else
                 form#add(method='post',role='form')
                     h2
