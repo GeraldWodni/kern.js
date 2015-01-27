@@ -1,11 +1,11 @@
 // administration utility
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var express = require("express");
-var bcrypt  = require("bcrypt-nodejs");
-var colors  = require("colors");
-var util    = require("util");
-var _       = require("underscore");
+var express   = require("express");
+var bcrypt    = require("bcrypt-nodejs");
+var colors    = require("colors");
+var util      = require("util");
+var _         = require("underscore");
 
 /* methods */
 var addSiteModule;
@@ -23,12 +23,17 @@ var viewValues = function( req, values ) {
 module.exports = {
     setup: function( k ) {
 
-        var subModules = {
-            early:  { router: express.Router(), menu: [] },
-            main:   { router: express.Router(), menu: [] },
-            admin:  { router: express.Router(), menu: [] },
-            late:   { router: express.Router(), menu: [] },
-            final:  { router: express.Router(), menu: [] }
+        var subModules = {};
+
+        function websiteSubmodules( website ) {
+            var routers = {
+                early:  { router: express.Router(), menu: [] },
+                main:   { router: express.Router(), menu: [] },
+                admin:  { router: express.Router(), menu: [] },
+                late:   { router: express.Router(), menu: [] },
+                final:  { router: express.Router(), menu: [] }
+            };
+            subModules[ website ] = routers;
         };
 
         /* login & permission-wall */
@@ -42,8 +47,19 @@ module.exports = {
 
         /* assemble and translate menu */
         menu = function( req ) {
+            var modules = { early: [], main: [], admin: [], late: [], final: [] };
+            _.each( k.modules.hierarchy.upParts( req.kern.website ), function( website ) {
+                if( !_.has( subModules, website ) )
+                    return;
 
-            var modules = _.union( subModules.early.menu, subModules.main.menu, subModules.admin.menu, subModules.late.menu, subModules.final.menu );
+                _.each( modules, function( module, key ) {
+                    modules[ key ] = _.union( module, subModules[ website ][ key ].menu );
+                });
+            });
+
+            /* flatten menu */
+            modules = _.union( modules.early, modules.main, modules.admin, modules.late, modules.final )
+
             var menuItems = _.map( modules, function( module ) {
                 return _.extend( module, {
                     name: module.english != "" ? req.locales.__( module.english ) : ""
@@ -58,8 +74,12 @@ module.exports = {
         /* add site modules */
         addSiteModule = function( link, website, filename, name, glyph, opts ) {
             opts = opts || {};
-            var subRouter = subModules[ opts.router || "main" ].router;
-            var subMenu = subModules[ opts.menu || opts.router || "main" ].menu;
+
+            if( !_.has( subModules, website ) )
+                websiteSubmodules( website );
+
+            var subRouter = subModules[ website ][ opts.router || "main" ].router;
+            var subMenu = subModules[ website ][ opts.menu || opts.router || "main" ].menu;
             var target;
             /* function passed directly */
             if( typeof filename === "function" )
@@ -92,12 +112,46 @@ module.exports = {
             k.renderJade( req, res, "admin/info", viewValues( req ) );
         }, "Info", "info-sign", { router: "final", menu: "early" } );
 
-        /* use Addside-modules */
-        k.router.use( subModules.early.router  );
-        k.router.use( subModules.main.router   );
-        k.router.use( subModules.admin.router  );
-        k.router.use( subModules.late.router   );
-        k.router.use( subModules.final.router  );
+        /* use routers by hierarchy and priority */
+        k.router.use( function( req, res, next ) {
+            var routers = ["early", "main", "admin", "late", "final"];
+            var currentRouters;
+            var website = "dummy." + req.kern.website;
+
+            /* get next up website which is registered in subModules */
+            function upSite() {
+                website = k.modules.hierarchy.up( website );
+
+                /* end - no more websites */
+                if( !website )
+                    return null;
+
+                /* found */
+                if( _.has( subModules, website ) ) {
+                    currentRouters = routers.slice(0);
+                    return website;
+                }
+
+                /* check next upSite */
+                return upSite();
+            }
+            upSite();
+
+            function useNext( _req, _res, _next ) {
+                var routerName = currentRouters.shift();
+
+                /* if no router is left, upSite, if all sites are done, use next router */
+                if( !routerName ) {
+                    if( upSite() )
+                        routerName = currentRouters.shift();
+                    else
+                        next();
+                }
+
+                subModules[ website ][ routerName ].router.handle( req, res, useNext );
+            }
+            useNext( req, res, next );
+        });
 
         k.router.use( function( req, res ) {
             console.log( "Done".green.bold );

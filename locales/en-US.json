@@ -76,5 +76,15 @@
     "employee": "employee",
     "current-locale": "en-US",
     "date-format-moment": "MM/DD/YYYY",
-    "Unknown ID": "Unknown ID"
+    "Unknown ID": "Unknown ID",
+    "Guests": "Guests",
+    "Error: users.del not implemented": "Error: users.del not implemented",
+    "Name 1": "Name 1",
+    "Title": "Title",
+    "Name 2": "Name 2",
+    "Name 3": "Name 3",
+    "Last name": "Last name",
+    "Name 4": "Name 4",
+    "Name 5": "Name 5",
+    "Name 6": "Name 6"
 }

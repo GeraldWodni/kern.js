@@ -4,6 +4,7 @@
 var _       = require("underscore");
 var async   = require("async");
 var moment  = require("moment");
+var path    = require("path");
 
 module.exports = function( rdb ) {
 
@@ -405,6 +406,66 @@ module.exports = function( rdb ) {
         };
     };
 
+    /* linker: expose for AJAX */
+    function linker( k, crud, opts ) {
+        opts = _.extend( {
+            id: "id",
+            path: "/"
+        }, opts);
+
+        opts = _.extend( {
+            readPath:   path.join( opts.path, "read/:id?"   ),
+            idField:    "id",
+            readAllPath:path.join( opts.path, "read-all"    ),
+            createPath: path.join( opts.path, "create"      ),
+            updatePath: path.join( opts.path, "update/:id?" ),
+            deletePath: path.join( opts.path, "delete/:id?" )
+        }, opts);
+
+	var r = router( k, [ createPath, readPath, updatePath, deletePath ], crud, opts );
+
+        r.post( opts.createPath, function( req, res, next ) {
+            crud.create( crud.readFields( req ), function( err, data ) {
+                if( err ) next( err ); else res.json( data );
+            });
+        });
+        
+        r.get( opts.readPath, function( req, res, next ) {
+            crud.read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
+                if( err ) next( err ); else res.json( data );
+            });
+        });
+
+        r.get( opts.readAllPath, function( req, res, next ) {
+            crud.readAll( function( err, data ) {
+                if( err ) next( err ); else res.json( data );
+            });
+        });
+
+        r.post( opts.updatePath, function( req, res, next ) {
+            var id = req.requestData.escapedLink( opts.idField );
+            var data = crud.readFields( req );
+            if( !id )
+                id = data[ opts.id ];
+
+            crud.update( id, data, function( err ) {
+                if( err ) next( err ); else res.json( {} );
+            });
+        });
+
+        r.post( opts.deletePath, function( req, res, next ) {
+            var id = req.requestData.escapedLink( opts.idField );
+            var data = crud.readFields( req );
+            if( !id )
+                id = data[ opts.id ];
+            
+            crud.del( id, function( err ) {
+                if( err ) next( err ); else res.json( {} );
+            });
+        });
+
+    };
+
     function presenter( k, crud, opts ) {	
         opts = _.extend( {
             id: "id",
@@ -413,7 +474,9 @@ module.exports = function( rdb ) {
             path: "/admin/crud",
             idField: "id",
             editPath: "/edit/:id?",
-            jadeFile: "admin/crud"
+            jadeFile: "admin/crud",
+            boldDisplay: "name",
+            display: "firstName"
         }, opts);
 
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
@@ -429,6 +492,8 @@ module.exports = function( rdb ) {
                 var jadeCrudOpts = {
                     items: items,
                     idField: opts.id,
+                    boldDisplay: opts.boldDisplay,
+                    display: opts.display,
                     link: opts.path,
                     fields: fields,
                     values: r.getValues( req, fields, values )

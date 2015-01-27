@@ -50,6 +50,16 @@ function up( website ) {
     return null;
 }
 
+function upParts( website ) {
+    var parts = [ website ];
+    part = website;
+
+    while( part = up( part ) )
+        parts.push( part );
+
+    return parts;
+}
+
 /* go up until directory exists */
 function upExists( websitesRoot, website, dir ) {
     while( true ) {
@@ -87,9 +97,12 @@ function website( websitesRoot, website ) {
 }
 
 
-module.exports.lookupFile = lookupFile;
-module.exports.lookupFileThrow = lookupFileThrow;
-module.exports.up = up;
-module.exports.upExists = upExists;
-module.exports.paths = paths;
-module.exports.website = website;
+module.exports = {
+    lookupFile:     lookupFile,
+    lookupFileThrow:lookupFileThrow,
+    up:             up,
+    upParts:        upParts,
+    upExists:       upExists,
+    paths:          paths,
+    website:        website
+}
