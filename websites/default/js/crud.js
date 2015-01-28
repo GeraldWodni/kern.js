@@ -14,9 +14,17 @@ $(function(){
         });
     });
 
-    $(".crud-search .btn").click( function() {
+    $(".crud-search .crud-show-all").click( function() {
         var $list = $(this).closest(".crud-list");
         $list.find(".crud-search input").val("");
         $list.find(".crud-item").show();
+    });
+
+    $(".crud-search .crud-expand i.glyphicon-chevron-left").hide();
+
+    $(".crud-search .crud-expand").click( function(){
+        var $items = $(this).closest(".crud-items");
+        $items.toggleClass("col-sm-4", 600);
+        $(".crud-search .crud-expand i.glyphicon").toggle();
     });
 });

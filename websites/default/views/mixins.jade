@@ -66,6 +66,13 @@ mixin date-field(name, label, value)
         - var newName = name + '-alt';
         input(type='hidden', name=newName, value=value)
 
+mixin datetime-field(name, label, value)
+    div.form-group
+        label= label
+        input.form-control(type='text', rel='datetime', name=name, value=value)
+        - var newName = name + '-alt';
+        input(type='hidden', name=newName, value=value)
+
 mixin enum-field(name, label, keyValues, value)
     div.form-group
         label= label

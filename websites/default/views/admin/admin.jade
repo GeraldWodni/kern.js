@@ -3,6 +3,7 @@ include ../mixins
 include ../crud
 +script('/js/jquery.min.js')
 +script('/js/jquery-ui.min.js')
++script('/js/jquery-ui-timepicker-addon.js')
 +script('/js/datepicker-de-AT.js')
 +script('/js/bootstrap.min.js')
 
@@ -20,7 +21,10 @@ html(lang=__('current-locale'))
         meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
         link(rel="stylesheet", type="text/css" href="/css/admin.css")
         +style("/css/jquery-ui-smoothness.min.css")
+        +style('/css/jquery-ui-timepicker-addon.css')
+        +style("/css/fullcalendar.css")
         +style("/css/admin.css")
+        +style("/css/admin-site.css")
         +styles()
         //each style in styles || []
         //    link(rel="stylesheet", type="text/css" href=style)

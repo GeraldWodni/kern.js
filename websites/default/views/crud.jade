@@ -3,7 +3,7 @@
 mixin crud( opts )
     +script("/js/crud.js")
     div.row
-        div.col-sm-4
+        div.col-sm-4.crud-items
             h2= __("Items")
             +crudList( opts )
         div.col-sm-8
@@ -21,8 +21,11 @@ mixin crudList( opts )
             div.input-group
                 input.form-control(type="text",name="search",placeholder=__( "Search" ))
                 span.input-group-btn
-                    button.btn.btn-default(type="button",title=__( "Show All" ))
+                    button.btn.btn-default.crud-show-all(type="button",title=__( "Show All" ))
                         +glyph("eye-open")
+                    button.btn.btn-default.crud-expand(type="button",title=__( "Expand" ))
+                        +glyph("chevron-right")
+                        +glyph("chevron-left")
         li.list-group-item.crud-new
             = __("New")
             a.btn.btn-primary(href=opts.link).btn-xs.pull-right

@@ -119,5 +119,16 @@
     "Project": "Projekt",
     "Transactions": "Transaktionen",
     "Search": "Suche",
-    "Show All": "Alle anzeigen"
+    "Show All": "Alle anzeigen",
+    "Expand": "Expandieren",
+    "Schedule": "Zeitplan",
+    "Text Color": "Textfarbe",
+    "Employee 2": "Mitarbeiter 2",
+    "Employee 3": "Mitarbeiter 3",
+    "Employee 1": "Mitarbeiter 1",
+    "Teams": "Teams",
+    "Team": "Team",
+    "Appointment": "Termin",
+    "Update": "Ändern",
+    "Abort": "Abbrechen"
 }

@@ -19,6 +19,7 @@ function filters( req ) {
         allocnum:   function( t ) { return f( t, /[^a-zA-Z0-9äöüßÄÖÜ]/g         ); },
         alnum:      function( t ) { return f( t, /[^a-zA-Z0-9]/g                ); },
         alnumList:  function( t ) { return f( t, /[^,a-zA-Z0-9]/g               ); },
+        color:      function( t ) { return f( t, /[^#a-fA-F0-9]/g               ); },
         dateTime:   function( t ) { return f( t, /[^-: 0-9]/g                   ); },
         decimal:    function( t ) { return f( t, /[^-.,0-9]/g                   ).replace(/,/g, '.'); },
         email:      function( t ) { return f( t, /[^-@+_.0-9a-zA-Z]/g            ); },
