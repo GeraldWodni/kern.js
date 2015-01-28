@@ -8,6 +8,16 @@ var path    = require("path");
 
 module.exports = function( rdb ) {
 
+    function getField( item, field ) { 
+        var index = field.indexOf( "." );
+        if( index > 0 ) 
+            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
+        else
+            return item[ field ]
+    };
+
+    rdb.getField = getField;
+
     /* TODO: sql CRUD */
     function sqlCrud( db, opts ) {
 
@@ -16,7 +26,8 @@ module.exports = function( rdb ) {
         opts = _.extend( {
             key: "id",
             foreignName: "name",
-            orderBy: "id",
+            foreignNameSeparator: " ",
+            orderBy: "name",
             selectFields: "",
             nestTables: false
         }, opts );
@@ -31,6 +42,9 @@ module.exports = function( rdb ) {
             selectForeignKeyQuery: "SELECT ??, ?? FROM ?? ORDER BY ??"
         }, opts );
 
+        opts = _.extend( {
+            selectListQuery: opts.selectAllQuery
+        }, opts );
 
         function create( obj, callback ) {
             /* TODO: DEBUG */
@@ -52,19 +66,32 @@ module.exports = function( rdb ) {
             db.query( opts.selectAllQuery, [ opts.table, opts.orderBy ], callback );
         }
 
-        function readForeignKey( callback ) {
-            db.query( opts.selectForeignKeyQuery, [ opts.key, opts.foreignName, opts.table, opts.orderBy ], function( err, data ) {
-                if( err )
-                    callback( err );
-                else {
-                    var keyValues = _.reduce( data, function( obj, row ) {
-                        obj[ row[ opts.key ] ] = row[ opts.foreignName ];
-                        return obj;
-                    }, {} );
+        /* TODO: difference to readForeignKey? function really needed to justify enum foreignBoldName? */
+        function readList( callback, listOpts ) {
+            listOpts = listOpts || {};
+            db.query( listOpts.query || opts.selectListQuery, [ opts.table, opts.orderBy ], callback );
+        }
 
-                    callback( err, keyValues );
-                }
-            });
+        function readForeignKey( callback, foreignOpts ) {
+
+            readList( function( err, data ) {
+                if( err )
+                    return callback( err );
+
+                var keyValues = _.reduce( data, function( obj, row ) {
+                    var name = rdb.getField( row, opts.foreignName );
+                    if( opts.foreignBoldName )
+                        name = rdb.getField( row, opts.foreignBoldName ) + opts.foreignNameSeparator + name;
+
+                    obj[ row[ opts.key ] ] = name;
+                    return obj;
+                }, {} );
+
+                callback( err, keyValues );
+
+
+
+            }, foreignOpts );
         }
 
         function update( key, obj, callback ) {
@@ -80,9 +107,11 @@ module.exports = function( rdb ) {
                 create: create,
                 read:   read,
                 readAll:readAll,
+                readList: readList,
                 readForeignKey: readForeignKey,
                 update: update,
-                del:    del
+                del:    del,
+                foreignKeys: opts.foreignKeys || []
             }, opts );
     }
 
@@ -422,7 +451,7 @@ module.exports = function( rdb ) {
             deletePath: path.join( opts.path, "delete/:id?" )
         }, opts);
 
-	var r = router( k, [ createPath, readPath, updatePath, deletePath ], crud, opts );
+        var r = router( k, [ createPath, readPath, updatePath, deletePath ], crud, opts );
 
         r.post( opts.createPath, function( req, res, next ) {
             crud.create( crud.readFields( req ), function( err, data ) {
@@ -466,7 +495,7 @@ module.exports = function( rdb ) {
 
     };
 
-    function presenter( k, crud, opts ) {	
+    function presenter( k, crud, opts ) {
         opts = _.extend( {
             id: "id",
             addPath: "/",
@@ -474,32 +503,52 @@ module.exports = function( rdb ) {
             path: "/admin/crud",
             idField: "id",
             editPath: "/edit/:id?",
-            jadeFile: "admin/crud",
-            boldDisplay: "name",
-            display: "firstName"
+            jadeFile: "admin/crud"
         }, opts);
 
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
         function renderAll( req, res, next, values ) {
-            r.crud.readAll( function( err, items ) {
+            r.crud.readList( function( err, items ) {
                 if( err ) {
                     return next( err );
                 }
 
                 var fields = r.getFields( req );
 
-                var jadeCrudOpts = {
-                    items: items,
-                    idField: opts.id,
-                    boldDisplay: opts.boldDisplay,
-                    display: opts.display,
-                    link: opts.path,
-                    fields: fields,
-                    values: r.getValues( req, fields, values )
-                };
+                async.map( _.keys( crud.foreignKeys ), function( fkey, done ) {
 
-                k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                    if( !_.has( fields, fkey ) )
+                    {
+                        console.log( "ForeignKey not registered: ".bold.red, fkey )
+                        return done( new Error( "ForeignKey not registered: " + fkey ) );
+                    }
+
+                    crud.foreignKeys[ fkey ].crud.readForeignKey( function( err, data ) {
+                        if( err )
+                            return done( err );
+
+                        fields[ fkey ].keyValues = data;
+                        done();
+                    }, crud.foreignKeys[ fkey ] );
+
+                }, function( err ) {
+                    if( err )
+                        return next( err );
+
+                    var jadeCrudOpts = {
+                        items: items,
+                        idField: opts.id,
+                        boldDisplay: opts.boldDisplay,
+                        display: crud.foreignName,
+                        boldDisplay: crud.foreignBoldName,
+                        link: opts.path,
+                        fields: fields,
+                        values: r.getValues( req, fields, values )
+                    };
+
+                    k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                });
             });
         }
 

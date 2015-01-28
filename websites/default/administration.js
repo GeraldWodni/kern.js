@@ -16,14 +16,16 @@ var allowed = function( req, link ) {
     return permissions.indexOf( link ) >= 0;
 };
 
-var viewValues = function( req, values ) {
-    return _.extend( { menu: menu( req ) }, values || {} );
+var getField;
+function viewValues( req, values ) {
+    return _.extend( { menu: menu( req ), getField: getField }, values || {} );
 };
 
 module.exports = {
     setup: function( k ) {
 
         var subModules = {};
+        getField = k.rdb.getField;
 
         function websiteSubmodules( website ) {
             var routers = {
@@ -139,6 +141,10 @@ module.exports = {
 
             function useNext( _req, _res, _next ) {
                 var routerName = currentRouters.shift();
+
+                /* handle errors */
+                if( _req instanceof Error )
+                    return next( _req );
 
                 /* if no router is left, upSite, if all sites are done, use next router */
                 if( !routerName ) {

@@ -23,10 +23,10 @@ mixin crudList( opts )
         each item in opts.items || []
             li.list-group-item.crud-item
                 if opts.boldDisplay
-                        b= item[ opts.boldDisplay ]
+                        b= getField( item, opts.boldDisplay )
                         |  
                 if opts.display
-                        = item[ opts.display ]
+                        = getField( item, opts.display )
                 a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
                     +glyph("pencil")
 
