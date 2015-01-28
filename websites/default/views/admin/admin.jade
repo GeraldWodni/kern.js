@@ -30,13 +30,12 @@ html(lang=__('current-locale'))
         //    link(rel="stylesheet", type="text/css" href=style)
     body
         div.navbar.navbar-fixed-top(role='navigation')
-            div.container
-                div.navbar-header
-                    a.navbar-brand(href="/")
-                        | kern.js
-                ul
-                    each menuItem in menu || []
-                        +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
+            div.navbar-header
+                a.navbar-brand(href="/")
+                    | kern.js
+            ul
+                each menuItem in menu || []
+                    +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
         div.container.main-content
             block content
@@ -56,7 +55,7 @@ html(lang=__('current-locale'))
                     div.col-xs-8.text-right
                         | ©copyright 
                         span.hidden-xs
-                            | 2014 by 
+                            | 2014-2015 by 
                         a(href='http://wodni.at') Gerald Wodni
 
         +script('/js/admin.js')

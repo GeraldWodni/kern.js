@@ -130,5 +130,8 @@
     "Team": "Team",
     "Appointment": "Termin",
     "Update": "Ändern",
-    "Abort": "Abbrechen"
+    "Abort": "Abbrechen",
+    "None": "Kein",
+    "Background Color": "Hintergrundfarbe",
+    "Create": "Erstellen"
 }

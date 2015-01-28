@@ -87,6 +87,7 @@ mixin foreign-field(name, label, items, value)
     div.form-group
         label= label
         select.form-control(name=name)
+            option(value=0)= __("None")
             each item in items
                 if(item.id == value)
                     option(value=item.id,selected='selected')= item.name

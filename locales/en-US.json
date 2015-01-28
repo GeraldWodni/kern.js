@@ -130,5 +130,8 @@
     "Team": "Team",
     "Appointment": "Appointment",
     "Update": "Update",
-    "Abort": "Abort"
+    "Abort": "Abort",
+    "None": "None",
+    "Background Color": "Background Color",
+    "Create": "Create"
 }
