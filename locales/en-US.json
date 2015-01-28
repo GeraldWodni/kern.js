@@ -107,5 +107,17 @@
     "cancelation": "Cancelation",
     "new": "new",
     "finished": "Finished",
-    "closed": "Closed"
+    "closed": "Closed",
+    "tender": "Tender",
+    "credit": "Credit",
+    "VAT": "VAT",
+    "invoice": "Invoice",
+    "Date": "Date",
+    "Prefix": "Prefix",
+    "dunning": "Dunning",
+    "Suffix": "Suffix",
+    "Project": "Project",
+    "Transactions": "Transactions",
+    "Search": "Search",
+    "Show All": "Show All"
 }

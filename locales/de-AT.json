@@ -107,5 +107,17 @@
     "cancelation": "Storniert",
     "new": "Neu",
     "finished": "Fertiggestellt",
-    "closed": "Angeschlossen"
+    "closed": "Angeschlossen",
+    "tender": "Anbot",
+    "credit": "Gutschrift",
+    "VAT": "USt",
+    "invoice": "Rechnung",
+    "Date": "Datum",
+    "Prefix": "Vorspann",
+    "dunning": "Mahnung",
+    "Suffix": "Nachspann",
+    "Project": "Projekt",
+    "Transactions": "Transaktionen",
+    "Search": "Suche",
+    "Show All": "Alle anzeigen"
 }

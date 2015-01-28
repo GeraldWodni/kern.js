@@ -1,6 +1,7 @@
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 // complete crud
 mixin crud( opts )
+    +script("/js/crud.js")
     div.row
         div.col-sm-4
             h2= __("Items")
@@ -16,6 +17,12 @@ mixin crud( opts )
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
     ul.list-group.crud-list
+        li.list-group-item.crud-search
+            div.input-group
+                input.form-control(type="text",name="search",placeholder=__( "Search" ))
+                span.input-group-btn
+                    button.btn.btn-default(type="button",title=__( "Show All" ))
+                        +glyph("eye-open")
         li.list-group-item.crud-new
             = __("New")
             a.btn.btn-primary(href=opts.link).btn-xs.pull-right
@@ -35,7 +42,9 @@ mixin crudList( opts )
 mixin crudFields( opts )
     - opts.values = opts.values || {}
     each field, name in opts.fields || {}
-        if field.mixinType == "enum-field"
+        if field.mixinType == "foreign-field"
+            +foreign-field( name, __( field.text ), field.items, opts.values[ name ] )
+        else if field.mixinType == "enum-field"
             +enum-field( name, __( field.text ), field.keyValues, opts.values[ name ] )
         else
             +#{field.mixinType}( name, __( field.text ), opts.values[ name ] )

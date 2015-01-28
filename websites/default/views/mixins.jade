@@ -76,6 +76,16 @@ mixin enum-field(name, label, keyValues, value)
                 else
                     option(value=key)= val
 
+mixin foreign-field(name, label, items, value)
+    div.form-group
+        label= label
+        select.form-control(name=name)
+            each item in items
+                if(item.id == value)
+                    option(value=item.id,selected='selected')= item.name
+                else
+                    option(value=item.id)= item.name
+
 mixin textarea-field(name, label, value) 
     div.form-group
         label= label

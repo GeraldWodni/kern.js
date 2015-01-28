@@ -78,18 +78,19 @@ module.exports = function( rdb ) {
                 if( err )
                     return callback( err );
 
-                var keyValues = _.reduce( data, function( obj, row ) {
+                var items = _.map( data, function( row ) {
+
                     var name = rdb.getField( row, opts.foreignName );
                     if( opts.foreignBoldName )
                         name = rdb.getField( row, opts.foreignBoldName ) + opts.foreignNameSeparator + name;
 
-                    obj[ row[ opts.key ] ] = name;
-                    return obj;
-                }, {} );
+                    return {
+                        id: rdb.getField( row, opts.key ),
+                        name: name
+                    }
+                });
 
-                callback( err, keyValues );
-
-
+                callback( err, items );
 
             }, foreignOpts );
         }
@@ -244,13 +245,15 @@ module.exports = function( rdb ) {
                 email:      "email",
                 enum:       "alnum",
                 tel:        "telephone",
-                text:       "alnum",
+                text:       "address",
+                foreign:    "uint",
                 textarea:   "text"
             },
             elements: {
                 date:       "date-field",
                 email:      "email-field",
                 enum:       "enum-field",
+                foreign:    "foreign-field",
                 tel:        "tel-field",
                 text:       "text-field",
                 textarea:   "textarea-field"
@@ -528,7 +531,7 @@ module.exports = function( rdb ) {
                         if( err )
                             return done( err );
 
-                        fields[ fkey ].keyValues = data;
+                        fields[ fkey ].items = data;
                         done();
                     }, crud.foreignKeys[ fkey ] );
 
