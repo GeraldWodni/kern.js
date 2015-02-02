@@ -23,8 +23,8 @@ $(function(){
     $(".crud-search .crud-expand i.glyphicon-chevron-left").hide();
 
     $(".crud-search .crud-expand").click( function(){
-        var $items = $(this).closest(".crud-items");
-        $items.toggleClass("col-sm-4", 600);
+        $(this).closest(".crud-items").toggleClass("col-sm-4", 600);
+        $(this).closest(".crud-items").siblings(".crud-fields").toggleClass("col-sm-8", 600);
         $(".crud-search .crud-expand i.glyphicon").toggle();
     });
 });

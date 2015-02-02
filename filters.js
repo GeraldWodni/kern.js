@@ -15,10 +15,11 @@ function filters( req ) {
 
     /* registered filters */
     req.filters = {
-        address:    function( t ) { return f( t, /[^-\/ a-zA-Z0-9äöüßÄÖÜ]/g     ); },
+        address:    function( t ) { return f( t, /[^-,.\/ a-zA-Z0-9äöüßÄÖÜ]/g   ); },
         allocnum:   function( t ) { return f( t, /[^a-zA-Z0-9äöüßÄÖÜ]/g         ); },
         alnum:      function( t ) { return f( t, /[^a-zA-Z0-9]/g                ); },
         alnumList:  function( t ) { return f( t, /[^,a-zA-Z0-9]/g               ); },
+        boolean:    function( t ) { return f( t, /[^01]/g                       ); },
         color:      function( t ) { return f( t, /[^#a-fA-F0-9]/g               ); },
         dateTime:   function( t ) { return f( t, /[^-: 0-9]/g                   ); },
         decimal:    function( t ) { return f( t, /[^-.,0-9]/g                   ).replace(/,/g, '.'); },

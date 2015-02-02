@@ -6,8 +6,9 @@ mixin crud( opts )
         div.col-sm-4.crud-items
             h2= __("Items")
             +crudList( opts )
-        div.col-sm-8
+        div.col-sm-8.crud-fields
             if opts.values
+                block crudPreEditItem
                 +crudEdit( opts )
             else
                 +crudAdd( opts )

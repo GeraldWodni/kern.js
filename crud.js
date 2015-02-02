@@ -5,6 +5,7 @@ var _       = require("underscore");
 var async   = require("async");
 var moment  = require("moment");
 var path    = require("path");
+var express = require("express");
 
 module.exports = function( rdb ) {
 
@@ -51,6 +52,19 @@ module.exports = function( rdb ) {
             db.query( opts.insertQuery, [ opts.table, obj ], callback );
         }
 
+        function createOrUpdate( obj, callback ) {
+            var key = obj[ opts.key ];
+            read( key, function( err, data ) {
+                if( err )
+                    return callback( err, [] );
+
+                if( data.length == 0 )
+                    create( obj, callback );
+                else
+                    update( key, obj, callback );
+            });
+        }
+
         function read( key, callback ) {
             db.query( opts.selectIdQuery, [ opts.table, opts.key, key ], function( err, data ) {
                 if( err )
@@ -95,6 +109,14 @@ module.exports = function( rdb ) {
             }, foreignOpts );
         }
 
+        function readWhere( name, values, callback ) {
+            var where = opts.wheres[ name ];
+            values.unshift( opts.table ); /* make table the first item */
+            values.push( opts.orderBy );  /* add order by */
+
+            db.query( "SELECT * FROM ?? WHERE " + where.where + " ORDER BY ??", values, callback );
+        }
+
         function update( key, obj, callback ) {
             db.query( opts.updateQuery, [ opts.table, obj, opts.key, key ], callback );
         }
@@ -106,10 +128,12 @@ module.exports = function( rdb ) {
         return _.extend(
             {
                 create: create,
+                createOrUpdate: createOrUpdate,
                 read:   read,
                 readAll:readAll,
                 readList: readList,
                 readForeignKey: readForeignKey,
+                readWhere: readWhere,
                 update: update,
                 del:    del,
                 foreignKeys: opts.foreignKeys || []
@@ -247,7 +271,8 @@ module.exports = function( rdb ) {
                 tel:        "telephone",
                 text:       "address",
                 foreign:    "uint",
-                textarea:   "text"
+                textarea:   "text",
+                checkbox:   "exists"
             },
             elements: {
                 date:       "date-field",
@@ -256,7 +281,8 @@ module.exports = function( rdb ) {
                 foreign:    "foreign-field",
                 tel:        "tel-field",
                 text:       "text-field",
-                textarea:   "textarea-field"
+                textarea:   "textarea-field",
+                checkbox:   "checkbox-field"
             },
             fields: {
                 id:     { type: "id" },
@@ -284,8 +310,9 @@ module.exports = function( rdb ) {
                 _.each( opts.fields, function( fieldOpts, field ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ];
+                    console.log( fieldOpts, opts.filter );
 
-                    if( !_.has( req.filters, filterName ) )
+                    if( !_.has( req.filters, filterName ) && filterName != 'exists' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
                     values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
@@ -454,7 +481,9 @@ module.exports = function( rdb ) {
             deletePath: path.join( opts.path, "delete/:id?" )
         }, opts);
 
-        var r = router( k, [ createPath, readPath, updatePath, deletePath ], crud, opts );
+        //var r = router( k, [ opts.createPath, opts.readPath, opts.updatePath, opts.deletePath ], crud, opts );
+        //var r = express.Router();
+        r = k.router;
 
         r.post( opts.createPath, function( req, res, next ) {
             crud.create( crud.readFields( req ), function( err, data ) {
@@ -471,6 +500,30 @@ module.exports = function( rdb ) {
         r.get( opts.readAllPath, function( req, res, next ) {
             crud.readAll( function( err, data ) {
                 if( err ) next( err ); else res.json( data );
+            });
+        });
+
+        /* wheres */
+        _.each( crud.wheres, function( where, name ) {
+
+            var url = path.join( opts.path, "where", name );
+            where.parameters.forEach( function( parameter ) {
+                url = path.join( url, ":" + parameter.name );
+            });
+
+            r.get( url, function( req, res, next ) {
+
+                var values = [];
+
+                where.parameters.forEach( function( parameter ) {
+                    values.push( req.requestData[ parameter.filter || "alnum" ]( parameter.name ) );
+                });
+                crud.readWhere( name, values, function( err, data ) {
+                    if( err )
+                        return next( err );
+
+                    res.json( data );
+                });
             });
         });
 
@@ -581,6 +634,7 @@ module.exports = function( rdb ) {
         setSet: setSet,
         sql: sqlCrud,
         router: router,
+        linker: linker,
         presenter: presenter
     };
 };

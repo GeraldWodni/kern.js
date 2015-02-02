@@ -5,13 +5,16 @@
 mixin script(src)
     - scriptSources.push( src );
 
+mixin script-tag(scriptSource)
+    script(type='text/javascript',src='#{scriptSource}')
+
 //- include every required script exactly once
 mixin scripts()
     - var usedScripts = []
     each scriptSource in scriptSources
         if usedScripts.indexOf( scriptSource ) == -1
             - usedScripts.push( scriptSource )
-            script(type='text/javascript',src='#{scriptSource}')
+            +script-tag(scriptSource)
 
 mixin style(href)
     - styleSources.push( href );
@@ -29,49 +32,44 @@ mixin favicon(path)
 mixin field(name,type,label,value)
     div.form-group
         label= label
-        input.form-control(type=type,name=name,value=value)
+        input.form-control(type=type,name=name,value=value)&attributes(attributes)
 
 mixin text-field(name, label, value)
-    +field(name, 'text', label, value)
+    +field(name, 'text', label, value)&attributes(attributes)
 
 mixin email-field(name, label, value)
-    +field(name, 'email', label, value)
+    +field(name, 'email', label, value)&attributes(attributes)
 
 mixin tel-field(name, label, value)
-    +field(name, 'tel', label, value)
+    +field(name, 'tel', label, value)&attributes(attributes)
 
 mixin url-field(name, label, value)
-    +field(name, 'url', label, value)
+    +field(name, 'url', label, value)&attributes(attributes)
 
 mixin checkbox-field(name, label, value)
     div.form-group
         div.checkbox
             label
                 if(value)
-                    input(type='checkbox',name=name,checked="checked")
+                    input(type='checkbox',name=name,checked="checked")&attributes(attributes)
                 else
-                    input(type='checkbox',name=name)
+                    input(type='checkbox',name=name)&attributes(attributes)
                 =label
 
 mixin hidden-field(name, value)
-    input(type='hidden', name=name, value=value)
+    input(type='hidden', name=name, value=value)&attributes(attributes)
 
 mixin password-field(name, label)
-    +field(name, 'password', label)
+    +field(name, 'password', label)&attributes(attributes)
 
 mixin date-field(name, label, value)
     div.form-group
         label= label
-        input.form-control(type='text', rel='date', name=name, value=value)
-        - var newName = name + '-alt';
-        input(type='hidden', name=newName, value=value)
+        input.form-control(type='text', rel='date', name=name, value=value)&attributes(attributes)
+        input(type='hidden', name=newName + "-alt", value=value)
 
 mixin datetime-field(name, label, value)
-    div.form-group
-        label= label
-        input.form-control(type='text', rel='datetime', name=name, value=value)
-        - var newName = name + '-alt';
-        input(type='hidden', name=newName, value=value)
+    +date-field(name, label, value)&attributes(rel="datetime",attributes)
 
 mixin enum-field(name, label, keyValues, value)
     div.form-group
@@ -86,7 +84,7 @@ mixin enum-field(name, label, keyValues, value)
 mixin foreign-field(name, label, items, value)
     div.form-group
         label= label
-        select.form-control(name=name)
+        select.form-control(name=name)&attributes(attributes)
             option(value=0)= __("None")
             each item in items
                 if(item.id == value)
@@ -97,12 +95,12 @@ mixin foreign-field(name, label, items, value)
 mixin textarea-field(name, label, value) 
     div.form-group
         label= label
-        textarea.form-control(name=name,rows='3')
+        textarea.form-control(name=name,rows='3')&attributes(attributes)
             = value
 
 
 mixin textarea(name, label)
-    +textarea-field(name, label, "")
+    +textarea-field(name, label, "")&attributes(attributes)
 
 mixin modal(id,title,saveCaption)
     div.modal.fade(id=id)
@@ -129,7 +127,7 @@ mixin modal-add-edit(id,title)
 
 mixin glyph(icon, classes)
     - if( classes ) classes = ' ' + classes; else classes = '';
-    i.glyphicon.glyphicon(class="glyphicon-#{icon}#{classes}")
+    i.glyphicon.glyphicon(class="glyphicon-#{icon}#{classes}")&attributes(attributes)
 
 mixin messages(messages)
     each message in messages || []

@@ -41,7 +41,7 @@ body {
     }
 }
 
-h2 .glyphicon {
+h2 > .glyphicon {
     font-size: 80%;
 }
 
@@ -65,3 +65,7 @@ form.deleteWrapper {
     top: -@button-height;
     margin-bottom: -@button-height;
 }
+
+.glyph-primary  { color: @brand-primary; }
+.glyph-info     { color: lighten(@brand-primary, 10%); }
+.glyph-danger   { color: @state-danger-bg; }
