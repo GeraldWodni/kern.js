@@ -48,7 +48,10 @@ module.exports = function( rdb ) {
         }, opts );
 
         function create( obj, callback ) {
-            /* TODO: DEBUG */
+            /* remove primary key if transmitted */
+            if( opts.autoKey && _.has( obj, opts.key ) )
+                delete obj[ opts.key ];
+
             db.query( opts.insertQuery, [ opts.table, obj ], callback );
         }
 
@@ -260,7 +263,7 @@ module.exports = function( rdb ) {
         }
     }
 
-    function router( k, path, crud, opts ) {
+    function fieldManager( opts ) {
         opts = _.extend( {
             id: "id",
             idField: opts.id || "id",
@@ -310,7 +313,6 @@ module.exports = function( rdb ) {
                 _.each( opts.fields, function( fieldOpts, field ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ];
-                    console.log( fieldOpts, opts.filter );
 
                     if( !_.has( req.filters, filterName ) && filterName != 'exists' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
@@ -328,6 +330,13 @@ module.exports = function( rdb ) {
                 return req.requestData.escapedLink( opts.idField );
             }
         }, opts );
+
+        return opts;
+    }
+
+    /* edit */
+    function router( k, path, crud, opts ) {
+        opts = fieldManager( opts );
 
         function handlePost( req, res, next )  {
 
@@ -467,6 +476,8 @@ module.exports = function( rdb ) {
 
     /* linker: expose for AJAX */
     function linker( k, crud, opts ) {
+        opts = fieldManager( opts );
+
         opts = _.extend( {
             id: "id",
             path: "/"
@@ -485,11 +496,19 @@ module.exports = function( rdb ) {
         //var r = express.Router();
         r = k.router;
 
-        r.post( opts.createPath, function( req, res, next ) {
-            crud.create( crud.readFields( req ), function( err, data ) {
-                if( err ) next( err ); else res.json( data );
+        function applyPostman( callback ) {
+            return function( req, res, next ) {
+                k.modules.postman( req, res, function() {
+                    callback( req, res, next );
+                });
+            };
+        };
+
+        r.post( opts.createPath, applyPostman( function( req, res, next ) {
+            crud.create( opts.readFields( req ), function( err, data ) {
+                if( err ) next( err ); else res.json( { insertId: data.insertId } );
             });
-        });
+        }) );
         
         r.get( opts.readPath, function( req, res, next ) {
             crud.read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
@@ -527,27 +546,33 @@ module.exports = function( rdb ) {
             });
         });
 
-        r.post( opts.updatePath, function( req, res, next ) {
+        r.post( opts.updatePath, applyPostman( function( req, res, next ) {
             var id = req.requestData.escapedLink( opts.idField );
-            var data = crud.readFields( req );
+            var data = opts.readFields( req );
             if( !id )
                 id = data[ opts.id ];
 
             crud.update( id, data, function( err ) {
                 if( err ) next( err ); else res.json( {} );
             });
-        });
+        }) );
 
-        r.post( opts.deletePath, function( req, res, next ) {
+        function deleteHandler( req, res, next ) {
             var id = req.requestData.escapedLink( opts.idField );
-            var data = crud.readFields( req );
-            if( !id )
-                id = data[ opts.id ];
+
+            if( req.method != "GET" ) {
+                var data = opts.readFields( req );
+                if( !id )
+                    id = data[ opts.id ];
+            }
             
             crud.del( id, function( err ) {
                 if( err ) next( err ); else res.json( {} );
             });
-        });
+        }
+
+        r.get ( opts.deletePath, deleteHandler );
+        r.post( opts.deletePath, applyPostman( deleteHandler ) );
 
     };
 

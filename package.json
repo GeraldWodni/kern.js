@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
-    "start": "node ./node_modules/.bin/supervisor ./bin/www",
+    "start": "node ./node_modules/.bin/supervisor -i ./websites/team.wodni.at/js ./bin/www",
     "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
