@@ -163,5 +163,9 @@
     "Duplicate": "Duplizieren",
     "Unit": "Einheit",
     "Amount": "Menge",
-    "Move": "Verschieben"
+    "Move": "Verschieben",
+    "Item": "Eintrag",
+    "Renumber": "Neu Nummerieren",
+    "Subtotal": "Zwischensumme",
+    "Header": "Überschrift"
 }

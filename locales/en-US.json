@@ -170,5 +170,9 @@
     "Duplicate": "Duplicate",
     "Unit": "Unit",
     "Amount": "Amount",
-    "Move": "Move"
+    "Move": "Move",
+    "Item": "Item",
+    "Renumber": "Renumber",
+    "Subtotal": "Subtotal",
+    "Header": "Header"
 }
