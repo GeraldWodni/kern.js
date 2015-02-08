@@ -440,6 +440,12 @@ var Kern = function( callback, kernOpts ) {
                         res.sendfile( filepath );
                     }
                 },
+                readHierarchyFile: function( website, filename, callback ) {
+                    var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
+                    if( filepath == null )
+                        return callback( new Error( filename + " not found" ) );
+                    fs.readFile( filepath, 'utf8', callback );
+                },
                 renderJade: app.renderJade,
                 rdb: rdb,
                 kernOpts: kernOpts,
