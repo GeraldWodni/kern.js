@@ -7,7 +7,7 @@ var moment  = require("moment");
 var path    = require("path");
 var express = require("express");
 
-module.exports = function( rdb ) {
+module.exports = function _crud( rdb ) {
 
     function getField( item, field ) { 
         var index = field.indexOf( "." );

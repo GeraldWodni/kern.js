@@ -11,7 +11,6 @@ var jade    = require("jade");
 var logger  = require("morgan");
 var _       = require("underscore");
 var less    = require("less");
-var redis   = require("redis");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );
@@ -32,6 +31,8 @@ var session     = require("./session");
 var users       = require("./users");
 var locales     = require("./locales");
 var navigation  = require("./navigation");
+var Rdb         = require("./rdb");
+var Cache       = require("./cache");
 var crud        = require("./crud");
 
 /* serverConfig, load from file if exists */
@@ -85,87 +86,10 @@ var Kern = function( callback, kernOpts ) {
 
         /* websocket support */
         require( "express-ws" )( app );
-        
-        var rdb = redis.createClient();
 
-        rdb.on( "error", function( err ) {
-            console.log( "Redis-error ".red.bold, err.stack.yellow );
-            //console.trace();
-        });
-
-        /* get hash by index-hash */
-        rdb.hhgetall = function( indexHash, prefix, itemname, callback ) {
-            rdb.hget( indexHash, itemname, function( err, data ) {
-                if( err )
-                    return callback( err );
-
-                rdb.hgetall( prefix + data, function( err, data ) {
-                    if( err )
-                        return callback( err );
-
-                    return callback( null, data );
-                });
-            });
-        };
-
-        rdb.sall = function( setname, worker, callback ) {
-            rdb.smembers( setname, function( err, data ) {
-                if( err )
-                    return callback( err );
-
-                async.map( data, worker, callback );
-            });
-        };
-
-        rdb.shgetall = function( setname, prefix, callback ) {
-            rdb.sall( setname, function( item, next ) {
-                rdb.hgetall( prefix + item, next );
-            }, callback );
-        }
-
-        rdb.ssgetall = function( setname, prefix, callback ) {
-            rdb.sall( setname, function( item, next ) {
-                rdb.smembers( prefix + item, function( err, data ) {
-                    if( err )
-                        return next( err );
-
-                    return next( null, data );
-                });
-            }, callback );
-        }
-
-        rdb.lall = function( listname, worker, callback ) {
-            rdb.lrange( listname, 0, -1, function( err, data ) {
-                if( err )
-                    return callback( err );
-
-                async.map( data, worker, callback );
-            });
-        };
-
-        /* delete all keys from index-list */
-        rdb.ldel = function( listname, prefix, callback ) {
-            rdb.lall( listname, prefix, function( item, next ) {
-                rdb.del( prefix + "item", next );
-            }, callback );
-        };
-
-        /* get all hash-items by list */
-        rdb.lhgetall = function( listname, prefix, callback ) {
-            rdb.lrange( listname, 0, -1, function( err, data ) {
-                if( err )
-                    return callback( err );
-
-                async.map( data, function( item, next ) {
-                    rdb.hgetall( prefix + item, function( err, data ) {
-                        if( err )
-                            callback( err );
-                        else
-                            callback( null, _.extend( data, { hkey: item } ) );
-                    });
-                }, callback );
-            });
-        };
+        /* connect to redis */
+        var rdb = Rdb();
+        var cache = Cache( rdb );
 
         /* setup crud interface */
         crud( rdb );
@@ -351,40 +275,53 @@ var Kern = function( callback, kernOpts ) {
         });
 
         /* less, circumvent path-processing */
-        app.get("/css/:file", function( req, res, next ) {
+        var lessCache = cache( "less" );
+        app.get("/css/*", function( req, res, next ) {
 
-            var filename = req.requestData.filename( 'file' );
+            var filename = req.path.substring( 5 );
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename ) );
 
-            if( filepath == null )
-                filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
+            /* static css found, serve it */
+            if( filepath != null )
+                return res.sendfile( filepath );
 
-            fs.readFile( filepath, 'utf8', function( err, data ) {
-                if( err ) {
-                    console.log( err );
-                    res.send("ERROR: " + err );
+            /* dynamic less */
+            lessCache.get( req.kern.website, filename, function( err, data ) {
+
+                if( err )
+                    return next( err );
+
+                if( data ) {
+                    res.set( 'Content-Type', 'text/css' );
+                    res.send( data );
                     return;
                 }
 
-                /* parse less & convert to css */
-                var parser = new less.Parser({
-                    filename: filepath,
-                    paths: 
-                    hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
+                filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
+                if( filepath == null )
+                    return next();
+
+                fs.readFile( filepath, 'utf8', function( err, data ) {
+                    if( err ) 
+                        return next( err );
+
+                    /* parse less & convert to css */
+                    var parser = new less.Parser({
+                        filename: filepath,
+                        paths: hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
+                    });
+
+                    parser.parse( data, function( err, tree ) {
+                        if( err )
+                            return next( err );
+
+                        var css = tree.toCSS();
+                        res.set( 'Content-Type', 'text/css' );
+                        res.send( css );
+                        lessCache.set( req.kern.website, filename, css );
+                    });
                 });
 
-                parser.parse( data, function( err, tree ) {
-                    if( err ) {
-                        console.log( err );
-                            res.send( "ERROR" + err );
-                        next();
-                        return;
-                    }
-
-                    var css = tree.toCSS();
-                    res.set( 'Content-Type', 'text/css' );
-                    res.send( css );
-                });
             });
         });
         app.get("/css/:directory/:file", function( req, res, next ) {
