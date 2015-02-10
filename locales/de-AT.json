@@ -167,5 +167,7 @@
     "Item": "Eintrag",
     "Renumber": "Neu Nummerieren",
     "Subtotal": "Zwischensumme",
-    "Header": "Überschrift"
+    "Header": "Überschrift",
+    "Recipient": "Empfänger",
+    "apply": "übernehmen"
 }

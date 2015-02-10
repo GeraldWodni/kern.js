@@ -174,5 +174,7 @@
     "Item": "Item",
     "Renumber": "Renumber",
     "Subtotal": "Subtotal",
-    "Header": "Header"
+    "Header": "Header",
+    "Recipient": "Recipient",
+    "apply": "apply"
 }

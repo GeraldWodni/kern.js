@@ -504,12 +504,6 @@ module.exports = function( rdb ) {
             };
         };
 
-        r.post( opts.createPath, applyPostman( function( req, res, next ) {
-            crud.create( opts.readFields( req ), function( err, data ) {
-                if( err ) next( err ); else res.json( { insertId: data.insertId } );
-            });
-        }) );
-        
         r.get( opts.readPath, function( req, res, next ) {
             crud.read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
                 if( err ) next( err ); else res.json( data );
@@ -546,33 +540,42 @@ module.exports = function( rdb ) {
             });
         });
 
-        r.post( opts.updatePath, applyPostman( function( req, res, next ) {
-            var id = req.requestData.escapedLink( opts.idField );
-            var data = opts.readFields( req );
-            if( !id )
-                id = data[ opts.id ];
+        if( !opts.readOnly ) {
+            r.post( opts.createPath, applyPostman( function( req, res, next ) {
+                crud.create( opts.readFields( req ), function( err, data ) {
+                    if( err ) next( err ); else res.json( { insertId: data.insertId } );
+                });
+            }) );
+            
 
-            crud.update( id, data, function( err ) {
-                if( err ) next( err ); else res.json( {} );
-            });
-        }) );
-
-        function deleteHandler( req, res, next ) {
-            var id = req.requestData.escapedLink( opts.idField );
-
-            if( req.method != "GET" ) {
+            r.post( opts.updatePath, applyPostman( function( req, res, next ) {
+                var id = req.requestData.escapedLink( opts.idField );
                 var data = opts.readFields( req );
                 if( !id )
                     id = data[ opts.id ];
-            }
-            
-            crud.del( id, function( err ) {
-                if( err ) next( err ); else res.json( {} );
-            });
-        }
 
-        r.get ( opts.deletePath, deleteHandler );
-        r.post( opts.deletePath, applyPostman( deleteHandler ) );
+                crud.update( id, data, function( err ) {
+                    if( err ) next( err ); else res.json( {} );
+                });
+            }) );
+
+            function deleteHandler( req, res, next ) {
+                var id = req.requestData.escapedLink( opts.idField );
+
+                if( req.method != "GET" ) {
+                    var data = opts.readFields( req );
+                    if( !id )
+                        id = data[ opts.id ];
+                }
+                
+                crud.del( id, function( err ) {
+                    if( err ) next( err ); else res.json( {} );
+                });
+            }
+
+            r.get ( opts.deletePath, deleteHandler );
+            r.post( opts.deletePath, applyPostman( deleteHandler ) );
+        }
 
     };
 
@@ -625,6 +628,7 @@ module.exports = function( rdb ) {
                         boldDisplay: crud.foreignBoldName,
                         link: opts.path,
                         fields: fields,
+                        scripts: opts.scripts || [],
                         values: r.getValues( req, fields, values )
                     };
 

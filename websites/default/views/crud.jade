@@ -2,6 +2,8 @@
 // complete crud
 mixin crud( opts )
     +script("/js/crud.js")
+    each script in opts.scripts
+        +script(script)
     div.row
         div.col-sm-4.crud-items
             h2= __("Items")
@@ -47,11 +49,11 @@ mixin crudFields( opts )
     - opts.values = opts.values || {}
     each field, name in opts.fields || {}
         if field.mixinType == "foreign-field"
-            +foreign-field( name, __( field.text ), field.items, opts.values[ name ] )
+            +foreign-field( name, __( field.text ), field.items, opts.values[ name ], field )
         else if field.mixinType == "enum-field"
             +enum-field( name, __( field.text ), field.keyValues, opts.values[ name ] )
         else
-            +#{field.mixinType}( name, __( field.text ), opts.values[ name ] )
+            +#{field.mixinType}( name, __( field.text ), opts.values[ name ], field )
 
 
 // edit form
