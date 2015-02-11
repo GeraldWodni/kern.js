@@ -54,7 +54,7 @@ var defaults = {
     viewFolder: 'views',
     rootFolder: __dirname,
     processCount: 1,
-    cacheJade: false // disable cache until dependencies are checked
+    cacheJade: true // disable cache until dependencies are checked
     // processCount: specify the number of worker-processes to create
 };
 
@@ -156,20 +156,6 @@ var Kern = function( callback, kernOpts ) {
 
             console.log( "Render: ".grey, website.green, filename.cyan );
 
-            /* cache hit, TODO: check for file-change, or just push clear cache on kern.js-aware change */
-
-            locals = _.extend( locals || {}, {
-                __: req.locales.__,
-                os: os
-            });
-
-            var cacheName = website + '//' + filename;
-            if( cacheName in app.jadeCache ) {
-                console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-                res.send( app.jadeCache[ cacheName ]( locals ) );
-                return;
-            }
-
             /* compile template */
             var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
             if( !filepath ) {
@@ -177,6 +163,17 @@ var Kern = function( callback, kernOpts ) {
                 res.status(500).end( message );
                 throw new Error( message.bold.red );
             }
+
+            locals = _.extend( locals || {}, {
+                __: req.locales.__,
+                os: os
+            });
+
+            if( filepath in app.jadeCache ) {
+                console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
+                return res.send( app.jadeCache[ filepath ]( locals ) );
+            }
+
 
             opts = opts || {};
             _.extend( opts, {
@@ -193,8 +190,15 @@ var Kern = function( callback, kernOpts ) {
 
                 var compiledJade = jade.compile( data, opts );
 
-                if( kernOpts.cacheJade )
-                    app.jadeCache[ cacheName ] = compiledJade;
+                if( kernOpts.cacheJade ) {
+                    app.jadeCache[ filepath ] = compiledJade;
+
+                    /* remove from cache on jade change */
+                    fs.watch( filepath, function() {
+                        console.log( "Jade CHANGE".yellow.green, filepath );
+                        delete app.jadeCache[ filepath ];
+                    });
+                }
 
                 var html = compiledJade( locals );
                 console.log( "Jade Rendered ".grey, filename.green, website.grey );
@@ -286,7 +290,11 @@ var Kern = function( callback, kernOpts ) {
                 return res.sendfile( filepath );
 
             /* dynamic less */
-            lessCache.get( req.kern.website, filename, function( err, data ) {
+            filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
+            if( filepath == null )
+                return next();
+
+            lessCache.get( filepath, function( err, data ) {
 
                 if( err )
                     return next( err );
@@ -296,10 +304,6 @@ var Kern = function( callback, kernOpts ) {
                     res.send( data );
                     return;
                 }
-
-                filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
-                if( filepath == null )
-                    return next();
 
                 fs.readFile( filepath, 'utf8', function( err, data ) {
                     if( err ) 
@@ -311,6 +315,8 @@ var Kern = function( callback, kernOpts ) {
                         paths: hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
                     });
 
+                    console.log( filepath );
+
                     parser.parse( data, function( err, tree ) {
                         if( err )
                             return next( err );
@@ -318,7 +324,7 @@ var Kern = function( callback, kernOpts ) {
                         var css = tree.toCSS();
                         res.set( 'Content-Type', 'text/css' );
                         res.send( css );
-                        lessCache.set( req.kern.website, filename, css );
+                        lessCache.set( filepath, css );
                     });
                 });
 
