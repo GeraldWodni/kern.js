@@ -188,15 +188,38 @@ var Kern = function( callback, kernOpts ) {
                     return;
                 }
 
+                /* store dependencies */
+                var dependencies = [ filepath ];
+                /* override jade's resolvePath to use kern-hierarchy */
+                jade.Parser.prototype.resolvePath = function (filename, purpose) {
+                    var callerFile = this.filename;
+                    var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
+
+                    var file = hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
+                    dependencies.push( file );
+                    return file;
+                };
+
+                /* compile (synced) */
                 var compiledJade = jade.compile( data, opts );
 
+                /* store in cache */
                 if( kernOpts.cacheJade ) {
                     app.jadeCache[ filepath ] = compiledJade;
 
-                    /* remove from cache on jade change */
-                    fs.watch( filepath, function() {
-                        console.log( "Jade CHANGE".yellow.green, filepath );
-                        delete app.jadeCache[ filepath ];
+                    dependencies = _.uniq( dependencies );
+
+                    /* remove from cache on dependency change */
+                    var watchers = [];
+                    dependencies.forEach( function( filename ) {
+                        var watcher = fs.watch( filename, function() {
+                            console.log( "Jade Changed".grey, filepath.yellow, website.grey );
+                            delete app.jadeCache[ filepath ];
+
+                            /* close all watchers for root file */
+                            watchers.forEach( function( watcher ) { watcher.close() } );
+                        });
+                        watchers.push( watcher );
                     });
                 }
 
@@ -221,14 +244,6 @@ var Kern = function( callback, kernOpts ) {
         //});
         //rdb.users.create( "default", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
 
-
-        /* override jade's resolvePath to use kern-hierarchy */
-        jade.Parser.prototype.resolvePath = function (filename, purpose) {
-            var callerFile = this.filename;
-            var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
-
-            return hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
-        };
 
         /* serve static content like images and javascript */
         function serveStatic( directory, req, res ) {

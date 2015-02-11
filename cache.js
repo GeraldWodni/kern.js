@@ -36,11 +36,9 @@ module.exports = function _cache( rdb ) {
 
         /* watch for changes to file */
         function watchFile( filename, timeout ) {
-            console.log( "Start Watch".bold.green, filename );
-
             /* start filewatch */
             var watcher = fs.watch( filename, function( event, fname ) {
-                console.log( "Cache CHANGE".yellow.green, filename );
+                console.log( "Cache Changed".grey, filename.yellow );
                 /* if a change occured, clear cache */
                 rdb.del( key( filename ), function() {
                     watcher.close();
@@ -56,14 +54,12 @@ module.exports = function _cache( rdb ) {
 
         /* load value */
         function get( filename, callback ) {
-            console.log( "Cache GET".bold.green, filename );
             rdb.get( key( filename ), callback );
         }
 
         /* store value and place TTL */
         function set( filename, content, callback ) {
             var k = key( filename );
-            console.log( "Cache SET".bold.yellow, filename );
             rdb.multi().set( k, content ).expire( k, opts.timeout ).exec( callback );
             watchFile( filename );
         }
