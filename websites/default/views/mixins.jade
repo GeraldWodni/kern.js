@@ -100,8 +100,8 @@ mixin _foreign-field(name, label, items, value, opts)
         unless opts && opts.hideNone
             option(value=0)= "<"+__("None")+">"
         each item in items
-            -var id = (opts.idField ? item[opts.idField] : item.id)
-            -var name = (opts.composeName ? opts.composeName(item) : item.name)
+            -var id = (opts && opts.idField ? item[opts.idField] : item.id)
+            -var name = (opts && opts.composeName ? opts.composeName(item) : item.name)
             if(id == value)
                 option(value=id,selected='selected')= name
             else
