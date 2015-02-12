@@ -166,6 +166,7 @@ var Kern = function( callback, kernOpts ) {
 
             locals = _.extend( locals || {}, {
                 __: req.locales.__,
+                _: _,
                 os: os
             });
 

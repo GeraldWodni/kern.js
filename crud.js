@@ -623,13 +623,13 @@ module.exports = function _crud( rdb ) {
                     var jadeCrudOpts = {
                         items: items,
                         idField: opts.id,
-                        boldDisplay: opts.boldDisplay,
                         display: crud.foreignName,
                         boldDisplay: crud.foreignBoldName,
                         link: opts.path,
                         fields: fields,
                         scripts: opts.scripts || [],
-                        values: r.getValues( req, fields, values )
+                        values: r.getValues( req, fields, values ),
+                        formAction: req.baseUrl
                     };
 
                     k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );

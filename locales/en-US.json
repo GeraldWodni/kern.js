@@ -176,5 +176,10 @@
     "Subtotal": "Subtotal",
     "Header": "Header",
     "Recipient": "Recipient",
-    "apply": "apply"
+    "apply": "apply",
+    "Import": "Import",
+    "Import transaction": "Import transaction",
+    "Transaction": "Transaction",
+    "Value": "Value",
+    "Settings": "Settings"
 }

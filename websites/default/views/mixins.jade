@@ -29,19 +29,23 @@ mixin styles()
 mixin favicon(path)
     link(rel="shortcut icon",href=path)
 
+mixin _field(name,type,value)
+    input.form-control(type=type,name=name,value=value)&attributes(attributes)
+
 mixin field(name,type,label,value,opts)
+    - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {});
     div.form-group
         label= label
         if opts && opts.inputGroup
             div.input-group
-                input.form-control(type=type,name=name,value=value)&attributes(attributes)
+                +_field(name,type,value)&attributes(attrs)
                 - var groupType = opts.inputGroup.type || "button"
                 if groupType == "button"
                     span.input-group-btn
                         button.btn.btn-default(type="button",title=__(opts.inputGroup.title))
                             +glyph(opts.inputGroup.glyph)
         else
-            input.form-control(type=type,name=name,value=value)&attributes(attributes)
+            +_field(name,type,value)&attributes(attrs)
 
 mixin text-field(name, label, value, opts)
     +field(name, 'text', label, value, opts)&attributes(attributes)
@@ -71,13 +75,14 @@ mixin hidden-field(name, value)
 mixin password-field(name, label)
     +field(name, 'password', label)&attributes(attributes)
 
-mixin date-field(name, label, value)
+mixin date-field(name, label, value, opts)
     div.form-group
         label= label
-        input.form-control(type='text', rel='date', name=name, value=value)&attributes(attributes)
+        - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {}, { rel: "date" });
+        +_field(name,"text",value)&attributes(attrs)
         input(type='hidden', name=newName + "-alt", value=value)
 
-mixin datetime-field(name, label, value)
+mixin datetime-field(name, label, value, opts)
     +date-field(name, label, value)&attributes(rel="datetime",attributes)
 
 mixin enum-field(name, label, keyValues, value)
@@ -90,28 +95,32 @@ mixin enum-field(name, label, keyValues, value)
                 else
                     option(value=key)= val
 
-mixin _foreign-field(name, label, items, value)
+mixin _foreign-field(name, label, items, value, opts)
     select.form-control(name=name)&attributes(attributes)
-        option(value=0)= __("None")
+        unless opts && opts.hideNone
+            option(value=0)= "<"+__("None")+">"
         each item in items
-            if(item.id == value)
-                option(value=item.id,selected='selected')= item.name
+            -var id = (opts.idField ? item[opts.idField] : item.id)
+            -var name = (opts.composeName ? opts.composeName(item) : item.name)
+            if(id == value)
+                option(value=id,selected='selected')= name
             else
-                option(value=item.id)= item.name
+                option(value=id)= name
 
 mixin foreign-field(name, label, items, value, opts)
+    - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {});
     div.form-group
         label= label
         if opts && opts.inputGroup
             div.input-group
-                +_foreign-field(name, label, items, value)
+                +_foreign-field(name, label, items, value, opts)&attributes(attributes)
                 - var groupType = opts.inputGroup.type || "button"
                 if groupType == "button"
                     span.input-group-btn
                         button.btn.btn-default(type="button",title=__(opts.inputGroup.title))
                             +glyph(opts.inputGroup.glyph)
         else
-            +_foreign-field(name, label, items, value)
+            +_foreign-field(name, label, items, value, opts)&attributes(attributes)
 
 mixin textarea-field(name, label, value) 
     div.form-group

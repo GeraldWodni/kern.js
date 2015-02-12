@@ -34,7 +34,7 @@ mixin crudList( opts )
             a.btn.btn-primary(href=opts.link).btn-xs.pull-right
                 +glyph("plus")
         each item in opts.items || []
-            li.list-group-item.crud-item
+            li.list-group-item.crud-item.clearfix
                 if opts.boldDisplay
                         b= getField( item, opts.boldDisplay )
                         |  
@@ -72,7 +72,7 @@ mixin crudEdit( opts )
 
 // add form
 mixin crudAdd( opts )
-    form.crud-add(method='post',role='form')
+    form.crud-add(method='post',role='form',action=opts.formAction)
         h2
             +glyph("plus", "pull-right")
             = " " + __("Add")
