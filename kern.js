@@ -399,11 +399,23 @@ var Kern = function( callback, kernOpts ) {
                         res.sendfile( filepath );
                     }
                 },
-                readHierarchyFile: function( website, filename, callback ) {
+                readHierarchyFile: function( website, filenames, callback ) {
+                    if( !_.isArray( filenames ) )
+                        filenames = [ filenames ];
+                    
+                    async.mapSeries( filenames, function( filename, d ) {
+                        var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
+                        if( filepath == null )
+                            return d( new Error( filename + " not found" ) );
+                        fs.readFile( filepath, 'utf8', d );
+
+                    }, callback );
+                },
+                createHierarchyReadStream: function( website, filename ) {
                     var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
                     if( filepath == null )
-                        return callback( new Error( filename + " not found" ) );
-                    fs.readFile( filepath, 'utf8', callback );
+                        return null;
+                    return fs.createReadStream( filepath );
                 },
                 renderJade: app.renderJade,
                 rdb: rdb,
