@@ -90,7 +90,8 @@ module.exports = {
                 target = k.siteModule( website, filename, opts ).router;
 
             subRouter.use( "/" + link, target );
-            subMenu.push( { link: link, glyph: glyph, english: name } );
+            if( link != "" || glyph != "" )
+                subMenu.push( { link: link, glyph: glyph, english: name } );
         };
 
         /* main admin modules */
