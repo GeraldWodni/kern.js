@@ -181,5 +181,7 @@
     "Import transaction": "Import transaction",
     "Transaction": "Transaction",
     "Value": "Value",
-    "Settings": "Settings"
+    "Settings": "Settings",
+    "Key": "Key",
+    " Key": " Key"
 }

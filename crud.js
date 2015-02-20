@@ -314,10 +314,18 @@ module.exports = function _crud( rdb ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ];
 
-                    if( !_.has( req.filters, filterName ) && filterName != 'exists' )
+                    if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
-                    values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+                    /* drop value */
+                    if( filterName == 'drop' )
+                        return;
+                    /* get value without applying any filter (for sources which do not support filters) */
+                    else if( filterName == 'get' )
+                        values[ field ] = req[ source ][ fieldOpts.name || field ];
+                    /* fetch value using filters */
+                    else
+                        values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
 
                     /* local date format to iso */
                     if( fieldOpts.type == "date" )
@@ -337,6 +345,11 @@ module.exports = function _crud( rdb ) {
     /* edit */
     function router( k, path, crud, opts ) {
         opts = fieldManager( opts );
+        opts = _.extend( {
+            preCreateTrigger: function( req, fields, crudCreate ) {
+                crudCreate( fields );
+            }
+        }, opts );
 
         function handlePost( req, res, next )  {
 
@@ -353,15 +366,17 @@ module.exports = function _crud( rdb ) {
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added") } );
                             opts.success( req, res, next );
                         };
-
-                        if( crud.create.length == 2 )
-                            crud.create( obj, handleCreate );
-                        /* predetermined id */
-                        else if( crud.create.length == 3 )
-                            crud.create( req.kern.website, obj, handleCreate);
-                        /* dynamic id */
-                        else
-                            crud.create( req.kern.website, obj[ opts.id ], obj, handleCreate);
+                        
+                        opts.preCreateTrigger( req, obj, function( obj ) {
+                            if( crud.create.length == 2 )
+                                crud.create( obj, handleCreate );
+                            /* predetermined id */
+                            else if( crud.create.length == 3 )
+                                crud.create( req.kern.website, obj, handleCreate);
+                            /* dynamic id */
+                            else
+                                crud.create( req.kern.website, obj[ opts.id ], obj, handleCreate);
+                        });
                     }
                     else if( req.postman.exists( "update" ) ) {
                         var id = opts.getRequestId( req );
@@ -634,7 +649,7 @@ module.exports = function _crud( rdb ) {
 
                     k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
                 });
-            });
+            }, { req: req } );
         }
 
         k.router.get(opts.editPath, function( req, res, next ) {
