@@ -184,5 +184,7 @@
     "Settings": "Settings",
     "Key": "Key",
     " Key": " Key",
-    "state": "State"
+    "state": "State",
+    "canceled": "Canceled",
+    "billable": "Billable"
 }

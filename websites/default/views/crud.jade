@@ -5,10 +5,11 @@ mixin crud( opts )
     each script in opts.scripts
         +script(script)
     div.row
-        div.col-sm-4.crud-items
+        div.crud-items(class=opts.startExpanded?"":"col-sm-4")
             h2= __("Items")
-            +crudList( opts )
-        div.col-sm-8.crud-fields
+            block crudList
+                +crudList( opts )
+        div.crud-fields(class=opts.startExpanded?"":"col-sm-8")
             if opts.values
                 block crudPreEditItem
                 +crudEdit( opts )
@@ -35,13 +36,14 @@ mixin crudList( opts )
                 +glyph("plus")
         each item in opts.items || []
             li.list-group-item.crud-item.clearfix
-                if opts.boldDisplay
-                        b= getField( item, opts.boldDisplay )
-                        |  
-                if opts.display
-                        = getField( item, opts.display )
                 a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
                     +glyph("pencil")
+                block crudListItem
+                    if opts.boldDisplay
+                        b= getField( item, opts.boldDisplay )
+                        |  
+                    if opts.display
+                        = getField( item, opts.display )
 
 
 // standard fields

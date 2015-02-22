@@ -20,7 +20,10 @@ $(function(){
         $list.find(".crud-item").show();
     });
 
-    $(".crud-search .crud-expand i.glyphicon-chevron-left").hide();
+    if($(".crud-items").hasClass("col-sm-4"))
+        $(".crud-search .crud-expand i.glyphicon-chevron-left").hide();
+    else
+        $(".crud-search .crud-expand i.glyphicon-chevron-right").hide();
 
     $(".crud-search .crud-expand").click( function(){
         $(this).closest(".crud-items").toggleClass("col-sm-4", 600);

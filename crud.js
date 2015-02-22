@@ -499,12 +499,13 @@ module.exports = function _crud( rdb ) {
         }, opts);
 
         opts = _.extend( {
-            readPath:   path.join( opts.path, "read/:id?"   ),
-            idField:    "id",
-            readAllPath:path.join( opts.path, "read-all"    ),
-            createPath: path.join( opts.path, "create"      ),
-            updatePath: path.join( opts.path, "update/:id?" ),
-            deletePath: path.join( opts.path, "delete/:id?" )
+            readPath:       path.join( opts.path, "read/:id?"   ),
+            idField:        "id",
+            readAllPath:    path.join( opts.path, "read-all"    ),
+            readListPath:   path.join( opts.path, "read-list"   ),
+            createPath:     path.join( opts.path, "create"      ),
+            updatePath:     path.join( opts.path, "update/:id?" ),
+            deletePath:     path.join( opts.path, "delete/:id?" )
         }, opts);
 
         //var r = router( k, [ opts.createPath, opts.readPath, opts.updatePath, opts.deletePath ], crud, opts );
@@ -521,6 +522,12 @@ module.exports = function _crud( rdb ) {
 
         r.get( opts.readPath, function( req, res, next ) {
             crud.read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
+                if( err ) next( err ); else res.json( data );
+            });
+        });
+
+        r.get( opts.readListPath, function( req, res, next ) {
+            crud.readList( function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
@@ -644,7 +651,8 @@ module.exports = function _crud( rdb ) {
                         fields: fields,
                         scripts: opts.scripts || [],
                         values: r.getValues( req, fields, values ),
-                        formAction: req.baseUrl
+                        formAction: req.baseUrl,
+                        startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
                     };
 
                     k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );

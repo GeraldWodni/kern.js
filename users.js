@@ -121,8 +121,8 @@ module.exports = function( rdb ) {
     };
 
     function executeOrRender( req, res, next, renderer, locals ) {
-        if( typeof loginRenderer === "function" )
-            loginRenderer( req, res, next, locals );
+        if( typeof renderer === "function" )
+            renderer( req, res, next, locals );
         else
             req.kern.renderJade( req, res, renderer, locals );
     }

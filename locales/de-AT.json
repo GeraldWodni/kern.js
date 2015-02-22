@@ -107,7 +107,7 @@
     "cancelation": "Storniert",
     "new": "Neu",
     "finished": "Fertiggestellt",
-    "closed": "Angeschlossen",
+    "closed": "Abgeschlossen",
     "tender": "Anbot",
     "credit": "Gutschrift",
     "VAT": "USt",
@@ -177,5 +177,7 @@
     "Settings": "Einstellungen",
     "Key": "Schlüssel",
     " Key": "Schlüssel",
-    "state": "Status"
+    "state": "Status",
+    "canceled": "Storniert",
+    "billable": "Abrechnungsfähig"
 }
