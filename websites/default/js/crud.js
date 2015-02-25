@@ -1,6 +1,17 @@
 $(function(){
     $(".crud-search input").keyup( function() {
-        var search = $(this).val();
+    	/* replace all whitespace by singe space */
+        var search = $(this).val().replace(/\s+/g, ' ');
+	/* merge into non-consuming regex, (?=.*<expr>) */
+	search = _.reduce( search.split(" "), function( memo, word ) {
+            if( word.length > 0 )
+                return memo + "(?=.*" + word + ")";
+            else
+                return memo;
+        },"");
+
+        search = "^" + search + ".*$";
+	console.log( search );
 
         $(this).closest(".crud-list").find(".crud-item").each(function( index, item ) {
             var $item = $(item);
