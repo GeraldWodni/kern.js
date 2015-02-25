@@ -399,6 +399,12 @@ var Kern = function( callback, kernOpts ) {
                         res.sendfile( filepath );
                     }
                 },
+                readHierarchyDir: function( website, dirname, callback ) {
+                    var dirpath = hierarchy.lookupFile( kernOpts.websitesRoot, website, dirname );
+                    if( dirpath == null )
+                        return callback( new Error( "Dir not found" ) );
+                    fs.readdir( dirpath, callback );
+                },
                 readHierarchyFile: function( website, filenames, callback ) {
                     if( !_.isArray( filenames ) )
                         filenames = [ filenames ];
