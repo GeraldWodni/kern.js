@@ -312,10 +312,12 @@ module.exports = function _crud( rdb ) {
                 var values = {};
                 _.each( opts.fields, function( fieldOpts, field ) {
                     var source = fieldOpts.source || "postman";
-                    var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ];
+                    var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ] || field;
 
                     if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
+
+                    console.log( "FILTER:", source, filterName, field );
 
                     /* drop value */
                     if( filterName == 'drop' )

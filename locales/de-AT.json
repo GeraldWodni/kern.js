@@ -179,5 +179,15 @@
     " Key": "Schlüssel",
     "state": "Status",
     "canceled": "Storniert",
-    "billable": "Abrechnungsfähig"
+    "billable": "Abrechnungsfähig",
+    "Device-ID": "Geräte-ID",
+    "EditText": "Texteingabe",
+    "ToggleButton": "Umschaltknopf",
+    "EditNumber": "Nummerneingabe",
+    "RatingBar": "Bewertungsbalken",
+    "SingleChoice": "Einzelauswahl",
+    "Col1": "Liste",
+    "MultipleChoice": "Mehrspaltig",
+    "Col2": "2-Spaltig",
+    "Final": "Endsite"
 }

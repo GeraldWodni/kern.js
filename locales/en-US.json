@@ -186,5 +186,15 @@
     " Key": " Key",
     "state": "State",
     "canceled": "Canceled",
-    "billable": "Billable"
+    "billable": "Billable",
+    "Device-ID": "Device-ID",
+    "EditText": "Text entry",
+    "ToggleButton": "Toggle button",
+    "EditNumber": "Number entry",
+    "RatingBar": "Rating bar",
+    "SingleChoice": "Single choice",
+    "Col1": "List",
+    "MultipleChoice": "Multiple choice",
+    "Col2": "2-Columns",
+    "Final": "Final page"
 }

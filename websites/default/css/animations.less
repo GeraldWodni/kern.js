@@ -1,0 +1,23 @@
+/* (c)copyright 2015 by Gerald Wodni */
+
+.animation( @animation ) { 
+    -webkit-animation: @animation;
+    animation: @animation;
+}
+
+
+/* preset animations  */
+
+@-webkit-keyframes spinning {
+    from    { -webkit-transform: rotate(0deg); }
+    to      { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spinning {
+    from    { transform: rotate(0deg); }
+    to      { transform: rotate(360deg); }
+}
+
+.spinning {
+    .animation( spinning 2s infinite linear );
+}
