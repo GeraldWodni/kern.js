@@ -186,5 +186,10 @@
     " Key": " Key",
     "state": "State",
     "canceled": "Canceled",
-    "billable": "Billable"
+    "billable": "Billable",
+    "Balance": "Balance",
+    "total": "Total",
+    "Pay": "Pay",
+    "Open": "Open",
+    "Sum": "Sum"
 }

@@ -179,5 +179,10 @@
     " Key": "Schlüssel",
     "state": "Status",
     "canceled": "Storniert",
-    "billable": "Abrechnungsfähig"
+    "billable": "Abrechnungsfähig",
+    "Balance": "Bilanz",
+    "total": "Gesamt",
+    "Pay": "Zahlen",
+    "Open": "Offen",
+    "Sum": "Summe"
 }
