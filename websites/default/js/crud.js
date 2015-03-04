@@ -11,7 +11,6 @@ $(function(){
         },"");
 
         search = "^" + search + ".*$";
-	console.log( search );
 
         $(this).closest(".crud-list").find(".crud-item").each(function( index, item ) {
             var $item = $(item);
