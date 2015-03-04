@@ -191,5 +191,15 @@
     "total": "Total",
     "Pay": "Pay",
     "Open": "Open",
-    "Sum": "Sum"
+    "Sum": "Sum",
+    "Device-ID": "Device-ID",
+    "EditText": "Text entry",
+    "ToggleButton": "Toggle button",
+    "EditNumber": "Number entry",
+    "RatingBar": "Rating bar",
+    "SingleChoice": "Single choice",
+    "Col1": "List",
+    "MultipleChoice": "Multiple choice",
+    "Col2": "2-Columns",
+    "Final": "Final page"
 }

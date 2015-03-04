@@ -184,5 +184,15 @@
     "total": "Gesamt",
     "Pay": "Zahlen",
     "Open": "Offen",
-    "Sum": "Summe"
+    "Sum": "Summe",
+    "Device-ID": "Geräte-ID",
+    "EditText": "Texteingabe",
+    "ToggleButton": "Umschaltknopf",
+    "EditNumber": "Nummerneingabe",
+    "RatingBar": "Bewertungsbalken",
+    "SingleChoice": "Einzelauswahl",
+    "Col1": "Liste",
+    "MultipleChoice": "Mehrspaltig",
+    "Col2": "2-Spaltig",
+    "Final": "Endsite"
 }

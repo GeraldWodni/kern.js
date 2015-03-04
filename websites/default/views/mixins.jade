@@ -19,12 +19,15 @@ mixin scripts()
 mixin style(href)
     - styleSources.push( href );
 
+mixin style-tag(styleSource)
+    link(rel='stylesheet', type='text/css' href='#{styleSource}')
+
 mixin styles()
     - var usedStyles = []
     each styleSource in styleSources
         if usedStyles.indexOf( styleSource ) == -1
             - usedStyles.push( styleSource );
-            link(rel='stylesheet', type='text/css' href='#{styleSource}')
+            +style-tag(styleSource)
 
 mixin favicon(path)
     link(rel="shortcut icon",href=path)

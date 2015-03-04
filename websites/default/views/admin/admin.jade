@@ -29,7 +29,8 @@ html(lang=__('current-locale'))
         +style("/css/fullcalendar.css")
         +style("/css/admin.css")
         +style("/css/admin-site.css")
-        +styles()
+        block styles
+            +styles()
         //each style in styles || []
         //    link(rel="stylesheet", type="text/css" href=style)
     body
