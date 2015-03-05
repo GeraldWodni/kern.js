@@ -25,6 +25,7 @@ module.exports = function( rdb ) {
     }
 
     function save( obj, prefix, id, next ) {
+    console.log( "SAVE USER".bold.magenta );
         if( typeof prefix === "undefined" )
             prefix = obj[ "prefix" ];
 
@@ -33,16 +34,46 @@ module.exports = function( rdb ) {
         
         var userKey = getKey( prefix, id );
 
+        console.log( "SAVE, OBJ:", arguments );
+
+        /* update name in namesKey */
+        function updateName( err ) {
+            if( err )
+                return next( err );
+
+            /* find matching name key */
+            var namesKey = getNamesKey( prefix );
+            rdb.hgetall( namesKey, function( err, names ) {
+                
+                async.mapSeries( _.keys( names ), function _users_save_updateName_map( name, d ) {
+                    /* delete namekeys with same id but different name (hence allow renaming) */
+                    if( names[ name ] == id && name != obj.name )
+                        rdb.hdel( namesKey, name, d );
+                    else
+                        d( null );
+                },
+                function _users_save_updateName_set( err ){
+                    if( err )
+                        return next( err );
+
+                    /* set (new) name */
+                    rdb.hset( namesKey, obj.name, id, next );
+                });
+
+            });
+
+        }
+
         if( "password" in obj )
             bcrypt.hash( obj[ "password" ], null, null, function( err, hash ) {
                 if( err )
                     return next( err, null );
 
                 obj[ "passwordHash" ] = hash;
-                saveObject( userKey, obj, next );
+                saveObject( userKey, obj, updateName );
             });
         else
-            saveObject( userKey, obj, next );
+            saveObject( userKey, obj, updateName );
     }
 
     function create( prefix, obj, next ) {
@@ -83,7 +114,7 @@ module.exports = function( rdb ) {
 
             if( userId == null ) {
                 if( prefix == "default" )
-                   return next( "Unknown user '" + name + "'", null );
+                   return next( new Error("Unknown user '" + name + "'"), null );
                 else
                    loadByName( "default", name, next );
             }
@@ -134,8 +165,17 @@ module.exports = function( rdb ) {
             /* already logged in, load user and resume */
             if( req.session && req.session.loggedInUsername ) {
                 loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
-                    if( err )
-                        return next( err, null );
+                    if( err ) {
+                        /* Login invalid, no matching user found. ( logged in user most likely changed his own name ) -> destroy session */
+                        if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
+                            console.log( "Login invalid, destroy session".red.bold );
+                            return req.sessionInterface.destroy( req, res, function() {
+                                executeOrRender( req, res, next, loginRenderer );
+                            });
+                        }
+                        else
+                            return next( err, null );
+                    }
 
                     req.user = data;
                     next();
@@ -177,6 +217,7 @@ module.exports = function( rdb ) {
         create: create,
         read:   loadById,
         readAll:readAll,
+        /* TODO: remove ifs in crud to make this work!! */
         update: function( prefix, id, obj, callback ) {
             save( obj, prefix, id, callback );
         },
