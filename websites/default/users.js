@@ -10,6 +10,24 @@ var querystring = require("querystring");
 module.exports = {
     setup: function( k ) {
 
+        k.rdb.crud.presenter( k, k.rdb.users, {
+            
+            title: "Users",
+            path: "/admin/users",
+            unPrefix: true,
+
+            fields: {
+                id:         { name: "id", filter: "id", source: "requestData" },
+                name:       { text: "Name",             type: "text", attributes: { required: true } },
+                password:   { text: "Password",         type: "password" },
+                password2:  { text: "Confirm password", type: "password", filter: "drop" },
+                permissions:{ text: "Permissions",      type: "text", attributes: { required: true } }
+            }
+
+        });
+
+        return;
+
 
     /* TODO: navigation: as simple as possible, just use LINK:FILE pairs, all LINKS open a jade file, which can in turn call views. If needed, you can also configure for special acion */
     /* TODO: keep track of all websites in redis */

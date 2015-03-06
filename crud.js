@@ -187,7 +187,10 @@ module.exports = function _crud( rdb ) {
                 function( done ) { rdb.del( opts.getKey( prefix, id ), done ); },
             ], callback );
         };
-        function update( prefix, oldId, newId, obj, callback ) {
+        function update( prefix, id, obj, callback ) {
+            updateId( prefix, id, id, obj, callback );
+        }
+        function updateId( prefix, oldId, newId, obj, callback ) {
             async.series( [
                 function( d ) { del( prefix, oldId, d ); },
                 function( d ) { create( prefix, newId, obj, d ); }
@@ -195,11 +198,12 @@ module.exports = function _crud( rdb ) {
         }
 
         return {
-            create: create,
-            read:   read,
-            readAll:readAll,
-            update: update,
-            del:    del
+            create:     create,
+            read:       read,
+            readAll:    readAll,
+            update:     update,
+            updateId:   updateId,
+            del:        del
         }
     }
 
@@ -263,6 +267,101 @@ module.exports = function _crud( rdb ) {
         }
     }
 
+    /* extends base crud (create, read, readAll, update, del) to full crud */
+    function base( crud ) {
+
+        if( !_.has( crud, "readList" ) )
+            crud.readList = function _baseCrud_readList( callback ) {
+                crud.readAll( callback );
+            };
+
+        if( !_.has( crud, "readForeignKey" ) )
+            crud.readForeignKey = function _baseCrud_readList( callback ) {
+                crud.readAll( callback );
+            };
+
+        /* already set in sqlCrud, but missing rdb cruds like users */
+        _.defaults( crud, {
+            foreignName: "name",
+            foreignNameSeparator: " "
+        });
+
+        console.log( crud );
+
+        return crud;
+    }
+
+    /* make website-based crud website unaware */
+    function unPrefix( crud ) {
+
+        //var unCrud = {
+        //    create, update, del( key )
+        //    copy all non-functions?
+        //    clone all?
+        //}
+
+        /* references to original crud */
+        //var create  = crud.create;
+        //var read    = crud.read;
+        //var readAll = crud.readAll;
+        //var update  = crud.update;
+        //var del     = crud.del;
+
+        var unCrud = _.clone( crud );
+
+        return function _unPrefixCrud( req ){
+
+            var website = req.kern.website;
+
+            /* wrap methods and supply website */
+            /* fixthis: extend overrides original crud, return copy instead! */
+            return _.extend( unCrud, {
+                create: function _unPrefixCrud_create( obj, callback ) {
+                    crud.create( website, obj, callback );
+                },
+                read:   function _unPrefixCrud_read( key, callback ) {
+                    crud.read( website, key, callback );
+                },
+                readAll:function _unPrefixCrud_readAll( callback ) {
+                    crud.readAll( website, callback );
+                },
+                update: function _unPrefixCrud_update( key, obj, callback ) {
+                    crud.update( website, key, obj, callback );
+                },
+                del:    function _unPrefixCrud_del( key, callback ) {
+                    crud.del( website, key, callback );
+                }
+            } );
+
+            //return _.extend( crud, {
+            //    create: function _unPrefixCrud_create() {
+            //       create.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    read:   function _unPrefixCrud_read() {
+            //       read.apply(     crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    readAll:function _unPrefixCrud_readAll() {
+            //       readAll.apply(  crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    update: function _unPrefixCrud_update() {
+            //       update.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    del:    function _unPrefixCrud_del() {
+            //       del.apply(      crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    }
+            //});
+
+        };
+    };
+
+    /* wrapper to unPrefix and base a crud, allows to use crud by just calling it with reg as argument */
+    function unPrefixBase( crud ) {
+        var unprefixedCrud = unPrefix( crud );
+        return function _unPrefixBase( req ) {
+            return base( unprefixedCrud( req ) );
+        }
+    }
+
     function fieldManager( opts ) {
         opts = _.extend( {
             id: "id",
@@ -275,7 +374,8 @@ module.exports = function _crud( rdb ) {
                 text:       "address",
                 foreign:    "uint",
                 textarea:   "text",
-                checkbox:   "exists"
+                checkbox:   "exists",
+                password:   "passwords"
             },
             elements: {
                 date:       "date-field",
@@ -285,7 +385,8 @@ module.exports = function _crud( rdb ) {
                 tel:        "tel-field",
                 text:       "text-field",
                 textarea:   "textarea-field",
-                checkbox:   "checkbox-field"
+                checkbox:   "checkbox-field",
+                password:   "password-field"
             },
             fields: {
                 id:     { type: "id" },
@@ -314,7 +415,7 @@ module.exports = function _crud( rdb ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ] || field;
 
-                    if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' )
+                    if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' && filterName != 'passwords' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
                     console.log( "FILTER:", source, filterName, field );
@@ -326,8 +427,23 @@ module.exports = function _crud( rdb ) {
                     else if( filterName == 'get' )
                         values[ field ] = req[ source ][ fieldOpts.name || field ];
                     /* fetch value using filters */
+                    else if( filterName == 'passwords' ) {
+                        var password = req[source].password( field );
+                        if( password && password.length > 0 )
+                        {
+                            if( !req.postman.fieldsMatch( field, field + "2" ) )
+                                throw req.locales.__( "Passwords do not match" );
+
+                            if( password.length < rdb.users.minPasswordLength ) 
+                                throw req.locales.__( "Password to short, minimum: {0}" ).format( rdb.users.minPasswordLength );
+
+                            values[ field ] = password;
+                        }
+                    }
                     else
                         values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+
+
 
                     /* local date format to iso */
                     if( fieldOpts.type == "date" )
@@ -344,9 +460,27 @@ module.exports = function _crud( rdb ) {
         return opts;
     }
 
-    /* edit */
-    function router( k, path, crud, opts ) {
+    function crudManager( crud, opts ) {
         opts = fieldManager( opts );
+
+        if( opts.unPrefix ) {
+            opts = _.extend( opts, { unPrefixedCrud: unPrefixBase( crud ) } );
+            opts = _.extend( opts, { getCrud: function _getCrudUnPrefixed( req ) {
+                return opts.unPrefixedCrud( req );
+            } });
+        }
+        else
+            opts = _.extend( opts, { getCrud: function _getCrudPlain() {
+                return crud;
+            } });
+
+        return opts;
+    }
+
+    /* edit, TODO: remove crud.length ifs */
+    function router( k, path, crud, opts ) {
+        opts = crudManager( crud, opts );
+
         opts = _.extend( {
             preCreateTrigger: function( req, fields, crudCreate ) {
                 crudCreate( fields );
@@ -370,14 +504,7 @@ module.exports = function _crud( rdb ) {
                         };
                         
                         opts.preCreateTrigger( req, obj, function( obj ) {
-                            if( crud.create.length == 2 )
-                                crud.create( obj, handleCreate );
-                            /* predetermined id */
-                            else if( crud.create.length == 3 )
-                                crud.create( req.kern.website, obj, handleCreate);
-                            /* dynamic id */
-                            else
-                                crud.create( req.kern.website, obj[ opts.id ], obj, handleCreate);
+                            opts.getCrud(req).create( obj, handleCreate );
                         });
                     }
                     else if( req.postman.exists( "update" ) ) {
@@ -392,15 +519,7 @@ module.exports = function _crud( rdb ) {
                             opts.success( req, res, next );
                         };
 
-                        /* sql */
-                        if( crud.update.length == 3 )
-                            crud.update( id, obj, handleUpdate );
-                        /* fixed id */
-                        else if( crud.update.length == 4 )
-                            crud.update( req.kern.website, id, obj, handleUpdate );
-                        /* id change permitted */
-                        else
-                            crud.update( req.kern.website, id, obj[ opts.id ], obj, handleUpdate );
+                        opts.getCrud(req).update( id, obj, handleUpdate );
                     }
                     else if( req.postman.exists( "delete" ) ) {
                         var id = req.postman.escapedLink( "delete" );
@@ -413,10 +532,7 @@ module.exports = function _crud( rdb ) {
                             opts.success( req, res, next );
                         };
 
-                        if( crud.del.length == 2 )
-                            crud.del( id, handleDelete );
-                        else
-                            crud.del( req.kern.website, id, handleDelete );
+                        opts.getCrud(del).update( id, handleDelete );
                     }
                     else {
                         next();
@@ -487,13 +603,14 @@ module.exports = function _crud( rdb ) {
 
                 return values;
             },
-            crud: crud
+            crud: crud,
+            getCrud: opts.getCrud
         };
     };
 
     /* linker: expose for AJAX */
     function linker( k, crud, opts ) {
-        opts = fieldManager( opts );
+        opts = crudManager( crud, opts );
 
         opts = _.extend( {
             id: "id",
@@ -523,24 +640,24 @@ module.exports = function _crud( rdb ) {
         };
 
         r.get( opts.readPath, function( req, res, next ) {
-            crud.read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
+            opts.getCrud(req).read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
 
         r.get( opts.readListPath, function( req, res, next ) {
-            crud.readList( function( err, data ) {
+            opts.getCrud(req).readList( function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
 
         r.get( opts.readAllPath, function( req, res, next ) {
-            crud.readAll( function( err, data ) {
+            opts.getCrud(req).readAll( function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
 
-        /* wheres */
+        /* wheres, currently only supported for sql, if needed can be extended by handling readWhere in unPrefixedCrud */
         _.each( crud.wheres, function( where, name ) {
 
             var url = path.join( opts.path, "where", name );
@@ -566,7 +683,7 @@ module.exports = function _crud( rdb ) {
 
         if( !opts.readOnly ) {
             r.post( opts.createPath, applyPostman( function( req, res, next ) {
-                crud.create( opts.readFields( req ), function( err, data ) {
+                opts.getCrud(req).create( opts.readFields( req ), function( err, data ) {
                     if( err ) next( err ); else res.json( { insertId: data.insertId } );
                 });
             }) );
@@ -578,7 +695,7 @@ module.exports = function _crud( rdb ) {
                 if( !id )
                     id = data[ opts.id ];
 
-                crud.update( id, data, function( err ) {
+                opts.getCrud(req).update( id, data, function( err ) {
                     if( err ) next( err ); else res.json( {} );
                 });
             }) );
@@ -592,7 +709,7 @@ module.exports = function _crud( rdb ) {
                         id = data[ opts.id ];
                 }
                 
-                crud.del( id, function( err ) {
+                opts.getCrud(req).del( id, function( err ) {
                     if( err ) next( err ); else res.json( {} );
                 });
             }
@@ -617,14 +734,16 @@ module.exports = function _crud( rdb ) {
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
         function renderAll( req, res, next, values ) {
-            r.crud.readList( function( err, items ) {
+            var renderCrud = r.getCrud( req );
+
+            renderCrud.readList( function( err, items ) {
                 if( err ) {
                     return next( err );
                 }
 
                 var fields = r.getFields( req );
 
-                async.map( _.keys( crud.foreignKeys ), function( fkey, done ) {
+                async.map( _.keys( renderCrud.foreignKeys ), function( fkey, done ) {
 
                     if( !_.has( fields, fkey ) )
                     {
@@ -632,13 +751,19 @@ module.exports = function _crud( rdb ) {
                         return done( new Error( "ForeignKey not registered: " + fkey ) );
                     }
 
-                    crud.foreignKeys[ fkey ].crud.readForeignKey( function( err, data ) {
+                    /* check for unPrefix */
+                    var foreignKey = renderCrud.foreignKeys[ fkey ];
+                    var foreignCrud = foreignKey.crud;
+                    if( foreignKey.unPrefix )
+                        foreignCrud = unPrefixBase( foreignCrud )( req );
+
+                    foreignCrud.readForeignKey( function( err, data ) {
                         if( err )
                             return done( err );
 
                         fields[ fkey ].items = data;
                         done();
-                    }, crud.foreignKeys[ fkey ] );
+                    }, renderCrud.foreignKeys[ fkey ] );
 
                 }, function( err ) {
                     if( err )
@@ -647,8 +772,8 @@ module.exports = function _crud( rdb ) {
                     var jadeCrudOpts = {
                         items: items,
                         idField: opts.id,
-                        display: crud.foreignName,
-                        boldDisplay: crud.foreignBoldName,
+                        display: renderCrud.foreignName,
+                        boldDisplay: renderCrud.foreignBoldName,
                         link: opts.path,
                         fields: fields,
                         scripts: opts.scripts || [],
@@ -663,7 +788,7 @@ module.exports = function _crud( rdb ) {
         }
 
         k.router.get(opts.editPath, function( req, res, next ) {
-            crud.read( r.getRequestId( req ), function( err, data ) {
+            r.getCrud( req ).read( r.getRequestId( req ), function( err, data ) {
                 if( err )
                     return next( err );
 

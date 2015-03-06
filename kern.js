@@ -474,6 +474,7 @@ var Kern = function( callback, kernOpts ) {
         app.use(function(err, req, res, next) {
             res.status(err.status || 500);
             console.log( "ERROR HANDLER!".red.bold, err.message, "\n", err.stack );
+            console.trace();
             app.renderJade( req, res, "error", {
                 message: err.message,
                 error: err
