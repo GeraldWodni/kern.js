@@ -203,5 +203,11 @@
     "Col2": "2-Columns",
     "Final": "Final page",
     "Close project": "Close project",
-    "User": "User"
+    "User": "User",
+    "Terminal": "Terminal",
+    "GUI": "GUI",
+    "GUI Editor": "GUI Editor",
+    "DOM": "DOM",
+    "Preview": "Preview",
+    "Add child element": "Add child element"
 }
