@@ -165,7 +165,7 @@ mixin glyph(icon, classes)
 mixin messages(messages)
     each message in messages || []
         - var classes = "alert alert-" + ( message.type || "danger" );
-        div(class=classes,role="alert")
+        div(class=classes,role="alert")&attributes(message.attributes || {})
             strong= message.title || __("Error") + ":"
             | 
             = message.text || ""
