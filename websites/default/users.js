@@ -9,12 +9,12 @@ var querystring = require("querystring");
 
 module.exports = {
     setup: function( k ) {
-    	
+
         k.rdb.crud.presenter( k, k.rdb.users, {
             
             title: "Users",
             path: "/admin/users",
-	    unPrefix: true,
+            unPrefix: true,
 
             fields: {
                 id:         { name: "id", filter: "id", source: "requestData" },
@@ -26,7 +26,7 @@ module.exports = {
 
         });
 
-    	return;
+        return;
 
 
     /* TODO: navigation: as simple as possible, just use LINK:FILE pairs, all LINKS open a jade file, which can in turn call views. If needed, you can also configure for special acion */

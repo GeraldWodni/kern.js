@@ -272,48 +272,84 @@ module.exports = function _crud( rdb ) {
 
         if( !_.has( crud, "readList" ) )
             crud.readList = function _baseCrud_readList( callback ) {
-	    	crud.readAll( callback );
+                crud.readAll( callback );
             };
 
-            /* already set in sqlCrud, but missing rdb cruds like users */
-            _.defaults( crud, {
-                foreignName: "name",
-                foreignNameSeparator: " "
-            });
+        if( !_.has( crud, "readForeignKey" ) )
+            crud.readForeignKey = function _baseCrud_readList( callback ) {
+                crud.readAll( callback );
+            };
 
-	return crud;
+        /* already set in sqlCrud, but missing rdb cruds like users */
+        _.defaults( crud, {
+            foreignName: "name",
+            foreignNameSeparator: " "
+        });
+
+        console.log( crud );
+
+        return crud;
     }
 
     /* make website-based crud website unaware */
     function unPrefix( crud ) {
 
+        //var unCrud = {
+        //    create, update, del( key )
+        //    copy all non-functions?
+        //    clone all?
+        //}
+
         /* references to original crud */
-        var create  = crud.create;
-        var read    = crud.read;
-        var readAll = crud.readAll;
-        var update  = crud.update;
-        var del     = crud.del;
+        //var create  = crud.create;
+        //var read    = crud.read;
+        //var readAll = crud.readAll;
+        //var update  = crud.update;
+        //var del     = crud.del;
+
+        var unCrud = _.clone( crud );
 
         return function _unPrefixCrud( req ){
 
+            var website = req.kern.website;
+
             /* wrap methods and supply website */
-            return _.extend( crud, {
-                create: function _unPrefixCrud_create() {
-                   create.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            /* fixthis: extend overrides original crud, return copy instead! */
+            return _.extend( unCrud, {
+                create: function _unPrefixCrud_create( obj, callback ) {
+                    crud.create( website, obj, callback );
                 },
-                read:   function _unPrefixCrud_read() {
-                   read.apply(     crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+                read:   function _unPrefixCrud_read( key, callback ) {
+                    crud.read( website, key, callback );
                 },
-                readAll:function _unPrefixCrud_readAll() {
-                   readAll.apply(  crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+                readAll:function _unPrefixCrud_readAll( callback ) {
+                    crud.readAll( website, callback );
                 },
-                update: function _unPrefixCrud_update() {
-                   update.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+                update: function _unPrefixCrud_update( key, obj, callback ) {
+                    crud.update( website, key, obj, callback );
                 },
-                del:    function _unPrefixCrud_del() {
-                   del.apply(      crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+                del:    function _unPrefixCrud_del( key, callback ) {
+                    crud.del( website, key, callback );
                 }
-            });
+            } );
+
+            //return _.extend( crud, {
+            //    create: function _unPrefixCrud_create() {
+            //       create.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    read:   function _unPrefixCrud_read() {
+            //       read.apply(     crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    readAll:function _unPrefixCrud_readAll() {
+            //       readAll.apply(  crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    update: function _unPrefixCrud_update() {
+            //       update.apply(   crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    },
+            //    del:    function _unPrefixCrud_del() {
+            //       del.apply(      crud, [ req.kern.website ].concat( Array.prototype.slice.call(arguments) ) );
+            //    }
+            //});
 
         };
     };
@@ -321,7 +357,7 @@ module.exports = function _crud( rdb ) {
     /* wrapper to unPrefix and base a crud, allows to use crud by just calling it with reg as argument */
     function unPrefixBase( crud ) {
         var unprefixedCrud = unPrefix( crud );
-	return function _unPrefixBase( req ) {
+        return function _unPrefixBase( req ) {
             return base( unprefixedCrud( req ) );
         }
     }
@@ -698,14 +734,16 @@ module.exports = function _crud( rdb ) {
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
         function renderAll( req, res, next, values ) {
-            r.getCrud( req ).readList( function( err, items ) {
+            var renderCrud = r.getCrud( req );
+
+            renderCrud.readList( function( err, items ) {
                 if( err ) {
                     return next( err );
                 }
 
                 var fields = r.getFields( req );
 
-                async.map( _.keys( crud.foreignKeys ), function( fkey, done ) {
+                async.map( _.keys( renderCrud.foreignKeys ), function( fkey, done ) {
 
                     if( !_.has( fields, fkey ) )
                     {
@@ -713,13 +751,19 @@ module.exports = function _crud( rdb ) {
                         return done( new Error( "ForeignKey not registered: " + fkey ) );
                     }
 
-                    crud.foreignKeys[ fkey ].crud.readForeignKey( function( err, data ) {
+                    /* check for unPrefix */
+                    var foreignKey = renderCrud.foreignKeys[ fkey ];
+                    var foreignCrud = foreignKey.crud;
+                    if( foreignKey.unPrefix )
+                        foreignCrud = unPrefixBase( foreignCrud )( req );
+
+                    foreignCrud.readForeignKey( function( err, data ) {
                         if( err )
                             return done( err );
 
                         fields[ fkey ].items = data;
                         done();
-                    }, crud.foreignKeys[ fkey ] );
+                    }, renderCrud.foreignKeys[ fkey ] );
 
                 }, function( err ) {
                     if( err )
@@ -728,8 +772,8 @@ module.exports = function _crud( rdb ) {
                     var jadeCrudOpts = {
                         items: items,
                         idField: opts.id,
-                        display: crud.foreignName,
-                        boldDisplay: crud.foreignBoldName,
+                        display: renderCrud.foreignName,
+                        boldDisplay: renderCrud.foreignBoldName,
                         link: opts.path,
                         fields: fields,
                         scripts: opts.scripts || [],
