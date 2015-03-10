@@ -18,7 +18,7 @@ module.exports = {
 
             fields: {
                 id:         { name: "id", filter: "id", source: "requestData" },
-                name:       { text: "Name",             type: "text", attributes: { required: true } },
+                name:       { text: "Name",             type: "text", filter: "username", attributes: { required: true } },
                 password:   { text: "Password",         type: "password" },
                 password2:  { text: "Confirm password", type: "password", filter: "drop" },
                 permissions:{ text: "Permissions",      type: "text", attributes: { required: true } }
