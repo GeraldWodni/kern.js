@@ -196,5 +196,11 @@
     "Col2": "2-Spaltig",
     "Final": "Endsite",
     "Close project": "Projekt abschließen",
-    "User": "Benutzer"
+    "User": "Benutzer",
+    "Terminal": "Terminal",
+    "GUI": "GUI",
+    "GUI Editor": "GUI Editor",
+    "DOM": "DOM",
+    "Preview": "Vorschau",
+    "Add child element": "Kindelement hinzufügen"
 }

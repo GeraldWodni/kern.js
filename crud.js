@@ -495,11 +495,14 @@ module.exports = function _crud( rdb ) {
                     if( req.postman.exists( "add" ) ) {
                         var obj = opts.readFields( req );
 
-                        function handleCreate( err ) {
+                        function handleCreate( err, data ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
-                            req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added") } );
+                            var insertId = ( data || {} ).insertId;
+                            req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added"),
+                                attributes: { "data-insert-id": insertId }
+                            } );
                             opts.success( req, res, next );
                         };
                         
@@ -532,7 +535,7 @@ module.exports = function _crud( rdb ) {
                             opts.success( req, res, next );
                         };
 
-                        opts.getCrud(del).update( id, handleDelete );
+                        opts.getCrud(req).del( id, handleDelete );
                     }
                     else {
                         next();
