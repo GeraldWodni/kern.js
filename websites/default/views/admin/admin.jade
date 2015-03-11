@@ -43,8 +43,9 @@ html(lang=__('current-locale'))
                 each menuItem in menu || []
                     +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
-        div.container.main-content
-            block content
+        block main-content
+            div.container.main-content
+                block content
 
         footer
             div.container

@@ -201,5 +201,11 @@
     "Alternative": "Alternative",
     "Statistics": "Statistiken",
     "Income": "Einnahmen",
-    "Invoices": "Rechnungen"
+    "Invoices": "Rechnungen",
+    "Terminal": "Terminal",
+    "GUI": "GUI",
+    "GUI Editor": "GUI Editor",
+    "DOM": "DOM",
+    "Preview": "Vorschau",
+    "Add child element": "Kindelement hinzufügen"
 }
