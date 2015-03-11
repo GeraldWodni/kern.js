@@ -203,5 +203,10 @@
     "Col2": "2-Columns",
     "Final": "Final page",
     "Close project": "Close project",
-    "User": "User"
+    "User": "User",
+    "Comment": "Comment",
+    "Alternative": "Alternative",
+    "Statistics": "Statistics",
+    "Income": "Income",
+    "Invoices": "Invoices"
 }
