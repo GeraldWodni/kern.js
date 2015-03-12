@@ -19,10 +19,14 @@ mixin menuItem( link, icon, text )
 
 html(lang=__('current-locale'))
     head
-        title admin - kern.js
+        title
+            block title
+                | admin - kern.js
         meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
         block meta-author
             meta(name="author",content="Gerald Wodni")
+        block favicon
+            +favicon("/images/favicon.gif")
         link(rel="stylesheet", type="text/css" href="/css/admin.css")
         +style("/css/jquery-ui-smoothness.min.css")
         +style('/css/jquery-ui-timepicker-addon.css')
@@ -31,8 +35,6 @@ html(lang=__('current-locale'))
         +style("/css/admin-site.css")
         block styles
             +styles()
-        //each style in styles || []
-        //    link(rel="stylesheet", type="text/css" href=style)
     body
         div.navbar.navbar-fixed-top(role='navigation')
             div.navbar-header

@@ -95,6 +95,7 @@ var Kern = function( callback, kernOpts ) {
         crud( rdb );
 
         app.postHooks = [];
+        app.exitHooks = [];
 
         app.use(function (req, res, next) {
 
@@ -146,8 +147,11 @@ var Kern = function( callback, kernOpts ) {
         app.use( logger('dev') );
         //app.use( config() );
 
+        /* set jade pretty-print */
         app.jadeCache = {};
         app.renderJade = function( req, res, filename, locals, opts ) {
+
+            app.set('view options', { pretty: true });
 
             /* allow website override */
             var website = req.kern.website;
@@ -180,6 +184,7 @@ var Kern = function( callback, kernOpts ) {
             _.extend( opts, {
                 filename: filepath,
                 kernWebsite: website,
+                pretty: true
             } );
 
             fs.readFile( filepath, 'utf8', function( err, data ) {
@@ -390,6 +395,9 @@ var Kern = function( callback, kernOpts ) {
                     var subTarget = siteModule( website, filename, opts );
                     router.use( prefix, subTarget.router );
                 },
+                exitHook: function _exitHook( callback ) {
+                    app.exitHooks.push( callback );
+                },
                 router: router,
                 httpStatus: app.renderHttpStatus,
                 serverConfig: serverConfig,
@@ -503,6 +511,15 @@ var Kern = function( callback, kernOpts ) {
 
         /* start listener */
         app.listen( kernOpts.port );
+
+        /* process hooks */
+        return {
+            exit: function _onExit(){
+                app.exitHooks.forEach( function( hook ) {
+                    hook();
+                });
+            }
+        }
     }
 
     return {
@@ -543,12 +560,20 @@ var Kern = function( callback, kernOpts ) {
                 /* worker */
                 debug( "Worker on Port " + kernOpts.port + ", id:" + status.workerId );
 
+                var w = null;
+
                 process.on( "message", function( msg ) {
                     if( msg.authToken )
                         serverConfig.authToken = msg.authToken
                 });
 
-                worker();
+                process.on("exit", function() {
+                    console.log( ( "Exit Start " + status.workerId ).red.bold );
+                    w.exit();
+                    console.log( ( "Exit Done " + status.workerId ).red.bold );
+                });
+
+                w = worker();
             }
         }
     };

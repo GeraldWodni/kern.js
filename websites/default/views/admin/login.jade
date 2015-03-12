@@ -1,5 +1,8 @@
 extends admin-site
 
+prepend title
+    = __("Authentification required")
+
 block content
     div.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
         h1= __("Authentification required")
@@ -17,6 +20,3 @@ block content
                 label(for='password')= __("Password")
                 input.form-control(id='password',type='password',name='password',placeholder='Passwort')
             button.btn.btn-default(type='submit',name='login',value='yes') Login
-
-    +script('/js/jquery.min.js')
-    +script('/js/bootstrap.min.js')

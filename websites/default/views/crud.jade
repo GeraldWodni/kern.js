@@ -1,5 +1,5 @@
-// (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
-// complete crud
+//- (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+//- complete crud
 mixin crud( opts )
     +script("/js/crud.js")
     each script in opts.scripts
@@ -17,7 +17,7 @@ mixin crud( opts )
                 +crudAdd( opts )
 
 
-// item selection list
+//- item selection list
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
     ul.list-group.crud-list
@@ -46,7 +46,7 @@ mixin crudList( opts )
                         = getField( item, opts.display )
 
 
-// standard fields
+//- standard fields
 mixin crudFields( opts )
     - opts.values = opts.values || {}
     each field, name in opts.fields || {}
@@ -58,7 +58,7 @@ mixin crudFields( opts )
             +#{field.mixinType}( name, __( field.text ), opts.values[ name ], field )
 
 
-// edit form
+//- edit form
 mixin crudEdit( opts )
     form.crud-edit(method="post",role="form")
         h2
@@ -72,7 +72,7 @@ mixin crudEdit( opts )
         button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{opts.values[opts.idField]}')= __("Delete")
 
 
-// add form
+//- add form
 mixin crudAdd( opts )
     form.crud-add(method='post',role='form',action=opts.formAction)
         h2#crud-add-header

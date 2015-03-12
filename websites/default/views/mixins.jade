@@ -1,5 +1,7 @@
 - var scriptSources = [];
 - var styleSources = [];
+- var usedScripts = []
+- var usedStyles = []
 
 //- add script to required script stack
 mixin script(src)
@@ -10,7 +12,6 @@ mixin script-tag(scriptSource)
 
 //- include every required script exactly once
 mixin scripts()
-    - var usedScripts = []
     each scriptSource in scriptSources
         if usedScripts.indexOf( scriptSource ) == -1
             - usedScripts.push( scriptSource )
@@ -23,7 +24,6 @@ mixin style-tag(styleSource)
     link(rel='stylesheet', type='text/css' href='#{styleSource}')
 
 mixin styles()
-    - var usedStyles = []
     each styleSource in styleSources
         if usedStyles.indexOf( styleSource ) == -1
             - usedStyles.push( styleSource );
