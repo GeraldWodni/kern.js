@@ -170,6 +170,7 @@ var Kern = function( callback, kernOpts ) {
 
             locals = _.extend( locals || {}, {
                 __: req.locales.__,
+                __locale: req.locales,
                 _: _,
                 os: os
             });
@@ -383,6 +384,7 @@ var Kern = function( callback, kernOpts ) {
 
             var router = express.Router();
             target.setup({
+                website: website,
                 modules: {
                     hierarchy: hierarchy,
                     postman: postman
@@ -446,29 +448,34 @@ var Kern = function( callback, kernOpts ) {
             return target;
         };
 
-        /* site-specific route */
+        /** site-specific route **/
         var websites = {};
+        function loadWebsite( website, next ) {
+            var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, website, "site.js" );
+            if( siteFilename != null ) {
+                console.log( "Using ".magenta.bold, siteFilename );
+
+                try {
+                    var target = siteModule( '', './' + siteFilename, { exactFilename: true } );
+                    websites[ website ] = target;
+                    return target;
+                } catch( err ) {
+                    next( err );
+                }
+            }
+            else
+                next();
+
+            return null;
+        }
+        /* look for site-specific route */
         app.use(function (req, res, next) {
             var target;
             if( req.kern.website in websites )
                 target = websites[ req.kern.website ];
-            else {
-
+            else
                 /* get site specific script and execute it */
-                var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, "site.js" );
-                if( siteFilename != null ) {
-                    console.log( "Using ".red.bold, siteFilename );
-
-                    try {
-                        target = siteModule( '', './' + siteFilename, { exactFilename: true } );
-                        websites[ req.kern.website ] = target;
-                    } catch( err ) {
-                        return next( err );
-                    }
-                }
-                else
-                    next();
-            }
+                target = loadWebsite( req.kern.website, next );
 
             /* execute target site-script */
             if( target != null && "router" in target )
@@ -509,6 +516,38 @@ var Kern = function( callback, kernOpts ) {
             if( req.sessionInterface )
                 req.sessionInterface.save( req, res, function() {} ) 
         });
+
+        /* configure websites (async) */
+        fs.readdir( kernOpts.websitesRoot, function( err, dirs ) {
+            if( err )
+                throw err;
+
+            _.map( dirs, function _configure_dir( website ) {
+                fs.readFile( path.join( kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
+                    /* skip if error / non-existant */
+                    if( err )
+                        return;
+
+                    var finalConfig = {};
+
+                    var config = JSON.parse( data );
+                    _.each( config, function( websiteConfig, host ) {
+                        if( new RegExp( host, "i" ).test( os.hostname() ) ) {
+                            finalConfig = _.extend( finalConfig, websiteConfig );
+                            console.log( "Config".green.bold + " " + website.grey + " " + host + " activated".bold.green );
+                        }
+                        else
+                            console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
+                    });
+
+                    console.log( "Final Config", finalConfig );
+
+                    if( finalConfig.autoload )
+                        loadWebsite( website, function() {} )
+                });
+            });
+        });
+
 
         /* start listener */
         app.listen( kernOpts.port );

@@ -93,6 +93,7 @@ module.exports = function( rdb, defaultLocale ) {
 
         req.locales = {
             current:    current,
+            currentRoot:current.split("-")[0],
             available:  localeNames,
             reload:     reload,
             __:         function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); }
