@@ -4,6 +4,7 @@
 var _       = require("underscore");
 var async   = require("async");
 var bcrypt  = require("bcrypt-nodejs");
+var url     = require("url");
 
 var postman = require("./postman");
 
@@ -160,8 +161,16 @@ module.exports = function( rdb ) {
 
     /* TODO: save prefix in session to avoid cross-site hack-validation */
     /* loginRenderer: function( req, res ) or jade-filename */
-    function loginRequired( loginRenderer ) {
+    function loginRequired( loginRenderer, opts ) {
+        var opts = opts || {};
+
         return function( req, res, next ) {
+
+            /* skip authentication if path missmatch */
+            if( opts.path && url.parse( req.url ).pathname.indexOf( opts.path ) != 0 ) {
+                return next();
+            }
+
             /* already logged in, load user and resume */
             if( req.session && req.session.loggedInUsername ) {
                 loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {

@@ -393,6 +393,7 @@ var Kern = function( callback, kernOpts ) {
                 router: router,
                 httpStatus: app.renderHttpStatus,
                 serverConfig: serverConfig,
+                prefixServeStatic: prefixServeStatic,
                 serverStaticFile: function serveStatic( filename ) {
                     return function( req, res ) {
                         var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, filename );
