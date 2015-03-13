@@ -59,7 +59,7 @@ var defaults = {
 };
 
 serverConfig = _.extend( defaults, serverConfig );
-console.log( "CONFIG:", serverConfig );
+console.log( "Starting kern.js".yellow.bold );
 
 /* TODO: comment out following line before shipment */
 serverConfig.active = true;
@@ -93,6 +93,25 @@ var Kern = function( callback, kernOpts ) {
 
         /* setup crud interface */
         crud( rdb );
+
+        /* setup website configs */
+        var websiteConfigs = {};
+        function getField( item, field, defaultValue ) {
+            var index = field.indexOf( "." );
+            if( index > 0 )
+                return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
+            else if( _.has( item, field ) )
+                return item[ field ];
+            else
+                return defaultValue;
+        };
+        function getWebsiteConfig( website, key, defaultValue ) {
+            if( !_.has( websiteConfigs, website ) )
+                return defaultValue;
+
+            return getField( websiteConfigs[ website ], key, defaultValue );
+        }
+
 
         app.postHooks = [];
         app.exitHooks = [];
@@ -151,11 +170,10 @@ var Kern = function( callback, kernOpts ) {
         app.jadeCache = {};
         app.renderJade = function( req, res, filename, locals, opts ) {
 
-            app.set('view options', { pretty: true });
-
+            opts = opts || {};
             /* allow website override */
             var website = req.kern.website;
-            if( opts && opts.website )
+            if( opts.website )
                 website = opts.website;
 
             console.log( "Render: ".grey, website.green, filename.cyan );
@@ -181,11 +199,10 @@ var Kern = function( callback, kernOpts ) {
             }
 
 
-            opts = opts || {};
             _.extend( opts, {
                 filename: filepath,
                 kernWebsite: website,
-                pretty: true
+                pretty: getWebsiteConfig( website, "jadePrettyPrint", true )
             } );
 
             fs.readFile( filepath, 'utf8', function( err, data ) {
@@ -540,7 +557,7 @@ var Kern = function( callback, kernOpts ) {
                             console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
                     });
 
-                    console.log( "Final Config", finalConfig );
+                    websiteConfigs[ website ] = finalConfig;
 
                     if( finalConfig.autoload )
                         loadWebsite( website, function() {} )
