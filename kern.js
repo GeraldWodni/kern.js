@@ -411,6 +411,7 @@ var Kern = function( callback, kernOpts ) {
                 },
                 siteModule: siteModule,
                 useSiteModule: function( prefix, website, filename, opts ) {
+                    console.log( "USE".magenta.bold, website, filename );
                     var subTarget = siteModule( website, filename, opts );
                     router.use( prefix, subTarget.router );
                 },
@@ -459,6 +460,10 @@ var Kern = function( callback, kernOpts ) {
                     return registeredSiteModules[ name ];
                 }
             });
+
+            /* app requires cleanup */
+            if( target.exit )
+                app.exitHooks.push( target.exit );
 
             /* attach new router */
             target.router = router;
@@ -559,7 +564,7 @@ var Kern = function( callback, kernOpts ) {
 
                     websiteConfigs[ website ] = finalConfig;
 
-                    if( finalConfig.autoload )
+                    if( finalConfig.autoLoad )
                         loadWebsite( website, function() {} )
                 });
             });

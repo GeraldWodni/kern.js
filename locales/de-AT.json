@@ -207,5 +207,7 @@
     "GUI Editor": "GUI Editor",
     "DOM": "DOM",
     "Preview": "Vorschau",
-    "Add child element": "Kindelement hinzufügen"
+    "Add child element": "Kindelement hinzufügen",
+    "Connect": "Verbinden",
+    "Edit": "Editieren"
 }

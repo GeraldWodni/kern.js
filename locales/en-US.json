@@ -214,5 +214,7 @@
     "GUI Editor": "GUI Editor",
     "DOM": "DOM",
     "Preview": "Preview",
-    "Add child element": "Add child element"
+    "Add child element": "Add child element",
+    "Connect": "Connect",
+    "Edit": "Edit"
 }
