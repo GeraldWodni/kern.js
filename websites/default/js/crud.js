@@ -28,7 +28,7 @@ $(function(){
             if( searchId )
                 visibility = $item.find("a.btn").attr("href").search( new RegExp( search, "i" ) ) >= 0;
             else
-                visibility = $item.text().search( new RegExp( search, "i" ) ) >= 0;
+                visibility = $item.text().replace(/[\n\r]/g, " ").search( new RegExp( search, "i" ) ) >= 0;
 
             if( $item.is(":visible") != visibility )
                 if( visibility )
