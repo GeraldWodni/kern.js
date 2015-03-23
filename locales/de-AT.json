@@ -176,7 +176,6 @@
     "Value": "Wert",
     "Settings": "Einstellungen",
     "Key": "Schlüssel",
-    " Key": "Schlüssel",
     "state": "Status",
     "canceled": "Storniert",
     "billable": "Abrechnungsfähig",
@@ -213,5 +212,8 @@
     "Prepayment": "Vorausbezahlung",
     "Part": "Teil",
     "Retention": "Rücklass",
-    "Discount": "Nachlass"
+    "Discount": "Nachlass",
+    "Roof service": "Dachservice",
+    "Adding of new items disabled": "Erstellen neuer Einträge deaktiviert",
+    "roofService": "Dachservice"
 }

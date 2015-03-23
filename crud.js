@@ -375,7 +375,9 @@ module.exports = function _crud( rdb ) {
                 foreign:    "uint",
                 textarea:   "text",
                 checkbox:   "exists",
-                password:   "passwords"
+                password:   "passwords",
+                h3:         "drop",
+                h4:         "drop"
             },
             elements: {
                 date:       "date-field",
@@ -386,7 +388,9 @@ module.exports = function _crud( rdb ) {
                 text:       "text-field",
                 textarea:   "textarea-field",
                 checkbox:   "checkbox-field",
-                password:   "password-field"
+                password:   "password-field",
+                h3:         "h3",
+                h4:         "h4"
             },
             fields: {
                 id:     { type: "id" },
@@ -723,6 +727,16 @@ module.exports = function _crud( rdb ) {
 
     };
 
+    function getOptional( k, optional, req ) {
+        if( _.isBoolean( optional ) )
+            return optional;
+
+        if( _.has( optional, "permission" ) )
+            return k.reg("admin").allowed( req, optional.permission );
+
+        throw new Error( "CRUD unknown optional: " + optional.toString() );
+    }
+
     function presenter( k, crud, opts ) {
         opts = _.extend( {
             id: "id",
@@ -731,7 +745,9 @@ module.exports = function _crud( rdb ) {
             path: "/admin/crud",
             idField: "id",
             editPath: "/edit/:id?",
-            jadeFile: "admin/crud"
+            jadeFile: "admin/crud",
+            showAdd: true,
+            showList: true
         }, opts);
 
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
@@ -782,6 +798,8 @@ module.exports = function _crud( rdb ) {
                         scripts: opts.scripts || [],
                         values: r.getValues( req, fields, values ),
                         formAction: req.baseUrl,
+                        showList: getOptional( k, opts.showList, req ),
+                        showAdd: opts.showAdd,
                         startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
                     };
 
