@@ -422,7 +422,7 @@ module.exports = function _crud( rdb ) {
                     if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' && filterName != 'passwords' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
-                    console.log( "FILTER:", source, filterName, field );
+                    //console.log( "FILTER:", source, filterName, field );
 
                     /* drop value */
                     if( filterName == 'drop' )

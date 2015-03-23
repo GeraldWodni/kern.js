@@ -215,5 +215,7 @@
     "Discount": "Nachlass",
     "Roof service": "Dachservice",
     "Adding of new items disabled": "Erstellen neuer Einträge deaktiviert",
-    "roofService": "Dachservice"
+    "roofService": "Dachservice",
+    "New roof service": "Neues Dachservice",
+    "Finish": "Fertigstellen"
 }
