@@ -214,5 +214,8 @@
     "GUI Editor": "GUI Editor",
     "DOM": "DOM",
     "Preview": "Preview",
-    "Add child element": "Add child element"
+    "Add child element": "Add child element",
+    "No groups accessible": "No groups accessible",
+    "New questionnaire": "New questionnaire",
+    "Loading, please wait!": "Loading, please wait!"
 }
