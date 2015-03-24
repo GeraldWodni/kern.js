@@ -176,7 +176,6 @@
     "Value": "Wert",
     "Settings": "Einstellungen",
     "Key": "Schlüssel",
-    " Key": "Schlüssel",
     "state": "Status",
     "canceled": "Storniert",
     "billable": "Abrechnungsfähig",
@@ -211,4 +210,15 @@
     "No groups accessible": "Keine zugänglichen Gruppen",
     "New questionnaire": "Neuer Fragebogen",
     "Loading, please wait!": "Daten werden geladen, bitte warten!"
+    "Connect": "Verbinden",
+    "Edit": "Editieren",
+    "Prepayment": "Vorausbezahlung",
+    "Part": "Teil",
+    "Retention": "Rücklass",
+    "Discount": "Nachlass",
+    "Roof service": "Dachservice",
+    "Adding of new items disabled": "Erstellen neuer Einträge deaktiviert",
+    "roofService": "Dachservice",
+    "New roof service": "Neues Dachservice",
+    "Finish": "Fertigstellen"
 }

@@ -5,16 +5,20 @@ mixin crud( opts )
     each script in opts.scripts
         +script(script)
     div.row
-        div.crud-items(class=opts.startExpanded?"":"col-sm-4")
-            h2= __("Items")
-            block crudList
-                +crudList( opts )
-        div.crud-fields(class=opts.startExpanded?"":"col-sm-8")
+        if opts.showList
+            div.crud-items(class=opts.startExpanded?"":"col-sm-4")
+                h2= __("Items")
+                block crudList
+                    +crudList( opts )
+        div.crud-fields(class=(opts.startExpanded || !opts.showList)?"":"col-sm-8")
             if opts.values
                 block crudPreEditItem
                 +crudEdit( opts )
-            else
+            else if opts.showAdd
                 +crudAdd( opts )
+            else
+                div.col-sm-12
+                    h3= __("Adding of new items disabled")
 
 
 //- item selection list
@@ -30,10 +34,11 @@ mixin crudList( opts )
                     button.btn.btn-default.crud-expand(type="button",title=__( "Expand" ))
                         +glyph("chevron-right")
                         +glyph("chevron-left")
-        li.list-group-item.crud-new
-            = __("New")
-            a.btn.btn-primary(href=opts.link).btn-xs.pull-right
-                +glyph("plus")
+        if opts.showAdd
+            li.list-group-item.crud-new
+                = __("New")
+                a.btn.btn-primary(href=opts.link).btn-xs.pull-right
+                    +glyph("plus")
         each item in opts.items || []
             li.list-group-item.crud-item.clearfix
                 a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
@@ -50,12 +55,17 @@ mixin crudList( opts )
 mixin crudFields( opts )
     - opts.values = opts.values || {}
     each field, name in opts.fields || {}
+        - var label = field.label || __( field.text )
         if field.mixinType == "foreign-field"
-            +foreign-field( name, __( field.text ), field.items, opts.values[ name ], field )
+            +foreign-field( name, label, field.items, opts.values[ name ], field )
         else if field.mixinType == "enum-field"
-            +enum-field( name, __( field.text ), field.keyValues, opts.values[ name ] )
+            +enum-field( name, label, field.keyValues, opts.values[ name ] )
+        else if field.mixinType == "h3"
+            h3= label
+        else if field.mixinType == "h4"
+            h4= label
         else
-            +#{field.mixinType}( name, __( field.text ), opts.values[ name ], field )
+            +#{field.mixinType}( name, label, opts.values[ name ], field )
 
 
 //- edit form
@@ -80,4 +90,4 @@ mixin crudAdd( opts )
             = " " + __("Add")
         +crudFields( opts )
         button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
-
+idHa

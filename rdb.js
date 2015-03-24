@@ -7,6 +7,10 @@ module.exports = function _rdb( opts )  {
 
     var rdb = redis.createClient( opts );
 
+    rdb.cloneClient = function _rdb_cloneClient() {
+        return redis.createClient( opts );
+    };
+
     rdb.on( "error", function( err ) {
         console.log( "Redis-error ".red.bold, err.stack.yellow );
         //console.trace();
