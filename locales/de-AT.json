@@ -207,6 +207,9 @@
     "DOM": "DOM",
     "Preview": "Vorschau",
     "Add child element": "Kindelement hinzufügen",
+    "No groups accessible": "Keine zugänglichen Gruppen",
+    "New questionnaire": "Neuer Fragebogen",
+    "Loading, please wait!": "Daten werden geladen, bitte warten!",
     "Connect": "Verbinden",
     "Edit": "Editieren",
     "Prepayment": "Vorausbezahlung",
@@ -217,5 +220,8 @@
     "Adding of new items disabled": "Erstellen neuer Einträge deaktiviert",
     "roofService": "Dachservice",
     "New roof service": "Neues Dachservice",
-    "Finish": "Fertigstellen"
+    "Finish": "Fertigstellen",
+    "Contact": "Kontakt",
+    "Product": "Produkt",
+    "References": "Referenzen"
 }
