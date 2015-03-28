@@ -121,6 +121,8 @@ module.exports = function _crud( rdb ) {
         }
 
         function update( key, obj, callback ) {
+            if( opts.disallowKeyUpdate )
+                delete obj[opts.key];
             db.query( opts.updateQuery, [ opts.table, obj, opts.key, key ], callback );
         }
 
