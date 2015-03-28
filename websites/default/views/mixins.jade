@@ -128,8 +128,7 @@ mixin foreign-field(name, label, items, value, opts)
 mixin textarea-field(name, label, value) 
     div.form-group
         label= label
-        textarea.form-control(name=name,rows='3')&attributes(attributes)
-            = value
+        textarea.form-control(name=name,rows='3')&attributes(attributes)= value
 
 
 mixin textarea(name, label)
