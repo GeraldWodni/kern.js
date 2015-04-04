@@ -134,6 +134,9 @@ var Kern = function( callback, kernOpts ) {
                 lookupFile: function( filePath ) {
                     return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
                 },
+                getWebsiteConfig: function( key, defaultValue ) {
+                    return getWebsiteConfig( website, key, defaultValue );
+                },
                 renderJade: app.renderJade
             };
 
@@ -168,6 +171,7 @@ var Kern = function( callback, kernOpts ) {
 
         /* set jade pretty-print */
         app.jadeCache = {};
+        /* TODO: make cache Website-aware! (login.jade:flink vs. login.jade:echo) */
         app.renderJade = function( req, res, filename, locals, opts ) {
 
             opts = opts || {};
@@ -456,6 +460,13 @@ var Kern = function( callback, kernOpts ) {
                 rdb: rdb,
                 kernOpts: kernOpts,
                 hostname: os.hostname(),
+                getWebsiteConfig: function( key, defaultValue ) {
+                    var value = getWebsiteConfig( website, key, defaultValue );
+                    console.log( "getWebsiteConfig", website, key, value, defaultValue )
+                    console.log( websiteConfigs[ website ] ); 
+                    console.log( websiteConfigs );
+                    return value;
+                },
                 reg: function( name ) {
                     return registeredSiteModules[ name ];
                 }
@@ -563,6 +574,7 @@ var Kern = function( callback, kernOpts ) {
                     });
 
                     websiteConfigs[ website ] = finalConfig;
+		    console.log( "websiteConfig", website, finalConfig );
 
                     if( finalConfig.autoLoad )
                         loadWebsite( website, function() {} )

@@ -69,3 +69,19 @@ form.deleteWrapper {
 .glyph-primary  { color: @brand-primary; }
 .glyph-info     { color: lighten(@brand-primary, 10%); }
 .glyph-danger   { color: @state-danger-bg; }
+
+div.separator {
+    border-top: 1px solid @input-border;
+    text-align: center;
+
+    margin-top: 30px;
+
+    span {
+        font-size: 14px;
+        position: relative;
+        top: -11px;
+        color: @gray-light;
+        background-color: #FFF;
+        padding: 0 0.5em;
+    }
+}

@@ -10,6 +10,7 @@ var postman = require("./postman");
 
 module.exports = function( rdb ) {
     /* this keys are not stored in the database */
+    var minPasswordLength = 4;
     var forbiddenKeys = [ "id", "prefix", "password" ];
 
     function getKey( prefix, id ) {
@@ -171,6 +172,8 @@ module.exports = function( rdb ) {
                 return next();
             }
 
+            var register = req.kern.getWebsiteConfig( "register", false );
+
             /* already logged in, load user and resume */
             if( req.session && req.session.loggedInUsername ) {
                 loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
@@ -179,7 +182,7 @@ module.exports = function( rdb ) {
                         if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
                             console.log( "Login invalid, destroy session".red.bold );
                             return req.sessionInterface.destroy( req, res, function() {
-                                executeOrRender( req, res, next, loginRenderer );
+                                executeOrRender( req, res, next, loginRenderer, { register: register } );
                             });
                         }
                         else
@@ -201,7 +204,7 @@ module.exports = function( rdb ) {
                         console.log( "Login: ", username );
                         login( req.kern.website, username, req.postman.password(), function( err, data ) {
                             if( err )
-                                return executeOrRender( req, res, next, loginRenderer, { error: err } );
+                                return executeOrRender( req, res, next, loginRenderer, { error: err, register: register } );
 
                             req.sessionInterface.start( req, res, function() {
                                 req.session.loggedInUsername = username;
@@ -211,18 +214,52 @@ module.exports = function( rdb ) {
                             });
                         });
                     }
+                    else if( req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
+                        var username = req.postman.username();
+
+                        /* attempt to load user to check for existance */
+                        loadByName( req.kern.website, username, function( err, data ) {
+
+                            /* new user */
+                            if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
+                                err = undefined;
+
+                                var password = req.postman.password();
+                                if( !req.postman.fieldsMatch( "password", "password2" ) )
+                                    err = req.locales.__( "Passwords do not match" );
+
+                                if( password.length < minPasswordLength ) 
+                                    err = req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength );
+
+                                /* TODO: check if email exists */
+                                /* TODO: check registere-queue usersnames */
+                                /* TODO: check registere-queue emails */
+                                /* TODO: write to redis with TTL */
+                                /* TODO: standard permissions */
+                                /* TODO: send email */
+
+                                /* TODO: confirmation website which creates the real user */
+
+
+                                executeOrRender( req, res, next, loginRenderer, { error: err, register: register, hideLogin: true } );
+                            }
+                            else
+                            /* user exists */
+                                executeOrRender( req, res, next, loginRenderer, { error: req.locales.__("Username exists"), register: register, hideLogin: true } );
+                        });
+                    }
                     else
-                        executeOrRender( req, res, next, loginRenderer );
+                        executeOrRender( req, res, next, loginRenderer, { register: register } );
                 });
             /* show login form */
             else {
-                executeOrRender( req, res, next, loginRenderer );
+                executeOrRender( req, res, next, loginRenderer, { register: register } );
             }
         };
     };
 
     var users = {
-        minPasswordLength: 4,
+        minPasswordLength: minPasswordLength,
         create: create,
         read:   loadById,
         readAll:readAll,

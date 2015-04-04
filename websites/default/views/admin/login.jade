@@ -12,11 +12,28 @@ block content
                 strong
                     = error
 
-        form(method='post',role='form')
-            div.form-group
-                label(for='username')= __("Username")
-                input.form-control(id='username',type='text',name='username',placeholder='Name',autofocus="autofocus")
-            div.form-group
-                label(for='password')= __("Password")
-                input.form-control(id='password',type='password',name='password',placeholder='Passwort')
-            button.btn.btn-default(type='submit',name='login',value='yes') Login
+        if( !hideLogin )
+            form(method='post',role='form')
+                div.form-group
+                    label(for='username')= __("Username")
+                    input.form-control(id='username',type='text',name='username',placeholder='Name',autofocus="autofocus")
+                div.form-group
+                    label(for='password')= __("Password")
+                    input.form-control(id='password',type='password',name='password',placeholder='Passwort')
+                button.btn.btn-default(type='submit',name='login',value='yes') Login
+
+        if register
+            if( !hideLogin )
+                p
+                    div.separator 
+                        span
+                            | OR
+
+            form(method='post',role='form')
+                +text-field("username", __("Username"))
+                +text-field("email", __("Email"))
+                +password-field('password', __("Password"))
+                +password-field('password2', __("Confirm password"))
+                button.btn.btn-default(type='submit',name='register',value='yes')=__("Register")
+
+
