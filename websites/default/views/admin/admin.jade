@@ -11,7 +11,7 @@ include ../crud
 
 mixin menuItem( link, icon, text )
     li
-        a(href="/admin/#{link}")
+        a(href="/admin/#{link}")&attributes(attributes)
             +glyph(icon)
             span.hidden-xs
                 | 
@@ -42,8 +42,9 @@ html(lang=__('current-locale'))
                     block brand-name
                         | kern.js
             ul
-                each menuItem in menu || []
-                    +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
+                block navItems
+                    each menuItem in menu || []
+                        +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
         block main-content
             div.container.main-content

@@ -224,5 +224,11 @@
     "Contact": "Kontakt",
     "Product": "Produkt",
     "References": "Referenzen",
-    "Timeout": "Zeitüberschreitung"
+    "Timeout": "Zeitüberschreitung",
+    "Pause": "Pause",
+    "Stop": "Stop",
+    "Single Step": "Einzelschritt",
+    "Commit": "Commit",
+    "File": "Datei",
+    "Menu": "Menü"
 }

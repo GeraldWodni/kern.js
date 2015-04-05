@@ -231,5 +231,11 @@
     "Contact": "Contact",
     "Product": "Product",
     "References": "References",
-    "Timeout": "Timeout"
+    "Timeout": "Timeout",
+    "Pause": "Pause",
+    "Stop": "Stop",
+    "Single Step": "Single Step",
+    "Commit": "Commit",
+    "File": "File",
+    "Menu": "Menu"
 }
