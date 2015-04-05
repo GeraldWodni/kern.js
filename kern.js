@@ -411,6 +411,7 @@ var Kern = function( callback, kernOpts ) {
                     postman: postman
                 },
                 ws: function() {
+                    console.log( "Websocket-Server".yellow.bold, arguments );
                     app.ws.apply( this, arguments );
                 },
                 siteModule: siteModule,
