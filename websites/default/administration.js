@@ -90,7 +90,7 @@ module.exports = {
                 target = k.siteModule( website, filename, opts ).router;
 
             subRouter.use( "/" + link, target );
-            if( link != "" || glyph != "" )
+            if( link != "" && glyph != "" )
                 subMenu.push( { link: link, glyph: glyph, english: name } );
         };
 

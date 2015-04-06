@@ -237,5 +237,14 @@
     "Single Step": "Single Step",
     "Commit": "Commit",
     "File": "File",
-    "Menu": "Menu"
+    "Menu": "Menu",
+    "SSH-Keys": "SSH-Keys",
+    "Clone": "Clone",
+    "Clone Repository": "Clone Repository",
+    "Download as Zip": "Download as Zip",
+    "Pull": "Pull",
+    "Push": "Push",
+    "Local name": "Local name",
+    "Load Repository": "Load Repository",
+    "Repository": "Repository"
 }

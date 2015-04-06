@@ -37,6 +37,7 @@ function filters( req ) {
         telephone:  function( t ) { return f( t, /[^-+ 0-9]/g                   ); },
         text:       function( t ) { return t;                                      },
         uint:       function( t ) { return f( t, /[^0-9]/g                      ); },
+        url:        function( t ) { return f( t, /[^-?#@&,+_.:\/a-zA-Z0-9]/g    ); },
         username:   function( t ) { return f( t, /[^-@_.a-zA-Z0-9]/g            ); }
     };
 

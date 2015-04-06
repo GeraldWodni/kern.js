@@ -169,3 +169,23 @@ mixin messages(messages)
             | 
             = message.text || ""
 
+mixin dropMenu(id)
+    ul.dropdown-menu(style="display:none",id=id)
+        block
+
+mixin dropMenuItem(action, glyph, text)
+    li&attributes(attributes)
+        a(href="#",data-action=action)
+            +glyph(glyph)
+            |  
+            = __(text)
+
+mixin dropMenuLink(link, glyph, text)
+    li
+        a(href=link,target="_blank")
+            +glyph(glyph)
+            |  
+            = __(text)
+
+mixin dropMenuDivider()
+    li.divider

@@ -433,6 +433,13 @@ var Kern = function( callback, kernOpts ) {
                         res.sendfile( filepath );
                     }
                 },
+                hierarchyRoot: function( website ) {
+                    var root = hierarchy.website( kernOpts.websitesRoot, website );
+                    if( root )
+                        return path.join( kernOpts.websitesRoot, root );
+                    else
+                        return null;
+                },
                 readHierarchyDir: function( website, dirname, callback ) {
                     var dirpath = hierarchy.lookupFile( kernOpts.websitesRoot, website, dirname );
                     if( dirpath == null )

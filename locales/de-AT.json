@@ -230,5 +230,14 @@
     "Single Step": "Einzelschritt",
     "Commit": "Commit",
     "File": "Datei",
-    "Menu": "Menü"
+    "Menu": "Menü",
+    "SSH-Keys": "SSH-Schlüssel",
+    "Clone": "Klonen",
+    "Clone Repository": "Repository Klonen",
+    "Download as Zip": "Gezipped herunterladen",
+    "Pull": "Pull",
+    "Push": "Push",
+    "Local name": "Lokaler Name",
+    "Load Repository": "Repository Öffnen",
+    "Repository": "Repository"
 }
