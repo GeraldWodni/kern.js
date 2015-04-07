@@ -246,5 +246,7 @@
     "Push": "Push",
     "Local name": "Local name",
     "Load Repository": "Load Repository",
-    "Repository": "Repository"
+    "Repository": "Repository",
+    "Load File": "Load File",
+    "Save As": "Save As"
 }

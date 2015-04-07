@@ -239,5 +239,7 @@
     "Push": "Push",
     "Local name": "Lokaler Name",
     "Load Repository": "Repository Öffnen",
-    "Repository": "Repository"
+    "Repository": "Repository",
+    "Load File": "Datei Laden",
+    "Save As": "Speichern unter"
 }
