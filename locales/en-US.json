@@ -248,5 +248,14 @@
     "Load Repository": "Load Repository",
     "Repository": "Repository",
     "Load File": "Load File",
-    "Save As": "Save As"
+    "Save As": "Save As",
+    "Storage": "Storage",
+    "Router": "Router",
+    "Source code": "Source code",
+    "Triggers": "Triggers",
+    "Chart": "Chart",
+    "Index": "Index",
+    "Time": "Time",
+    "Actions": "Actions",
+    "Delete data": "Delete data"
 }

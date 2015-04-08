@@ -492,6 +492,7 @@ var Kern = function( callback, kernOpts ) {
         /** site-specific route **/
         var websites = {};
         function loadWebsite( website, next ) {
+            console.log("LoadWebsite".bold.magenta, website, websites );
             var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, website, "site.js" );
             if( siteFilename != null ) {
                 console.log( "Using ".magenta.bold, siteFilename );
@@ -499,8 +500,10 @@ var Kern = function( callback, kernOpts ) {
                 try {
                     var target = siteModule( '', './' + siteFilename, { exactFilename: true } );
                     websites[ website ] = target;
+                    console.log("LoadWebsite".bold.green, website, websites );
                     return target;
                 } catch( err ) {
+                    console.log("LoadWebsite-Error:".bold.red, err );
                     next( err );
                 }
             }
@@ -585,7 +588,10 @@ var Kern = function( callback, kernOpts ) {
 		    console.log( "websiteConfig", website, finalConfig );
 
                     if( finalConfig.autoLoad )
-                        loadWebsite( website, function() {} )
+                        loadWebsite( website, function(err) {
+                            if( err )
+                                console.log("Autoload-Error:".bold.red, err );
+                        } )
                 });
             });
         });

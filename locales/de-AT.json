@@ -241,5 +241,14 @@
     "Load Repository": "Repository Öffnen",
     "Repository": "Repository",
     "Load File": "Datei Laden",
-    "Save As": "Speichern unter"
+    "Save As": "Speichern unter",
+    "Storage": "Speicher",
+    "Router": "Router",
+    "Source code": "Quelltext",
+    "Triggers": "Trigger",
+    "Chart": "Diagramm",
+    "Index": "Index",
+    "Time": "Zeit",
+    "Actions": "Aktionen",
+    "Delete data": "Daten löschen"
 }
