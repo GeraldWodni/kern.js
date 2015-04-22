@@ -56,4 +56,15 @@ describe('hierarchy', function () {
 
         done();
     });
+
+    it('routes', function(done) {
+        hierarchy.addRoute( "wodni.at", "kern");
+        hierarchy.upExists( websitesRoot, "wodni.at" ).should.equal( "kern" );
+        should( hierarchy.paths( websitesRoot, "www.wodni.at", "css" ) ).eql([
+            path.join( websitesRoot, "wodni.at/css" ),
+            path.join( websitesRoot, "kern/css" ),
+            path.join( websitesRoot, "default/css" )
+	]);
+        done();
+    });
 });

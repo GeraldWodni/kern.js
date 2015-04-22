@@ -4,6 +4,8 @@
 var path    = require("path");
 var fs      = require("fs");
 
+var routes = {};
+
 /* locate by hierarchy: cut subdomains, then check 'default' folder  */
 function lookupFile( websitesRoot, website, filename ) {
 
@@ -36,6 +38,8 @@ function lookupFileThrow( websitesRoot, website, filename ) {
 
 /* locate by hierarchy: cut subdomains, then check 'default' folder  */
 function up( website ) {
+    if( website in routes )
+        return routes[website];
 
     /* cut next subdomain */
     var firstDot = website.indexOf(".");
@@ -96,8 +100,13 @@ function website( websitesRoot, website ) {
     return upExists( websitesRoot, "dummy." + website );
 }
 
+/* add custom route to hierary */
+function addRoute( source, target ) {
+    routes[ source ] = target;
+}
 
 module.exports = {
+    addRoute:       addRoute,
     lookupFile:     lookupFile,
     lookupFileThrow:lookupFileThrow,
     up:             up,
