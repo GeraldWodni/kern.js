@@ -4,7 +4,8 @@
 var qs  = require( "qs" );
 var _   = require("underscore");
 
-function filters( req ) {
+
+module.exports = function _filters( k ) {
 
     function f( text, filter ) {
         if( text == null )
@@ -14,7 +15,7 @@ function filters( req ) {
     }
 
     /* registered filters */
-    req.filters = {
+    var registeredFilters = {
         address:    function( t ) { return f( t, /[^-,.\/ a-zA-Z0-9äöüßÄÖÜ]/g   ); },
         allocnum:   function( t ) { return f( t, /[^a-zA-Z0-9äöüßÄÖÜ]/g         ); },
         alnum:      function( t ) { return f( t, /[^a-zA-Z0-9]/g                ); },
@@ -42,15 +43,15 @@ function filters( req ) {
     };
 
     /* return a new fetcher which supports all registered filters */
-    req.fetchFilter = function( fetch ) {
+    registeredFilters.fetch = function _filters_fetch( fetch ) {
         var filters = {};
-        _.each( req.filters, function( filter, name ) {
+        _.each( registeredFilters, function _filters_fetch_callback( filter, name ) {
             filters[ name ] = function( field ) {
                 return filter( fetch( field || name ) );
             }
         });
         return filters;
     };
-};
 
-module.exports = filters;
+    return registeredFilters;
+};

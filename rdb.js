@@ -3,9 +3,17 @@
 var redis   = require("redis");
 var async   = require( "async" );
 
-module.exports = function _rdb( opts )  {
+module.exports = function _rdb( k, opts )  {
 
     var rdb = redis.createClient( opts );
+
+    rdb.getField = function _rdb_getField( item, field ) { 
+        var index = field.indexOf( "." );
+        if( index > 0 ) 
+            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
+        else
+            return item[ field ]
+    };
 
     rdb.cloneClient = function _rdb_cloneClient() {
         return redis.createClient( opts );

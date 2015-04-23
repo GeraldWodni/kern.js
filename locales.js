@@ -5,13 +5,13 @@ var fs      = require("fs");
 var path    = require("path");
 var _       = require("underscore");
 
-module.exports = function( rdb, defaultLocale ) {
+module.exports = function _locales( k, opts ) {
 
     var locales = {};
     var localeNames = [];
     var languages = [];
     var folder = "locales";
-    defaultLocale = defaultLocale || 'en-US';
+    var defaultLocale = ( opts ? opts.defaultLocale : null ) || 'en-US';
 
     function reload() {
         locales = {};
@@ -66,7 +66,7 @@ module.exports = function( rdb, defaultLocale ) {
     /* handle unfound strings */
     function notFound( text ) {
         /* report missing text */
-        rdb.sadd( "missing-locales", text );
+        k.k.rdb.sadd( "missing-locales", text );
 
         return "\u2702" + text;
     }

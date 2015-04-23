@@ -8,7 +8,7 @@ var url     = require("url");
 
 var postman = require("./postman");
 
-module.exports = function( rdb ) {
+module.exports = function _users( k ) {
     /* this keys are not stored in the database */
     var minPasswordLength = 4;
     var forbiddenKeys = [ "id", "prefix", "password" ];
@@ -23,7 +23,7 @@ module.exports = function( rdb ) {
 
     function saveObject( userKey, obj, next ) {
         obj = _.omit( obj, forbiddenKeys );
-        rdb.hmset( userKey, obj, next );
+        k.rdb.hmset( userKey, obj, next );
     }
 
     function save( obj, prefix, id, next ) {
@@ -45,12 +45,12 @@ module.exports = function( rdb ) {
 
             /* find matching name key */
             var namesKey = getNamesKey( prefix );
-            rdb.hgetall( namesKey, function( err, names ) {
+            k.rdb.hgetall( namesKey, function( err, names ) {
                 
                 async.mapSeries( _.keys( names ), function _users_save_updateName_map( name, d ) {
                     /* delete namekeys with same id but different name (hence allow renaming) */
                     if( names[ name ] == id && name != obj.name )
-                        rdb.hdel( namesKey, name, d );
+                        k.rdb.hdel( namesKey, name, d );
                     else
                         d( null );
                 },
@@ -59,7 +59,7 @@ module.exports = function( rdb ) {
                         return next( err );
 
                     /* set (new) name */
-                    rdb.hset( namesKey, obj.name, id, next );
+                    k.rdb.hset( namesKey, obj.name, id, next );
                 });
 
             });
@@ -83,17 +83,17 @@ module.exports = function( rdb ) {
 
         var name = obj[ "name" ];
         console.log( "Create new User".bold.green, getNamesKey( prefix ), name );
-        rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
+        k.rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
 
             if( userId != null )
                 return next( "Username exists", null );
 
-            rdb.incr( userCounter, function( err, userId ) {
+            k.rdb.incr( userCounter, function( err, userId ) {
                 save( obj, prefix, userId, function( err ) {
                     if( !err )
-                        rdb.hset( getNamesKey( prefix ), obj[ "name" ], userId, next );
+                        k.rdb.hset( getNamesKey( prefix ), obj[ "name" ], userId, next );
                     else
                         next( err, null );
                 });
@@ -102,7 +102,7 @@ module.exports = function( rdb ) {
     };
 
     function loadById( prefix, id, next ) {
-        rdb.hgetall( getKey( prefix, id ), function( err, data ) {
+        k.rdb.hgetall( getKey( prefix, id ), function( err, data ) {
             data = _.extend( data, { id: id, prefix: prefix } );
             next( err, data );
         });
@@ -110,7 +110,7 @@ module.exports = function( rdb ) {
 
     function loadByName( prefix, name, next ) {
         console.log( "Load user".grey, prefix.green, name.cyan );
-        rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
+        k.rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
             if( err )
                 return next( err, null );
 
@@ -126,7 +126,7 @@ module.exports = function( rdb ) {
     };
 
     function readAll( prefix, next ) {
-        rdb.hgetall( getNamesKey( prefix ), function( err, data ) {
+        k.rdb.hgetall( getNamesKey( prefix ), function( err, data ) {
             if( err )
                 return next( err );
 
@@ -275,8 +275,6 @@ module.exports = function( rdb ) {
         login:  login,
         loginRequired: loginRequired
     };
-
-    rdb.users = users;
 
     return users;
 };

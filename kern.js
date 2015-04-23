@@ -22,18 +22,8 @@ var async   = require( "async" );
 
 /* kern subsystems */
 require("./strings");
-var Hierarchy   = require("./hierarchy");
 var httpStati   = require("./httpStati");
-var filters     = require("./filters");
-var requestData = require("./requestData");
-var postman     = require("./postman");
-var session     = require("./session");
-var users       = require("./users");
-var locales     = require("./locales");
 var navigation  = require("./navigation");
-var Rdb         = require("./rdb");
-var Cache       = require("./cache");
-var crud        = require("./crud");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -78,6 +68,11 @@ var Kern = function( callback, kernOpts ) {
         console.log.apply( this, arguments );
     };
 
+    function loadModule( k, name, opts ) {
+        module = require( "./" + name );
+        k[ name ] = module( k, opts );
+    }
+
     function worker() {
 
         /* start express, add kern attributes */
@@ -87,14 +82,32 @@ var Kern = function( callback, kernOpts ) {
         /* websocket support */
         require( "express-ws" )( app );
 
-        /* connect to redis */
-        var rdb = Rdb();
-        var cache = Cache( rdb );
+        /* load modules */
+        var k = {
+            app: app,
+            kernOpts: kernOpts
+        };
+        loadModule( k, "hierarchy"  );
+        loadModule( k, "rdb"        );
+        loadModule( k, "db"         );
+        loadModule( k, "users"      );
+        loadModule( k, "crud"       );
+        loadModule( k, "filters"    );
+        loadModule( k, "session"    );
+        loadModule( k, "locales"    );
+        loadModule( k, "requestman" );
+        loadModule( k, "getman"     );
+        loadModule( k, "postman"    );
+        loadModule( k, "cache"      );
 
-        /* setup crud interface */
-        crud( rdb );
+        //console.log( k );
+
+        app.listen( kernOpts.port );
+
+        return;
 
         /* setup website configs */
+        /* TODO: create website module */
         var websiteConfigs = {};
         function getField( item, field, defaultValue ) {
             var index = field.indexOf( "." );
@@ -111,8 +124,6 @@ var Kern = function( callback, kernOpts ) {
 
             return getField( websiteConfigs[ website ], key, defaultValue );
         }
-
-        var hierarchy = Hierarchy( kernOpts.websitesRoot );
 
 
         app.postHooks = [];
@@ -324,7 +335,7 @@ var Kern = function( callback, kernOpts ) {
         });
 
         /* less, circumvent path-processing */
-        var lessCache = cache( "less" );
+        var lessCache = k.cache( "less" );
         app.get("/css/*", function( req, res, next ) {
 
             var filename = req.path.substring( 5 );
@@ -674,7 +685,7 @@ var Kern = function( callback, kernOpts ) {
 
                 process.on("exit", function() {
                     console.log( ( "Exit Start " + status.workerId ).red.bold );
-                    w.exit();
+                    //w.exit();
                     console.log( ( "Exit Done " + status.workerId ).red.bold );
                 });
 

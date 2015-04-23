@@ -4,7 +4,7 @@
 var fs  = require("fs");
 var _   = require("underscore");
 
-module.exports = function _cache( rdb ) {
+module.exports = function _cache( k ) {
     return function _createCache( opts ) {
 
         opts = _.extend({
@@ -20,9 +20,9 @@ module.exports = function _cache( rdb ) {
             }
 
         /* start watches for keys currently in cache */
-        rdb.keys( opts.prefix + "*", function( err, keys ) {
+        k.rdb.keys( opts.prefix + "*", function( err, keys ) {
             keys.forEach( function( key ) {
-                rdb.ttl( key, function( err, ttl ) {
+                k.rdb.ttl( key, function( err, ttl ) {
                     var filename = key.substring( opts.prefix.length );
                     /* create watch for file */
                     try {
@@ -34,7 +34,7 @@ module.exports = function _cache( rdb ) {
                             throw e;
 
                         /* file has been deleted, delete cache as well */
-                        rdb.del( key );
+                        k.rdb.del( key );
                     }
                 });
             });
@@ -51,7 +51,7 @@ module.exports = function _cache( rdb ) {
             var watcher = fs.watch( filename, function( event, fname ) {
                 console.log( "Cache Changed".grey, filename.yellow );
                 /* if a change occured, clear cache */
-                rdb.del( key( filename ), function() {
+                k.rdb.del( key( filename ), function() {
                     watcher.close();
                 });
             });
@@ -65,13 +65,13 @@ module.exports = function _cache( rdb ) {
 
         /* load value */
         function get( filename, callback ) {
-            rdb.get( key( filename ), callback );
+            k.rdb.get( key( filename ), callback );
         }
 
         /* store value and place TTL */
         function set( filename, content, callback ) {
             var k = key( filename );
-            rdb.multi().set( k, content ).expire( k, opts.timeout ).exec( callback );
+            k.rdb.multi().set( k, content ).expire( k, opts.timeout ).exec( callback );
             watchFile( filename );
         }
 

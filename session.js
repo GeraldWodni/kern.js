@@ -11,7 +11,7 @@ var defaults = {
 }
 
 /* rdb: redis database */
-function session( rdb, opts ) {
+module.exports = function _session( k, opts ) {
 
     opts = _.extend( defaults, opts );
 
@@ -48,8 +48,8 @@ function session( rdb, opts ) {
             }
 
             var key = sessionKey( req );
-            rdb.hset( key, "session:started", moment().format( "YYYY-MM-DD hh:mm:ss" ) );
-            rdb.expire( key, opts.timeout );
+            k.rdb.hset( key, "session:started", moment().format( "YYYY-MM-DD hh:mm:ss" ) );
+            k.rdb.expire( key, opts.timeout );
 
             setCookie( req, res );
             next();
@@ -60,10 +60,10 @@ function session( rdb, opts ) {
     function load( req, res, next ) {
 
         var key = sessionKey( req );
-        rdb.expire( key, opts.timeout );
+        k.rdb.expire( key, opts.timeout );
         setCookie( req, res );
 
-        rdb.hgetall( key, function( err, values) {
+        k.rdb.hgetall( key, function( err, values) {
 
             /* only assign a session containing data (i.e. cookie sent which does not match session) */
             if( values ) {
@@ -81,7 +81,7 @@ function session( rdb, opts ) {
             //console.log( "SAVE session", req.sessionId );
             var sKey = sessionKey( req );
             _.map( req.session, function( value, key ) {
-                rdb.hset( sKey, key, value );
+                k.rdb.hset( sKey, key, value );
             });
         }
 
@@ -92,7 +92,7 @@ function session( rdb, opts ) {
     function destroy( req, res, next ) {
         if( req.session ) {
             res.clearCookie( opts.cookie );
-            rdb.del( sessionKey( req ) );
+            k.rdb.del( sessionKey( req ) );
 
             req.session = undefined;
         }
@@ -120,6 +120,4 @@ function session( rdb, opts ) {
             next();
     };
 }
-
-module.exports = session;
 

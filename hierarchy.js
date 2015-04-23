@@ -1,16 +1,17 @@
-// hierarchy functions
-// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+// hierarchy module - website inheritance
+// (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var path    = require("path");
 var fs      = require("fs");
 
 
-module.exports = function( websitesRoot ) {
+module.exports = function _hierarchy( k ) {
 
     var routes = {};
+    var websitesRoot = k.kernOpts.websitesRoot;
 
     /* locate by hierarchy: cut subdomains, then check 'default' folder  */
-    function lookupFile( websitesRoot, website, filename ) {
+    function lookupFile( website, filename ) {
 
         /* file found */
         var filePath = path.join( websitesRoot, website, filename ) 
@@ -20,23 +21,23 @@ module.exports = function( websitesRoot ) {
 
         /* check for route */
         if( website in routes )
-            return lookupFile( websitesRoot, routes[website], filename ); 
+            return lookupFile( routes[website], filename ); 
 
         /* cut next subdomain */
         var firstDot = website.indexOf(".");
         if( firstDot >= 0 )
-            return lookupFile( websitesRoot, website.substring( firstDot + 1 ), filename );
+            return lookupFile( website.substring( firstDot + 1 ), filename );
 
         /* if we are at TLD, check default */
         if( website !== "default" )
-            return lookupFile( websitesRoot, "default", filename );
+            return lookupFile( "default", filename );
 
         /* nothing in default, just fail */
         return null;
     }
 
-    function lookupFileThrow( websitesRoot, website, filename ) {
-        var filePath = lookupFile( websitesRoot, website, filename );
+    function lookupFileThrow( website, filename ) {
+        var filePath = lookupFile( website, filename );
         if( filePath == null )
             throw new Error( "hierarchy-lookupFile: '" + filename + "' not found!" ); 
 
@@ -72,7 +73,7 @@ module.exports = function( websitesRoot ) {
     }
 
     /* go up until directory exists */
-    function upExists( websitesRoot, website, dir ) {
+    function upExists( website, dir ) {
         while( true ) {
             website = up( website );
             if( website == null )
@@ -84,14 +85,14 @@ module.exports = function( websitesRoot ) {
         }
     }
 
-    function paths( websitesRoot, website, dir ) {
+    function paths( website, dir ) {
         var paths = []
 
         /* prepend dummy to include website itself */
         website = "dummy." + website;
 
         while( true ) {
-            website = upExists( websitesRoot, website, dir );
+            website = upExists( website, dir );
 
             if( website == null )
                 break;
@@ -103,8 +104,8 @@ module.exports = function( websitesRoot ) {
     }
 
     /* get website without any subdomain */
-    function website( websitesRoot, website ) {
-        return upExists( websitesRoot, "dummy." + website );
+    function website( website ) {
+        return upExists( "dummy." + website );
     }
 
     /* add custom route to hierary */

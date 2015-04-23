@@ -7,17 +7,7 @@ var moment  = require("moment");
 var path    = require("path");
 var express = require("express");
 
-module.exports = function _crud( rdb ) {
-
-    function getField( item, field ) { 
-        var index = field.indexOf( "." );
-        if( index > 0 ) 
-            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
-        else
-            return item[ field ]
-    };
-
-    rdb.getField = getField;
+module.exports = function _crud( k ) {
 
     /* TODO: sql CRUD */
     function sqlCrud( db, opts ) {
@@ -97,12 +87,12 @@ module.exports = function _crud( rdb ) {
 
                 var items = _.map( data, function( row ) {
 
-                    var name = rdb.getField( row, opts.foreignName );
+                    var name = k.rdb.getField( row, opts.foreignName );
                     if( opts.foreignBoldName )
-                        name = rdb.getField( row, opts.foreignBoldName ) + opts.foreignNameSeparator + name;
+                        name = k.rdb.getField( row, opts.foreignBoldName ) + opts.foreignNameSeparator + name;
 
                     return {
-                        id: rdb.getField( row, opts.key ),
+                        id: k.rdb.getField( row, opts.key ),
                         name: name
                     }
                 });
@@ -173,20 +163,20 @@ module.exports = function _crud( rdb ) {
                 throw new Error( "crud.create: invalid callback provided" );
 
             async.series( [
-                function( done ) { rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
-                function( done ) { rdb.hmset( opts.getKey( prefix, id ), obj, done ); }
+                function( done ) { k.rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
+                function( done ) { k.rdb.hmset( opts.getKey( prefix, id ), obj, done ); }
             ], callback );
         };
         function readAll( prefix, callback) {
-            rdb.shgetall( opts.getIndexKey( prefix ), opts.getKeyBase( prefix ), callback );
+            k.rdb.shgetall( opts.getIndexKey( prefix ), opts.getKeyBase( prefix ), callback );
         };
         function read( prefix, id, callback ){
-            rdb.hgetall( opts.getKey( prefix, id ), callback );
+            k.rdb.hgetall( opts.getKey( prefix, id ), callback );
         };
         function del( prefix, id, callback ) {
             async.parallel( [
-                function( done ) { rdb.srem( opts.getIndexKey( prefix ), id, done ); },
-                function( done ) { rdb.del( opts.getKey( prefix, id ), done ); },
+                function( done ) { k.rdb.srem( opts.getIndexKey( prefix ), id, done ); },
+                function( done ) { k.rdb.del( opts.getKey( prefix, id ), done ); },
             ], callback );
         };
         function update( prefix, id, obj, callback ) {
@@ -237,20 +227,20 @@ module.exports = function _crud( rdb ) {
                 throw new Error( "crud.create: invalid callback provided" );
 
             async.series( [
-                function( done ) { rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
-                function( done ) { rdb.sadd( opts.getKey( prefix, id ), obj, done ); }
+                function( done ) { k.rdb.sadd( opts.getIndexKey( prefix ), id,  done ); },
+                function( done ) { k.rdb.sadd( opts.getKey( prefix, id ), obj, done ); }
             ], callback );
         };
         function readAll( prefix, callback) {
-            rdb.ssgetall( opts.getIndexKey( prefix ), opts.getKeyBase( prefix ), callback );
+            k.rdb.ssgetall( opts.getIndexKey( prefix ), opts.getKeyBase( prefix ), callback );
         };
         function read( prefix, id, callback ){
-            rdb.smembers( opts.getKey( prefix, id ), callback );
+            k.rdb.smembers( opts.getKey( prefix, id ), callback );
         };
         function del( prefix, id, callback ) {
             async.parallel( [
-                function( done ) { rdb.srem( getIndexKey( prefix ), id, done ); },
-                function( done ) { rdb.srem( getKey( prefix, id ), done ); },
+                function( done ) { k.rdb.srem( getIndexKey( prefix ), id, done ); },
+                function( done ) { k.rdb.srem( getKey( prefix, id ), done ); },
             ], callback );
         };
         function update( prefix, oldId, newId, obj, callback ) {
@@ -440,8 +430,8 @@ module.exports = function _crud( rdb ) {
                             if( !req.postman.fieldsMatch( field, field + "2" ) )
                                 throw req.locales.__( "Passwords do not match" );
 
-                            if( password.length < rdb.users.minPasswordLength ) 
-                                throw req.locales.__( "Password to short, minimum: {0}" ).format( rdb.users.minPasswordLength );
+                            if( password.length < k.users.minPasswordLength ) 
+                                throw req.locales.__( "Password to short, minimum: {0}" ).format( k.users.minPasswordLength );
 
                             values[ field ] = password;
                         }
@@ -831,7 +821,7 @@ module.exports = function _crud( rdb ) {
         });
     };
 
-    rdb.crud = {
+    return {
         setHash: setHash,
         setSet: setSet,
         sql: sqlCrud,
