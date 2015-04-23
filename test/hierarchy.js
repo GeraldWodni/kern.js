@@ -65,6 +65,9 @@ describe('hierarchy', function () {
             path.join( websitesRoot, "kern/css" ),
             path.join( websitesRoot, "default/css" )
 	]);
+        hierarchy.lookupFile( websitesRoot, "www.wodni.at", "css/default.less" ).should.equal( path.join( websitesRoot, "default", "css/default.less" ));
+        hierarchy.lookupFile( websitesRoot, "www.wodni.at", "css/index.less" ).should.equal( path.join( websitesRoot, "kern", "css/index.less" ));
+        hierarchy.lookupFile( websitesRoot, "www.wodni.at", "kern.js" ).should.equal( path.join( websitesRoot, "kern", "kern.js" ));
         done();
     });
 });

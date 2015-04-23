@@ -22,7 +22,7 @@ var async   = require( "async" );
 
 /* kern subsystems */
 require("./strings");
-var hierarchy   = require("./hierarchy");
+var Hierarchy   = require("./hierarchy");
 var httpStati   = require("./httpStati");
 var filters     = require("./filters");
 var requestData = require("./requestData");
@@ -111,6 +111,8 @@ var Kern = function( callback, kernOpts ) {
 
             return getField( websiteConfigs[ website ], key, defaultValue );
         }
+
+        var hierarchy = Hierarchy( kernOpts.websitesRoot );
 
 
         app.postHooks = [];
@@ -414,6 +416,15 @@ var Kern = function( callback, kernOpts ) {
                     console.log( "Websocket-Server".yellow.bold, arguments );
                     app.ws.apply( this, arguments );
                 },
+                siteRequire: function _siteRequire( website, filename ) {
+
+                    var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
+                    if( filepath != null ) {
+                        return require( "./" + filepath )
+                    }
+                    else
+                        throw new Error( "siteRequire failed, '" + website + "' '" + filename + "' not found" );
+                },
                 siteModule: siteModule,
                 useSiteModule: function( prefix, website, filename, opts ) {
                     console.log( "USE".magenta.bold, website, filename );
@@ -587,6 +598,12 @@ var Kern = function( callback, kernOpts ) {
                     websiteConfigs[ website ] = finalConfig;
 		    console.log( "websiteConfig", website, finalConfig );
 
+                    /* add routes */
+                    if( finalConfig.hierarchyUp ) {
+                        hierarchy.addRoute( website, finalConfig.hierarchyUp );
+                    }
+
+                    /* autoload */
                     if( finalConfig.autoLoad )
                         loadWebsite( website, function(err) {
                             if( err )

@@ -24,7 +24,18 @@ module.exports = function _cache( rdb ) {
             keys.forEach( function( key ) {
                 rdb.ttl( key, function( err, ttl ) {
                     var filename = key.substring( opts.prefix.length );
-                    watchFile( filename, ttl );
+                    /* create watch for file */
+                    try {
+                        watchFile( filename, ttl );
+
+                    } catch( e ) {
+                        /* check why watch has failed */
+                        if( e.code != "ENOENT" )
+                            throw e;
+
+                        /* file has been deleted, delete cache as well */
+                        rdb.del( key );
+                    }
                 });
             });
         });
