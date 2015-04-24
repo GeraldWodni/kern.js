@@ -46,7 +46,7 @@ module.exports = function( rdb ) {
         });
     };
 
-    rdb.navigation = rdb.crud.setHash( "navigation" );
+    rdb.navigation = k.crud.setHash( "navigation" );
 
     return function( req, res, next ) {
         if( req.website in websites )

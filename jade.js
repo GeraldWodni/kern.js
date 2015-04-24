@@ -1,8 +1,11 @@
 // jade caching and rendering
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var url     = require("url");
+var jade    = require("jade");
+var fs      = require("fs");
 var path    = require("path");
+var os      = require("os");
+var _       = require("underscore");
 
 module.exports = function _jade( k, opts ) {
 
@@ -20,7 +23,7 @@ module.exports = function _jade( k, opts ) {
         console.log( "Render: ".grey, website.green, filename.cyan );
 
         /* compile template */
-        var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
+        var filepath = k.hierarchy.lookupFile( website, path.join( k.kernOpts.viewFolder, filename + '.jade' ) );
         if( !filepath ) {
             var message = "Unable to locate view " + filename + " in " + website;
             res.status(500).end( message );
@@ -31,12 +34,12 @@ module.exports = function _jade( k, opts ) {
             __: req.locales.__,
             __locale: req.locales,
             _: _,
-            os: os
+            hostname: os.hostname()
         });
 
-        if( filepath in app.jadeCache ) {
+        if( filepath in jadeCache ) {
             console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-            return res.send( app.jadeCache[ filepath ]( locals ) );
+            return res.send( jadeCache[ filepath ]( locals ) );
         }
 
 
@@ -60,7 +63,7 @@ module.exports = function _jade( k, opts ) {
                 var callerFile = this.filename;
                 var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
 
-                var file = hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
+                var file = k.hierarchy.lookupFileThrow( this.options.kernWebsite, path.join( k.kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
                 dependencies.push( file );
                 return file;
             };
@@ -69,8 +72,8 @@ module.exports = function _jade( k, opts ) {
             var compiledJade = jade.compile( data, opts );
 
             /* store in cache */
-            if( kernOpts.cacheJade ) {
-                app.jadeCache[ filepath ] = compiledJade;
+            if( k.kernOpts.cacheJade ) {
+                jadeCache[ filepath ] = compiledJade;
 
                 dependencies = _.uniq( dependencies );
 
@@ -79,7 +82,7 @@ module.exports = function _jade( k, opts ) {
                 dependencies.forEach( function( filename ) {
                     var watcher = fs.watch( filename, function() {
                         console.log( "Jade Changed".grey, filepath.yellow, website.grey );
-                        delete app.jadeCache[ filepath ];
+                        delete jadeCache[ filepath ];
 
                         /* close all watchers for root file */
                         watchers.forEach( function( watcher ) { watcher.close() } );

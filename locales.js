@@ -84,7 +84,7 @@ module.exports = function _locales( k, opts ) {
     reload();
 
     function route() {
-        app.use( function _locales( req, res, next ) {
+        k.app.use( function _locales( req, res, next ) {
             var requested = req.headers["accept-language"] || "en-us";
             var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 

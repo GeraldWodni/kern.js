@@ -1,6 +1,11 @@
 // website specific configuration
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
+var _       = require( "underscore" );
+var os      = require( "os" );
+var fs      = require( "fs" );
+var path    = require( "path" );
+
 module.exports = function _siteConfig( k, opts ) {
 
     var websiteConfigs = {};
@@ -22,12 +27,12 @@ module.exports = function _siteConfig( k, opts ) {
 
     function loadAll() {
         /* configure websites (async) */
-        fs.readdir( opts.kernOpts.websitesRoot, function _loadAll_readdir( err, dirs ) {
+        fs.readdir( k.kernOpts.websitesRoot, function _loadAll_readdir( err, dirs ) {
             if( err )
                 throw err;
 
             _.map( dirs, function _configure_dir( website ) {
-                fs.readFile( path.join( kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
+                fs.readFile( path.join( k.kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
                     /* skip if error / non-existant */
                     if( err )
                         return;

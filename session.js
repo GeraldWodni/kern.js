@@ -101,7 +101,7 @@ module.exports = function _session( k, opts ) {
     }
 
     function route() {
-        app.use( function _route( req, res, next ) {
+        k.app.use( function _route( req, res, next ) {
 
             /* add interface hooks */
             req.sessionInterface = {

@@ -7,7 +7,6 @@ var path    = require("path");
 var url     = require("url");
 var express = require("express");
 var fs      = require("fs");
-var jade    = require("jade");
 var logger  = require("morgan");
 var _       = require("underscore");
 var less    = require("less");
@@ -23,7 +22,7 @@ var async   = require( "async" );
 /* kern subsystems */
 require("./strings");
 var httpStati   = require("./httpStati");
-var navigation  = require("./navigation");
+//var navigation  = require("./navigation");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -78,6 +77,9 @@ var Kern = function( callback, kernOpts ) {
         /* start express, add kern attributes */
         var app = express();
         app.disable( 'x-powered-by' );
+        app.debug = debug;
+        app.worker = worker;
+        app.status = status;
 
         /* websocket support */
         require( "express-ws" )( app );
@@ -87,6 +89,7 @@ var Kern = function( callback, kernOpts ) {
             app: app,
             kernOpts: kernOpts
         };
+        loadModule( k, "err"        );
         loadModule( k, "hooks"      );
         loadModule( k, "hierarchy"  );
         loadModule( k, "rdb"        );
@@ -105,25 +108,13 @@ var Kern = function( callback, kernOpts ) {
         loadModule( k, "static"     );
         loadModule( k, "jade"       );
 
-        //console.log( k );
-
-        app.listen( kernOpts.port );
-
-        return;
-
-
         k.site.routeRequestStart();
-
-        app.debug = debug;
-        app.worker = worker;
-        app.status = status;
 
         /* add kern subsystems */
         app.use( cookieParser() );
         k.session.route();
         app.use( logger('dev') );
         //app.use( config() );
-
 
         /* serve static files */
         k.static.route();
@@ -142,7 +133,7 @@ var Kern = function( callback, kernOpts ) {
         /* look for site-specific route */
         app.use( k.site.getOrLoad );
         
-        app.use( "/", navigation( rdb ) );
+        //app.use( "/", navigation( rdb ) );
 
         /* administration interface */
         app.use( "/admin", k.site.module( "default", "administration.js", { register: "admin" } ).router );
@@ -153,7 +144,7 @@ var Kern = function( callback, kernOpts ) {
 
         /* tail functions */
         k.session.pushPostHook();
-        k.hooks.routePostHook();
+        k.hooks.routePostHooks();
 
         /* configure websites (async) */
         k.siteConfig.loadAll();

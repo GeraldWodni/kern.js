@@ -20,7 +20,8 @@ module.exports = function( k ) {
         if( !_.has( hooks, hook ) )
             return;
 
-        var args = arguments;
+        var args = [];
+        Array.prototype.push.apply( args, arguments );
         args.shift(); // remove hook argument
 
         hooks[ hook ].forEach( function( callback ) {

@@ -2,7 +2,9 @@
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var url     = require("url");
+var fs      = require("fs");
 var path    = require("path");
+var less    = require("less");
 
 module.exports = function _static( k, opts ) {
     
@@ -18,7 +20,7 @@ module.exports = function _static( k, opts ) {
                 return k.app.renderHttpStatus( req, res, 403 );
 
             if( pathname.indexOf( prefix ) == 0 ) {
-                var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, pathname );
+                var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
                 return res.sendfile( filepath );
             }
 
@@ -28,8 +30,8 @@ module.exports = function _static( k, opts ) {
 
     /* serve static content like images and javascript */
     function serveStatic( directory, req, res ) {
-        var filename = req.requestData.filename( 'file' );
-        var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, path.join( directory, filename ) );
+        var filename = req.requestman.filename( 'file' );
+        var filepath = k.hierarchy.lookupFileThrow( req.kern.website, path.join( directory, filename ) );
 
         res.sendfile( filepath );
     };
@@ -57,14 +59,14 @@ module.exports = function _static( k, opts ) {
         k.app.get("/css/*", function _static_less( req, res, next ) {
 
             var filename = req.path.substring( 5 );
-            var filepath = k.hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename ) );
+            var filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename ) );
 
             /* static css found, serve it */
             if( filepath != null )
                 return res.sendfile( filepath );
 
             /* dynamic less */
-            filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
+            filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
             if( filepath == null )
                 return next();
 
@@ -86,7 +88,7 @@ module.exports = function _static( k, opts ) {
                     /* parse less & convert to css */
                     var parser = new less.Parser({
                         filename: filepath,
-                        paths: hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
+                        paths: k.hierarchy.paths( req.kern.website, 'css' )
                     });
 
                     console.log( filepath );
@@ -110,6 +112,7 @@ module.exports = function _static( k, opts ) {
     }
 
     return {
+        prefixServeStatic: prefixServeStatic,
         route: route
     }
 }

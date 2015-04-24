@@ -39,7 +39,7 @@ module.exports = {
         };
 
         /* login & permission-wall */
-        k.router.use( k.rdb.users.loginRequired( "admin/login" ) );
+        k.router.use( k.users.loginRequired( "admin/login" ) );
         k.router.use( function( req, res, next ) {
             if( allowed( req, req.path.split( "/" )[1] || "" ) )
                 next();
@@ -50,7 +50,7 @@ module.exports = {
         /* assemble and translate menu */
         menu = function( req ) {
             var modules = { early: [], main: [], admin: [], late: [], final: [] };
-            _.each( k.modules.hierarchy.upParts( req.kern.website ), function( website ) {
+            _.each( k.hierarchy.upParts( req.kern.website ), function( website ) {
                 if( !_.has( subModules, website ) )
                     return;
 
@@ -96,7 +96,7 @@ module.exports = {
 
         /* main admin modules */
         /* TODO: is website really required? won't it be "default" always? */
-        addSiteModule( "navigation","default", "navigation.js",     "Navigation",   "list",     { router: "admin" } );
+        //addSiteModule( "navigation","default", "navigation.js",     "Navigation",   "list",     { router: "admin" } );
         addSiteModule( "users",     "default", "users.js",          "Users",        "user",     { router: "admin" } );
         addSiteModule( "locales",   "default", "missingLocales.js", "",             "comment",  { router: "admin" } );
 
@@ -123,7 +123,7 @@ module.exports = {
 
             /* get next up website which is registered in subModules */
             function upSite() {
-                website = k.modules.hierarchy.up( website );
+                website = k.hierarchy.up( website );
 
                 /* end - no more websites */
                 if( !website )

@@ -70,8 +70,8 @@ module.exports = function _cache( k ) {
 
         /* store value and place TTL */
         function set( filename, content, callback ) {
-            var k = key( filename );
-            k.rdb.multi().set( k, content ).expire( k, opts.timeout ).exec( callback );
+            var fileKey = key( filename );
+            k.rdb.multi().set( fileKey, content ).expire( fileKey, opts.timeout ).exec( callback );
             watchFile( filename );
         }
 

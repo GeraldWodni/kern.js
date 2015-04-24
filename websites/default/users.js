@@ -10,7 +10,7 @@ var querystring = require("querystring");
 module.exports = {
     setup: function( k ) {
 
-        k.rdb.crud.presenter( k, k.rdb.users, {
+        k.crud.presenter( k, k.users, {
             
             title: "Users",
             path: "/admin/users",
