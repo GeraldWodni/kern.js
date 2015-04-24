@@ -83,22 +83,27 @@ module.exports = function _locales( k, opts ) {
 
     reload();
 
-    return function( req, res, next ) {
-        /* TODO: get from user agent */
-        var requested = req.headers["accept-language"] || "en-us";
-        var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
+    function route() {
+        app.use( function _locales( req, res, next ) {
+            var requested = req.headers["accept-language"] || "en-us";
+            var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
 
-        //console.log( requested );
-        //console.log("Closest:", current );
+            //console.log( requested );
+            //console.log("Closest:", current );
 
-        req.locales = {
-            current:    current,
-            currentRoot:current.split("-")[0],
-            available:  localeNames,
-            reload:     reload,
-            __:         function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); }
-        };
+            req.locales = {
+                current:    current,
+                currentRoot:current.split("-")[0],
+                available:  localeNames,
+                __:         function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); }
+            };
 
-        next();
-    };
+            next();
+        });
+    }
+
+    return {
+        route: route,
+        reload: reload
+    }
 };

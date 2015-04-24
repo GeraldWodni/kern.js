@@ -1,5 +1,5 @@
 // User management
-// (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+// (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var _       = require("underscore");
 var async   = require("async");
@@ -275,6 +275,17 @@ module.exports = function _users( k ) {
         login:  login,
         loginRequired: loginRequired
     };
+
+    /* TODO: document examples below */
+    //k.users.create( "wodni.at", { name: "test", password: "1234", value: "23" }, function( err ) { console.log( "User-Create Err:", err ) } );
+    //k.users.load( "wodni.at", "gerald", function( err, data ) {
+    //    console.log( "User-Load Err:", err, "Data:", data );
+    //});
+    //k.users.create( "default", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
+
+    //app.use( k.users.loginRequired( function( req, res, next ) {
+    //    app.renderJade( res, req.kern.website, "admin/login" );
+    //}) );
 
     return users;
 };

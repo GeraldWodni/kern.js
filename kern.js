@@ -87,6 +87,7 @@ var Kern = function( callback, kernOpts ) {
             app: app,
             kernOpts: kernOpts
         };
+        loadModule( k, "hooks"      );
         loadModule( k, "hierarchy"  );
         loadModule( k, "rdb"        );
         loadModule( k, "db"         );
@@ -99,6 +100,10 @@ var Kern = function( callback, kernOpts ) {
         loadModule( k, "getman"     );
         loadModule( k, "postman"    );
         loadModule( k, "cache"      );
+        loadModule( k, "site"       );
+        loadModule( k, "siteConfig" );
+        loadModule( k, "static"     );
+        loadModule( k, "jade"       );
 
         //console.log( k );
 
@@ -106,71 +111,8 @@ var Kern = function( callback, kernOpts ) {
 
         return;
 
-        /* setup website configs */
-        /* TODO: create website module */
-        var websiteConfigs = {};
-        function getField( item, field, defaultValue ) {
-            var index = field.indexOf( "." );
-            if( index > 0 )
-                return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
-            else if( _.has( item, field ) )
-                return item[ field ];
-            else
-                return defaultValue;
-        };
-        function getWebsiteConfig( website, key, defaultValue ) {
-            if( !_.has( websiteConfigs, website ) )
-                return defaultValue;
 
-            return getField( websiteConfigs[ website ], key, defaultValue );
-        }
-
-
-        app.postHooks = [];
-        app.exitHooks = [];
-
-        app.use(function (req, res, next) {
-
-            /* get website from host, use kern if no config is set */
-            var website = hierarchy.website( kernOpts.websitesRoot, req.host ) || "default";
-            if( !( serverConfig.active || false ) )
-                website = "kern";
-
-            if( kernOpts.setupEnabled )
-                console.log( "AUTHTOKEN:", serverConfig.authToken );
-
-            filters( req );
-            requestData( req );
-
-            req.kern = {
-                website: website,
-                lookupFile: function( filePath ) {
-                    return hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filePath );
-                },
-                getWebsiteConfig: function( key, defaultValue ) {
-                    return getWebsiteConfig( website, key, defaultValue );
-                },
-                renderJade: app.renderJade
-            };
-
-            req.messages = [];
-
-            var ended = false;
-            var end = res.end;
-            res.end = function( chunk, encoding ) {
-                if( ended )
-                    return false;
-                ended = true;
-
-                end.call( res, chunk, encoding );
-
-                app.postHooks.forEach( function( postHook ){
-                    postHook( req, res );
-                });
-            };
-
-            next();
-        });
+        k.site.routeRequestStart();
 
         app.debug = debug;
         app.worker = worker;
@@ -178,451 +120,43 @@ var Kern = function( callback, kernOpts ) {
 
         /* add kern subsystems */
         app.use( cookieParser() );
-        app.use( session( rdb ) );
+        k.session.route();
         app.use( logger('dev') );
         //app.use( config() );
 
-        /* set jade pretty-print */
-        app.jadeCache = {};
-        /* TODO: make cache Website-aware! (login.jade:flink vs. login.jade:echo) */
-        app.renderJade = function( req, res, filename, locals, opts ) {
 
-            opts = opts || {};
-            /* allow website override */
-            var website = req.kern.website;
-            if( opts.website )
-                website = opts.website;
-
-            console.log( "Render: ".grey, website.green, filename.cyan );
-
-            /* compile template */
-            var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, path.join( kernOpts.viewFolder, filename + '.jade' ) );
-            if( !filepath ) {
-                var message = "Unable to locate view " + filename + " in " + website;
-                res.status(500).end( message );
-                throw new Error( message.bold.red );
-            }
-
-            locals = _.extend( locals || {}, {
-                __: req.locales.__,
-                __locale: req.locales,
-                _: _,
-                os: os
-            });
-
-            if( filepath in app.jadeCache ) {
-                console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-                return res.send( app.jadeCache[ filepath ]( locals ) );
-            }
-
-
-            _.extend( opts, {
-                filename: filepath,
-                kernWebsite: website,
-                pretty: getWebsiteConfig( website, "jadePrettyPrint", true )
-            } );
-
-            fs.readFile( filepath, 'utf8', function( err, data ) {
-                if( err ) {
-                    console.log( err );
-                    res.send("ERROR: " + err );
-                    return;
-                }
-
-                /* store dependencies */
-                var dependencies = [ filepath ];
-                /* override jade's resolvePath to use kern-hierarchy */
-                jade.Parser.prototype.resolvePath = function (filename, purpose) {
-                    var callerFile = this.filename;
-                    var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
-
-                    var file = hierarchy.lookupFileThrow( kernOpts.websitesRoot, this.options.kernWebsite, path.join( kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
-                    dependencies.push( file );
-                    return file;
-                };
-
-                /* compile (synced) */
-                var compiledJade = jade.compile( data, opts );
-
-                /* store in cache */
-                if( kernOpts.cacheJade ) {
-                    app.jadeCache[ filepath ] = compiledJade;
-
-                    dependencies = _.uniq( dependencies );
-
-                    /* remove from cache on dependency change */
-                    var watchers = [];
-                    dependencies.forEach( function( filename ) {
-                        var watcher = fs.watch( filename, function() {
-                            console.log( "Jade Changed".grey, filepath.yellow, website.grey );
-                            delete app.jadeCache[ filepath ];
-
-                            /* close all watchers for root file */
-                            watchers.forEach( function( watcher ) { watcher.close() } );
-                        });
-                        watchers.push( watcher );
-                    });
-                }
-
-                var html = compiledJade( locals );
-                console.log( "Jade Rendered ".grey, filename.green, website.grey );
-                res.send( html );
-            });
-        };
-
-        app.renderHttpStatus = function( req, res, code , opts ) {
-            if( !_.has( httpStati, code ) )
-                code = 501;
-
-            res.status( code );
-            app.renderJade( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ] ) );
-        };
-
-        users( rdb );
-        //rdb.users.create( "wodni.at", { name: "test", password: "1234", value: "23" }, function( err ) { console.log( "User-Create Err:", err ) } );
-        //rdb.users.load( "wodni.at", "gerald", function( err, data ) {
-        //    console.log( "User-Load Err:", err, "Data:", data );
-        //});
-        //rdb.users.create( "default", { name: "gerald", password: "1234" }, function( err ) { console.log( "User-Create Err:", err ) } );
-
-
-        /* serve static content like images and javascript */
-        function serveStatic( directory, req, res ) {
-            var filename = req.requestData.filename( 'file' );
-            var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, path.join( directory, filename ) );
-
-            res.sendfile( filepath );
-        };
-
-        function prefixServeStatic( prefix ) {
-
-            app.use( function( req, res, next ) {
-                var pathname = url.parse( req.url ).pathname;
-                pathname = path.normalize( pathname );
-                //console.log( pathname );
-
-                /* contain in directory */
-                if( pathname.indexOf( ".." ) >= 0 )
-                    return app.renderHttpStatus( req, res, 403 );
-
-                if( pathname.indexOf( prefix ) == 0 ) {
-                    var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, pathname );
-                    return res.sendfile( filepath );
-                }
-
-                next();
-            });
-        };
+        /* serve static files */
+        k.static.route();
 
         /* load locales now to support locale error messages */
-        app.use( locales( rdb ) );
+        k.locales.route();
 
-        prefixServeStatic( "/images/" );
-
-        //app.get("/images/:file", function( req, res, next ) {
-        //    serveStatic( "images", req, res );
-        //});
-
-        app.get("/js/:file", function( req, res, next ) {
-            serveStatic( "js", req, res );
-        });
-        app.get("/js/:directory/:file", function( req, res, next ) {
-            serveStatic( "js/" + req.requestData.filename( 'directory' ), req, res );
-        });
-
-        app.get("/fonts/:file", function( req, res, next ) {
-            serveStatic( "fonts", req, res );
-        });
-
-        /* less, circumvent path-processing */
-        var lessCache = k.cache( "less" );
-        app.get("/css/*", function( req, res, next ) {
-
-            var filename = req.path.substring( 5 );
-            var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename ) );
-
-            /* static css found, serve it */
-            if( filepath != null )
-                return res.sendfile( filepath );
-
-            /* dynamic less */
-            filepath = hierarchy.lookupFile( kernOpts.websitesRoot, req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
-            if( filepath == null )
-                return next();
-
-            lessCache.get( filepath, function( err, data ) {
-
-                if( err )
-                    return next( err );
-
-                if( data ) {
-                    res.set( 'Content-Type', 'text/css' );
-                    res.send( data );
-                    return;
-                }
-
-                fs.readFile( filepath, 'utf8', function( err, data ) {
-                    if( err ) 
-                        return next( err );
-
-                    /* parse less & convert to css */
-                    var parser = new less.Parser({
-                        filename: filepath,
-                        paths: hierarchy.paths( kernOpts.websitesRoot, req.kern.website, 'css' )
-                    });
-
-                    console.log( filepath );
-
-                    parser.parse( data, function( err, tree ) {
-                        if( err )
-                            return next( err );
-
-                        var css = tree.toCSS();
-                        res.set( 'Content-Type', 'text/css' );
-                        res.send( css );
-                        lessCache.set( filepath, css );
-                    });
-                });
-
-            });
-        });
-        app.get("/css/:directory/:file", function( req, res, next ) {
-            serveStatic( "css/" + req.requestData.filename( 'directory' ), req, res );
-        });
-
-        /* enable dynamic-modules ( not needed for static files ) */
-
-        //app.use( rdb.users.loginRequired( function( req, res, next ) {
-        //    app.renderJade( res, req.kern.website, "admin/login" );
-        //}) );
-
+        /* enable dynamic-modules */
         if( typeof callback === 'function' )
             callback( app );
 
         /* site-modules */
-        var registeredSiteModules = {};
-        function siteModule( website, filename, opts ) {
-            /* get site specific script and execute it */
-            opts = opts || {};
-
-            if( !opts.exactFilename )
-                filename = "./" + hierarchy.lookupFileThrow( kernOpts.websitesRoot, website, filename );
-
-            target = require( filename )
-
-            /* register module */
-            if( opts.register ) {
-                console.log( "Register SiteModule".magenta.bold, opts.register );
-                registeredSiteModules[ opts.register ] = target;
-            }
-
-            var router = express.Router();
-            target.setup({
-                website: website,
-                modules: {
-                    hierarchy: hierarchy,
-                    postman: postman
-                },
-                ws: function() {
-                    console.log( "Websocket-Server".yellow.bold, arguments );
-                    app.ws.apply( this, arguments );
-                },
-                siteRequire: function _siteRequire( website, filename ) {
-
-                    var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
-                    if( filepath != null ) {
-                        return require( "./" + filepath )
-                    }
-                    else
-                        throw new Error( "siteRequire failed, '" + website + "' '" + filename + "' not found" );
-                },
-                siteModule: siteModule,
-                useSiteModule: function( prefix, website, filename, opts ) {
-                    console.log( "USE".magenta.bold, website, filename );
-                    var subTarget = siteModule( website, filename, opts );
-                    router.use( prefix, subTarget.router );
-                },
-                exitHook: function _exitHook( callback ) {
-                    app.exitHooks.push( callback );
-                },
-                router: router,
-                httpStatus: app.renderHttpStatus,
-                serverConfig: serverConfig,
-                prefixServeStatic: prefixServeStatic,
-                serverStaticFile: function serveStatic( filename ) {
-                    return function( req, res ) {
-                        var filepath = hierarchy.lookupFileThrow( kernOpts.websitesRoot, req.kern.website, filename );
-                        res.sendfile( filepath );
-                    }
-                },
-                hierarchyRoot: function( website ) {
-                    var root = hierarchy.website( kernOpts.websitesRoot, website );
-                    if( root )
-                        return path.join( kernOpts.websitesRoot, root );
-                    else
-                        return null;
-                },
-                readHierarchyDir: function( website, dirname, callback ) {
-                    var dirpath = hierarchy.lookupFile( kernOpts.websitesRoot, website, dirname );
-                    if( dirpath == null )
-                        return callback( new Error( "Dir not found" ) );
-                    fs.readdir( dirpath, callback );
-                },
-                readHierarchyFile: function( website, filenames, callback ) {
-                    if( !_.isArray( filenames ) )
-                        filenames = [ filenames ];
-                    
-                    async.mapSeries( filenames, function( filename, d ) {
-                        var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
-                        if( filepath == null )
-                            return d( new Error( filename + " not found" ) );
-                        fs.readFile( filepath, 'utf8', d );
-
-                    }, callback );
-                },
-                createHierarchyReadStream: function( website, filename ) {
-                    var filepath = hierarchy.lookupFile( kernOpts.websitesRoot, website, filename );
-                    if( filepath == null )
-                        return null;
-                    return fs.createReadStream( filepath );
-                },
-                renderJade: app.renderJade,
-                rdb: rdb,
-                kernOpts: kernOpts,
-                hostname: os.hostname(),
-                getWebsiteConfig: function( key, defaultValue ) {
-                    var value = getWebsiteConfig( website, key, defaultValue );
-                    console.log( "getWebsiteConfig", website, key, value, defaultValue )
-                    console.log( websiteConfigs[ website ] ); 
-                    console.log( websiteConfigs );
-                    return value;
-                },
-                reg: function( name ) {
-                    return registeredSiteModules[ name ];
-                }
-            });
-
-            /* app requires cleanup */
-            if( target.exit )
-                app.exitHooks.push( target.exit );
-
-            /* attach new router */
-            target.router = router;
-            return target;
-        };
 
         /** site-specific route **/
-        var websites = {};
-        function loadWebsite( website, next ) {
-            console.log("LoadWebsite".bold.magenta, website, websites );
-            var siteFilename = hierarchy.lookupFile( kernOpts.websitesRoot, website, "site.js" );
-            if( siteFilename != null ) {
-                console.log( "Using ".magenta.bold, siteFilename );
 
-                try {
-                    var target = siteModule( '', './' + siteFilename, { exactFilename: true } );
-                    websites[ website ] = target;
-                    console.log("LoadWebsite".bold.green, website, websites );
-                    return target;
-                } catch( err ) {
-                    console.log("LoadWebsite-Error:".bold.red, err );
-                    next( err );
-                }
-            }
-            else
-                next();
-
-            return null;
-        }
         /* look for site-specific route */
-        app.use(function (req, res, next) {
-            var target;
-            if( req.kern.website in websites )
-                target = websites[ req.kern.website ];
-            else
-                /* get site specific script and execute it */
-                target = loadWebsite( req.kern.website, next );
-
-            /* execute target site-script */
-            if( target != null && "router" in target )
-                target.router( req, res, next );
-        });
+        app.use( k.site.getOrLoad );
         
         app.use( "/", navigation( rdb ) );
 
         /* administration interface */
-        app.use( "/admin", siteModule( "default", "administration.js", { register: "admin" } ).router );
+        app.use( "/admin", k.site.module( "default", "administration.js", { register: "admin" } ).router );
 
-        app.use(function(err, req, res, next) {
-            res.status(err.status || 500);
-            console.log( "ERROR HANDLER!".red.bold, err.message, "\n", err.stack );
-            console.trace();
-            app.renderJade( req, res, "error", {
-                message: err.message,
-                error: err
-            });
-        });
 
-        /* catch all / show 404 */
-        app.use(function( err, req, res, next ) {
-            console.log( "ERROR HANDLER2".red.bold, err );
-            if( err.status !== 404 )
-                return next();
-                
-            if( req.config )
-                app.renderJade( req, res, "websites/kern/views/layout.jade" );
-            else
-                app.renderJade( req, res, "no-config", {}, { website: "kern" } );
-        });
+        /** handle errors **/
+        k.err.route();
 
         /* tail functions */
-        app.postHooks.push( function( req, res ) {
-            /* save session (so there is one ) */
-            /* TODO: store sessionId in req.sessionId? */
-            if( req.sessionInterface )
-                req.sessionInterface.save( req, res, function() {} ) 
-        });
+        k.session.pushPostHook();
+        k.hooks.routePostHook();
 
         /* configure websites (async) */
-        fs.readdir( kernOpts.websitesRoot, function( err, dirs ) {
-            if( err )
-                throw err;
-
-            _.map( dirs, function _configure_dir( website ) {
-                fs.readFile( path.join( kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
-                    /* skip if error / non-existant */
-                    if( err )
-                        return;
-
-                    var finalConfig = {};
-
-                    var config = JSON.parse( data );
-                    _.each( config, function( websiteConfig, host ) {
-                        if( new RegExp( host, "i" ).test( os.hostname() ) ) {
-                            finalConfig = _.extend( finalConfig, websiteConfig );
-                            console.log( "Config".green.bold + " " + website.grey + " " + host + " activated".bold.green );
-                        }
-                        else
-                            console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
-                    });
-
-                    websiteConfigs[ website ] = finalConfig;
-		    console.log( "websiteConfig", website, finalConfig );
-
-                    /* add routes */
-                    if( finalConfig.hierarchyUp ) {
-                        hierarchy.addRoute( website, finalConfig.hierarchyUp );
-                    }
-
-                    /* autoload */
-                    if( finalConfig.autoLoad )
-                        loadWebsite( website, function(err) {
-                            if( err )
-                                console.log("Autoload-Error:".bold.red, err );
-                        } )
-                });
-            });
-        });
+        k.siteConfig.loadAll();
 
 
         /* start listener */
@@ -631,9 +165,7 @@ var Kern = function( callback, kernOpts ) {
         /* process hooks */
         return {
             exit: function _onExit(){
-                app.exitHooks.forEach( function( hook ) {
-                    hook();
-                });
+                k.hooks.execute( "exit" );
             }
         }
     }

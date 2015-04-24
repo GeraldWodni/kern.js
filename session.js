@@ -100,24 +100,40 @@ module.exports = function _session( k, opts ) {
         next();
     }
 
-    return function( req, res, next ) {
+    function route() {
+        app.use( function _route( req, res, next ) {
 
-        /* add interface hooks */
-        req.sessionInterface = {
-            start: start,
-            save: save,
-            destroy: destroy
-        }
+            /* add interface hooks */
+            req.sessionInterface = {
+                start: start,
+                save: save,
+                destroy: destroy
+            }
 
-        /* if kernSession-cookie exists, attempt to load session */
-        if( req.cookies && opts.cookie in req.cookies ) {
-            req.sessionId = req.cookies[ opts.cookie ];
-            load( req, res, next );
-        }
-        else if( opts.autostart )
-            start( req, res, next );
-        else
-            next();
-    };
+            /* if kernSession-cookie exists, attempt to load session */
+            if( req.cookies && opts.cookie in req.cookies ) {
+                req.sessionId = req.cookies[ opts.cookie ];
+                load( req, res, next );
+            }
+            else if( opts.autostart )
+                start( req, res, next );
+            else
+                next();
+        });
+    }
+
+    function pushPostHook() {
+        k.hooks.add( "post", function( req, res ) {
+            /* save session (so there is one ) */
+            /* TODO: store sessionId in req.sessionId? */
+            if( req.sessionInterface )
+                req.sessionInterface.save( req, res, function() {} ) 
+        });
+    }
+
+    return {
+        pushPostHook: pushPostHook,
+        route: route
+    }
 }
 
