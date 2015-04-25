@@ -86,7 +86,7 @@ module.exports = {
             /* function passed directly */
             if( typeof filename === "function" )
                 target = filename;
-            else 
+            else
                 target = k.siteModule( website, filename, opts ).router;
 
             subRouter.use( "/" + link, target );
@@ -106,13 +106,13 @@ module.exports = {
         /* logout function */
         addSiteModule( "logout", "default", function( req, res ) {
             req.sessionInterface.destroy( req, res, function() {
-                k.renderJade( req, res, "admin/logout" );
+                k.jade.render( req, res, "admin/logout" );
             });
         }, "Logout", "log-out", { router: "late" } );
 
         /* manual info (first item, last match) */
         addSiteModule( "", "default", function( req, res ) {
-            k.renderJade( req, res, "admin/info", viewValues( req ) );
+            k.jade.render( req, res, "admin/info", viewValues( req ) );
         }, "Info", "info-sign", { router: "final", menu: "early" } );
 
         /* use routers by hierarchy and priority */

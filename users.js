@@ -6,8 +6,6 @@ var async   = require("async");
 var bcrypt  = require("bcrypt-nodejs");
 var url     = require("url");
 
-var postman = require("./postman");
-
 module.exports = function _users( k ) {
     /* this keys are not stored in the database */
     var minPasswordLength = 4;
@@ -157,7 +155,7 @@ module.exports = function _users( k ) {
         if( typeof renderer === "function" )
             renderer( req, res, next, locals );
         else
-            req.kern.renderJade( req, res, renderer, locals );
+            k.jade.render( req, res, renderer, locals );
     }
 
     /* TODO: save prefix in session to avoid cross-site hack-validation */
@@ -197,7 +195,7 @@ module.exports = function _users( k ) {
 
             /* check for credentials */
             if( req.method === "POST" )
-                postman( req, res, function() {
+                k.postman( req, res, function() {
                     /* all fields available? */
                     if( req.postman.exists( ["login", "username", "password"] ) ) {
                         var username = req.postman.username();

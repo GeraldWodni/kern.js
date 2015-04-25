@@ -17,7 +17,7 @@ module.exports = {
             unPrefix: true,
 
             fields: {
-                id:         { name: "id", filter: "id", source: "requestData" },
+                id:         { name: "id", filter: "id", source: "requestman" },
                 name:       { text: "Name",             type: "text", filter: "username", attributes: { required: true } },
                 password:   { text: "Password",         type: "password" },
                 password2:  { text: "Confirm password", type: "password", filter: "drop" },

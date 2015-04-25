@@ -411,10 +411,11 @@ module.exports = function _crud( k ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ] || field;
 
-                    if( !_.has( req.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' && filterName != 'passwords' )
+                    if( !_.has( k.filters, filterName ) && filterName != 'exists' && filterName != 'get' && filterName != 'drop' && filterName != 'passwords' )
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
                     //console.log( "FILTER:", source, filterName, field );
+                    console.log( "SOURCE:", source );
 
                     /* drop value */
                     if( filterName == 'drop' )
@@ -449,7 +450,7 @@ module.exports = function _crud( k ) {
                 return values;
             },
             getRequestId: function( req ) {
-                return req.requestData.escapedLink( opts.idField );
+                return req.requestman.escapedLink( opts.idField );
             }
         }, opts );
 
@@ -485,7 +486,7 @@ module.exports = function _crud( k ) {
 
         function handlePost( req, res, next )  {
 
-            k.modules.postman( req, res, function() {
+            k.postman( req, res, function() {
 
                 try {
                     if( req.postman.exists( "add" ) ) {
@@ -632,7 +633,7 @@ module.exports = function _crud( k ) {
 
         function applyPostman( callback ) {
             return function( req, res, next ) {
-                k.modules.postman( req, res, function() {
+                k.postman( req, res, function() {
                     callback( req, res, next );
                 });
             };
@@ -795,7 +796,7 @@ module.exports = function _crud( k ) {
                         startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
                     };
 
-                    k.renderJade( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                    k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
                 });
             }, { req: req } );
         }

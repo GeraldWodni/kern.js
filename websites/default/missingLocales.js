@@ -64,7 +64,7 @@ module.exports = {
                 if( err )
                     return next( err );
 
-                k.renderJade( req, res, "admin/missingLocales", k.reg("admin").values( req, { members: members, locales: req.locales.available } ) );
+                k.jade.render( req, res, "admin/missingLocales", k.reg("admin").values( req, { members: members, locales: req.locales.available } ) );
             });
         });
     }

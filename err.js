@@ -36,8 +36,20 @@ module.exports = function _err( k ) {
         });
     }
 
+    function routeLog( router ) {
+        var args = [];
+        Array.prototype.push.apply( args, arguments );
+        args.shift();
+
+        router.use( function( req, res, next ) {
+            console.log.apply( console, args );
+            next();
+        });
+    }
+
     return {
         renderHttpStatus: renderHttpStatus,
+        routeLog: routeLog,
         route: route
     }
 };

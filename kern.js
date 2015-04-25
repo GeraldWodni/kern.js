@@ -9,7 +9,6 @@ var express = require("express");
 var fs      = require("fs");
 var logger  = require("morgan");
 var _       = require("underscore");
-var less    = require("less");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );

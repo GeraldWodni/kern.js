@@ -2,6 +2,7 @@
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
 var express = require("express");
+var fs      = require("fs");
 var os      = require("os");
 var _       = require("underscore");
 
@@ -102,7 +103,15 @@ module.exports = function _site( k, opts ) {
         }
 
         var router = express.Router();
-        target.setup(_.extend( k,{
+        target.setup({
+            rdb: k.rdb,
+            users: k.users,
+            err: k.err,
+            jade: k.jade,
+            crud: k.crud,
+            hierarchy: k.hierarchy,
+            filters: k.filters,
+            postman: k.postman,
             website: website,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
@@ -178,7 +187,7 @@ module.exports = function _site( k, opts ) {
             reg: function( name ) {
                 return registeredSiteModules[ name ];
             }
-        }));
+        });
 
         /* app requires cleanup */
         if( target.exit )
