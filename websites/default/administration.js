@@ -44,7 +44,7 @@ module.exports = {
             if( allowed( req, req.path.split( "/" )[1] || "" ) )
                 next();
             else
-                k.renderJade( req, res, "admin/accessDenied" );
+                k.jade.render( req, res, "admin/accessDenied" );
         } );
 
         /* assemble and translate menu */

@@ -20,8 +20,6 @@ var async   = require( "async" );
 
 /* kern subsystems */
 require("./strings");
-var httpStati   = require("./httpStati");
-//var navigation  = require("./navigation");
 
 /* serverConfig, load from file if exists */
 var serverConfig = {
@@ -106,6 +104,7 @@ var Kern = function( callback, kernOpts ) {
         loadModule( k, "siteConfig" );
         loadModule( k, "static"     );
         loadModule( k, "jade"       );
+        loadModule( k, "data"       );
 
         k.site.routeRequestStart();
 
@@ -146,11 +145,10 @@ var Kern = function( callback, kernOpts ) {
         k.hooks.routePostHooks();
 
         /* configure websites (async) */
-        k.siteConfig.loadAll();
-
-
-        /* start listener */
-        app.listen( kernOpts.port );
+        k.siteConfig.loadAll(function() {
+            /* start listener */
+            app.listen( kernOpts.port );
+        });
 
         /* process hooks */
         return {

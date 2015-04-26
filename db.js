@@ -1,11 +1,25 @@
 // database adapter (mysql)
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
-module.exports = function _db( k ) {
-    var connectionPools = {};
+var mysql = require("mysql");
 
-    function get( website ) {
+module.exports = function _db( k ) {
+    var pools = {};
+
+    function add( website, config ) {
+        console.log( "MySql-Pool for ".bold.green, website );
+        pools[ website ] = mysql.createPool( config );
     }
 
-    return null;
+    function get( website ) {
+        if( !(website in pools ) )
+            throw new Error( "No MySql connection for website '" + website + "'" );
+
+        return pools[ website ];
+    }
+
+    return {
+        add: add,
+        get: get
+    }
 }

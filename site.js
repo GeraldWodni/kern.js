@@ -11,12 +11,14 @@ module.exports = function _site( k, opts ) {
     var websites = {};
     function load( website, next ) {
         console.log("LoadWebsite".bold.magenta, website, websites );
+
+        /* load website-data */
+        k.data.load( website );
         var siteFilename = k.hierarchy.lookupFile( website, "site.js" );
         if( siteFilename != null ) {
             console.log( "Using ".magenta.bold, siteFilename );
-
             try {
-                var target = siteModule( '', './' + siteFilename, { exactFilename: true } );
+                var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
                 websites[ website ] = target;
                 console.log("LoadWebsite".bold.green, website, websites );
                 return target;
@@ -104,7 +106,15 @@ module.exports = function _site( k, opts ) {
 
         var router = express.Router();
         target.setup({
+            db: k.db,
+            getDb: function() {
+                return k.db.get( website );
+            },
             rdb: k.rdb,
+            data: k.data,
+            getData: function() {
+                return k.data.get( website );
+            },
             users: k.users,
             err: k.err,
             jade: k.jade,
@@ -128,7 +138,7 @@ module.exports = function _site( k, opts ) {
             },
             siteModule: siteModule,
             useSiteModule: function( prefix, website, filename, opts ) {
-                console.log( "USE".magenta.bold, website, filename );
+                //console.log( "USE".magenta.bold, website, filename );
                 var subTarget = siteModule( website, filename, opts );
                 router.use( prefix, subTarget.router );
             },

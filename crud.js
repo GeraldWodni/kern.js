@@ -415,7 +415,6 @@ module.exports = function _crud( k ) {
                         throw new Error( "CRUD: Undefined Filter >" + filterName + "< (field:" + field + ")" );
 
                     //console.log( "FILTER:", source, filterName, field );
-                    console.log( "SOURCE:", source );
 
                     /* drop value */
                     if( filterName == 'drop' )
@@ -640,7 +639,7 @@ module.exports = function _crud( k ) {
         };
 
         r.get( opts.readPath, function( req, res, next ) {
-            opts.getCrud(req).read( req.requestData.escapedLink( opts.idField ), function( err, data ) {
+            opts.getCrud(req).read( req.requestman.escapedLink( opts.idField ), function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
@@ -670,7 +669,7 @@ module.exports = function _crud( k ) {
                 var values = [];
 
                 where.parameters.forEach( function( parameter ) {
-                    values.push( req.requestData[ parameter.filter || "alnum" ]( parameter.name ) );
+                    values.push( req.requestman[ parameter.filter || "alnum" ]( parameter.name ) );
                 });
                 crud.readWhere( name, values, function( err, data ) {
                     if( err )
@@ -690,7 +689,7 @@ module.exports = function _crud( k ) {
             
 
             r.post( opts.updatePath, applyPostman( function( req, res, next ) {
-                var id = req.requestData.escapedLink( opts.idField );
+                var id = req.requestman.escapedLink( opts.idField );
                 var data = opts.readFields( req );
                 if( !id )
                     id = data[ opts.id ];
@@ -701,7 +700,7 @@ module.exports = function _crud( k ) {
             }) );
 
             function deleteHandler( req, res, next ) {
-                var id = req.requestData.escapedLink( opts.idField );
+                var id = req.requestman.escapedLink( opts.idField );
 
                 if( req.method != "GET" ) {
                     var data = opts.readFields( req );

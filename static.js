@@ -47,7 +47,7 @@ module.exports = function _static( k, opts ) {
             serveStatic( "js", req, res );
         });
         k.app.get("/js/:directory/:file", function _static_js_dir( req, res, next ) {
-            serveStatic( "js/" + req.requestData.filename( 'directory' ), req, res );
+            serveStatic( "js/" + req.requestman.filename( 'directory' ), req, res );
         });
 
         k.app.get("/fonts/:file", function _static_fonts( req, res, next ) {
@@ -107,7 +107,7 @@ module.exports = function _static( k, opts ) {
             });
         });
         k.app.get("/css/:directory/:file", function _static_css_dir( req, res, next ) {
-            serveStatic( "css/" + req.requestData.filename( 'directory' ), req, res );
+            serveStatic( "css/" + req.requestman.filename( 'directory' ), req, res );
         });
     }
 
