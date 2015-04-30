@@ -12,7 +12,6 @@ var _       = require("underscore");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );
-var async   = require( "async" );
 
 /* TODO: add session support for token and co */
 //var session = require('express-session') , RedisStore = require('connect-redis')(session);
