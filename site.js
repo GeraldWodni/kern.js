@@ -121,6 +121,7 @@ module.exports = function _site( k, opts ) {
             jade: k.jade,
             crud: k.crud,
             hierarchy: k.hierarchy,
+            hooks: k.hooks,
             filters: k.filters,
             postman: k.postman,
             website: website,
@@ -202,7 +203,7 @@ module.exports = function _site( k, opts ) {
 
         /* app requires cleanup */
         if( target.exit )
-            app.exitHooks.push( target.exit );
+            k.hooks.add( "exit", target.exit );
 
         /* attach new router */
         target.router = router;
