@@ -66,7 +66,7 @@ module.exports = function _locales( k, opts ) {
     /* handle unfound strings */
     function notFound( text ) {
         /* report missing text */
-        k.k.rdb.sadd( "missing-locales", text );
+        k.rdb.sadd( "missing-locales", text );
 
         return "\u2702" + text;
     }

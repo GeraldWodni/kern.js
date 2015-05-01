@@ -278,8 +278,6 @@ module.exports = function _crud( k ) {
             foreignNameSeparator: " "
         });
 
-        console.log( crud );
-
         return crud;
     }
 
