@@ -1,0 +1,16 @@
+extends admin-site
+
+
+block content
+    h1= __("Media")
+
+    +messages( messages )
+
+    div.row
+        div.col-sm-12
+            form#add(method="post",role="form",enctype="multipart/form-data")
+                h2
+                    +glyph("plus", "pull-right")
+                    = " " + __("Add")
+                button.btn.btn-primary(type="submit",name="add",value="yes")= __("Add")
+

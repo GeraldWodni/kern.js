@@ -45,7 +45,7 @@ var q = async.queue( function( n, next ) {
         else
             statusCount[ response.statusCode ] = 1;
 
-        console.log( "Request", n, (duration / 1e6).toFixed(2) );
+        //console.log( "Request", n, (duration / 1e6).toFixed(2) );
     });
 }, opts.parallel );
 
@@ -53,7 +53,7 @@ q.drain = function() {
     var totEnd = process.hrtime();
     var totDuration = totEnd[0] * 1e9 + totEnd[1] - ( totStart[0] * 1e9 + totStart[1] );
 
-    console.log( "Time[ms] total:", (totDuration / 1e6).toFixed(2), "net:", (time.total / 1e6).toFixed(2) );
+    console.log( "Time[ms] real:", (totDuration / 1e6).toFixed(2), "total:", (time.total / 1e6).toFixed(2) );
     console.log( "Request[ms] avg:", ((time.total / opts.requests )/1e6).toFixed(2), "min:", (time.min / 1e6).toFixed(2), "max:", (time.max / 1e6).toFixed(2) );
 
     console.log( statusCount );
