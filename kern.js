@@ -144,15 +144,20 @@ var Kern = function( callback, kernOpts ) {
         k.hooks.routePostHooks();
 
         /* configure websites (async) */
+        var serverInstance = null;
         k.siteConfig.loadAll(function() {
             /* start listener */
-            app.listen( kernOpts.port );
+            serverInstance = app.listen( kernOpts.port );
         });
 
         /* process hooks */
         return {
             exit: function _onExit(){
                 k.hooks.execute( "exit" );
+                if( serverInstance ) {
+                    console.log( "Stop listening".bold.red );
+                    serverInstance.close();
+                }
             }
         }
     }
@@ -204,7 +209,7 @@ var Kern = function( callback, kernOpts ) {
 
                 process.on("exit", function() {
                     console.log( ( "Exit Start " + status.workerId ).red.bold );
-                    //w.exit();
+                    w.exit();
                     console.log( ( "Exit Done " + status.workerId ).red.bold );
                 });
 
