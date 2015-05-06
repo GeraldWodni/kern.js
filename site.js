@@ -3,6 +3,7 @@
 
 var express = require("express");
 var fs      = require("fs");
+var path    = require("path");
 var os      = require("os");
 var _       = require("underscore");
 var async   = require( "async" );
@@ -160,7 +161,7 @@ module.exports = function _site( k, opts ) {
             hierarchyRoot: function( website ) {
                 var root = k.hierarchy.website( website );
                 if( root )
-                    return path.join( kernOpts.websitesRoot, root );
+                    return path.join( k.kernOpts.websitesRoot, root );
                 else
                     return null;
             },

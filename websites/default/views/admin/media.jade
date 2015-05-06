@@ -1,10 +1,39 @@
 extends admin-site
 
+mixin dirTree(tree)
+    ul.filetree&attributes(attributes)
+        +dirTreeWalker(tree)
+
+mixin dirTreeWalker(tree)
+    each subTree, dirName in tree.dirs
+        li(data-prefix=subTree.prefix,data-dirname=dirName)
+            +glyph("folder-open")
+            = " " + dirName
+            |  
+            button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
+                +glyph("folder-close")
+            button.btn.btn-primary.btn-xs(type="button",data-action="upload-file",title=__("Upload file"))
+                +glyph("open")
+            button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
+                +glyph("trash")
+            ul
+                +dirTreeWalker( subTree )
+    each file in tree.files
+        li.file
+            a(href=file.link)
+                +glyph("file")
+                = " " + file.name
+            button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete file"))
+                +glyph("trash")
+
+
 
 block content
     h1= __("Media")
 
     +messages( messages )
+
+    +dirTree( tree )
 
     div.row
         div.col-sm-12
@@ -14,3 +43,8 @@ block content
                     = " " + __("Add")
                 button.btn.btn-primary(type="submit",name="add",value="yes")= __("Add")
 
+    +modal("newFolderModal", __("New folder"), __("Create"))
+        +text-field("name", __("Name"))
+
+append scripts
+    +script-tag("/js/media.js")
