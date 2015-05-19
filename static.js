@@ -4,27 +4,35 @@
 var url     = require("url");
 var fs      = require("fs");
 var path    = require("path");
+var mkdirp  = require("mkdirp");
 var less    = require("less");
+var lwip    = require("lwip");
 
 module.exports = function _static( k, opts ) {
+
+    function guard( prefix, req, res, callback ) {
+
+        var pathname = url.parse( req.url ).pathname;
+        pathname = path.normalize( pathname );
+        //console.log( pathname );
+
+        /* contain in directory */
+        if( pathname.indexOf( ".." ) >= 0 )
+            return k.app.renderHttpStatus( req, res, 403 );
+
+        callback( pathname.indexOf( prefix ) == 0, pathname );
+    };
     
     function prefixServeStatic( prefix ) {
 
         k.app.use( function( req, res, next ) {
-            var pathname = url.parse( req.url ).pathname;
-            pathname = path.normalize( pathname );
-            //console.log( pathname );
-
-            /* contain in directory */
-            if( pathname.indexOf( ".." ) >= 0 )
-                return k.app.renderHttpStatus( req, res, 403 );
-
-            if( pathname.indexOf( prefix ) == 0 ) {
-                var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-                return res.sendfile( filepath );
-            }
-
-            next();
+            guard( prefix, req, res, function( prefixOkay, pathname ) {
+                if( prefixOkay ) {
+                    var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+                    return res.sendfile( filepath );
+                }
+                next();
+            });
         });
     };
 
@@ -36,7 +44,120 @@ module.exports = function _static( k, opts ) {
         res.sendfile( filepath );
     };
 
+    function prefixCache( prefix, originPrefix, generator ) {
+        k.app.get( prefix + "*", function( req, res, next ) {
+            /* capture esacape attempts */
+            guard( prefix, req, res, function( prefixOkay, pathname ) {
+                if( prefixOkay ) {
+                    /* get original and cache-filename */
+                    pathname = pathname.replace( new RegExp( "^" + prefix ), originPrefix );
+                    var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+                    var cachepath = filepath.replace( /^websites\//, "cache" + prefix );
+
+                    /* file cached? */
+                    fs.exists( cachepath, function( cacheExists ) {
+                        /* send cached image */
+                        if( cacheExists )
+                            return res.sendfile( cachepath );
+
+                        /* create cache directory */
+                        mkdirp( path.dirname( cachepath ), function( err ) {
+                            if( err )
+                                return next( err );
+
+                            generator( filepath, cachepath, function( err ) {
+                                console.log( "Generator-ERROR: ", err );
+                                if( err )
+                                    return next( err );
+
+                                res.sendfile( cachepath );
+                            });
+                        });
+
+                    });
+                }
+                else
+                    next();
+            });
+        });
+    }
+
     function route() {
+        prefixCache( "/images-preview/", "/images/", function( filepath, cachepath, next ) {
+            lwip.open( filepath, function( err, image ) {
+                if( err )
+                    return next( err );
+
+                image.batch()
+                    .cover( 200, 200, "linear" )
+                    .writeFile( cachepath, next );
+            });
+        });
+
+        prefixCache( "/images-gallery/", "/images/", function( filepath, cachepath, next ) {
+            lwip.open( filepath, function( err, image ) {
+                if( err )
+                    return next( err );
+
+                var s = 1024, w, h;
+                if( image.width() > image.height() ) {
+                    w = s;
+                    h = s * image.height() / image.width();
+                }
+                else {
+                    w = s * image.width() / image.height();
+                    h = s;
+                }
+
+
+                image.batch()
+                    .resize( w, h, "cubic" )
+                    .writeFile( cachepath, next );
+            });
+        });
+
+        //k.app.get( "/images-preview/*", function( req, res, next ) {
+        //    guard( "/images-preview/", req, res, function( prefixOkay, pathname ) {
+        //        if( prefixOkay ) {
+        //            pathname = pathname.replace( /^\/images-preview\//, "/images/" );
+        //            var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+        //            var cachepath = filepath.replace( /^websites\//, "cache/images-preview/" );
+
+
+        //            fs.exists( cachepath, function( cacheExists ) {
+        //                /* send cached image */
+        //                if( cacheExists )
+        //                    return res.sendfile( cachepath );
+
+        //                /* create cache directory */
+        //                mkdirp( path.dirname( cachepath ), function( err ) {
+        //                    if( err )
+        //                        return next( err );
+
+        //                    lwip.open( filepath, function( err, image ) {
+        //                        if( err )
+        //                            return next( err );
+        //                            console.log( image );
+
+        //                        image.batch()
+        //                            .contain( 200, 200, "white", "linear" )
+        //                            .writeFile( cachepath, function( err ) {
+        //                                if( err )
+        //                                    return next( err );
+        //                                
+        //                                res.sendfile( cachepath );
+
+        //                            });
+        //                    });
+        //                });
+
+        //            });
+        //        }
+        //        else
+        //            next();
+        //    });
+        //});
+
         prefixServeStatic( "/images/" );
 
         //app.get("/images/:file", function( req, res, next ) {

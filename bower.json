@@ -30,6 +30,7 @@
     "jquery.localScroll": "~1.3.5",
     "bootstrap-slider": "*",
     "underscore": "~1.8.2",
-    "jqplot": "*"
+    "jqplot": "*",
+    "bootstrap-fileinput": "~4.1.9"
   }
 }

@@ -39,7 +39,13 @@ module.exports = function _filters( k ) {
         text:       function( t ) { return t;                                      },
         uint:       function( t ) { return f( t, /[^0-9]/g                      ); },
         url:        function( t ) { return f( t, /[^-?#@&,+_.:\/a-zA-Z0-9]/g    ); },
-        username:   function( t ) { return f( t, /[^-@_.a-zA-Z0-9]/g            ); }
+        username:   function( t ) { return f( t, /[^-@_.a-zA-Z0-9]/g            ); },
+        renameFile: function( t ) {
+            return t
+                .replace( /ä/g, "ae" ).replace( /ö/g, "oe" ).replace( /ü/g, "ue" ).replace( "ß", "sz" )
+                .replace( /Ä/g, "Ae" ).replace( /Ö/g, "Oe" ).replace( /Ü/g, "Ue" )
+                .replace( /\s+/, "_" ).replace( /[^-_.0-9a-zA-Z]/g, "" );
+        }
     };
 
     /* return a new fetcher which supports all registered filters */
