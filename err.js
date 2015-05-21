@@ -34,6 +34,14 @@ module.exports = function _err( k ) {
             else
                 k.jade.render( req, res, "no-config", {}, { website: "kern" } );
         });
+
+        k.app.use(function( err, req, res, next ) {
+            res.status("500").send("Strange ERROR:" +err.toString() );
+        });
+
+        k.app.use(function( req, res, next ) {
+            res.status("404").send("Strange 404 - EOK");
+        });
     }
 
     function routeLog( router ) {
