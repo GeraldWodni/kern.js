@@ -1,0 +1,2 @@
+The cache directory needs to be writable to whatever user kern.js is run by.
+Contents of this folder are ignored by git.
