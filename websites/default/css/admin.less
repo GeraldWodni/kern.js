@@ -85,3 +85,23 @@ div.separator {
         padding: 0 0.5em;
     }
 }
+
+ul.filetree {
+    padding-left: 0;
+    list-style: none;
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        padding: 3px 0;
+
+        button {
+            //visibility: hidden;
+        }
+        &:hover > button {
+            visibility: visible;
+        }
+    }
+}
