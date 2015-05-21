@@ -1,12 +1,12 @@
 // static content + less processing
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var url     = require("url");
-var fs      = require("fs");
-var path    = require("path");
-var mkdirp  = require("mkdirp");
-var less    = require("less");
-var lwip    = require("lwip");
+var url         = require("url");
+var fs          = require("fs");
+var path        = require("path");
+var mkdirp      = require("mkdirp");
+var less        = require("less");
+var imageMagick = require("gm").subClass({imageMagick: true});
 
 module.exports = function _static( k, opts ) {
 
@@ -84,79 +84,20 @@ module.exports = function _static( k, opts ) {
 
     function route() {
         prefixCache( "/images-preview/", "/images/", function( filepath, cachepath, next ) {
-            lwip.open( filepath, function( err, image ) {
-                if( err )
-                    return next( err );
-
-                image.batch()
-                    .cover( 200, 200, "linear" )
-                    .writeFile( cachepath, next );
-            });
+            imageMagick( filepath )
+                .autoOrient()
+                .resize( 200, 200 + "^" )
+                .gravity( "Center" )
+                .extent( 200, 200 )
+                .write( cachepath, next );
         });
 
         prefixCache( "/images-gallery/", "/images/", function( filepath, cachepath, next ) {
-            lwip.open( filepath, function( err, image ) {
-                if( err )
-                    return next( err );
-
-                var s = 1024, w, h;
-                if( image.width() > image.height() ) {
-                    w = s;
-                    h = s * image.height() / image.width();
-                }
-                else {
-                    w = s * image.width() / image.height();
-                    h = s;
-                }
-
-
-                image.batch()
-                    .resize( w, h, "cubic" )
-                    .writeFile( cachepath, next );
-            });
+            imageMagick( filepath )
+                .autoOrient()
+                .resize( 1024, 1024 )
+                .write( cachepath, next );
         });
-
-        //k.app.get( "/images-preview/*", function( req, res, next ) {
-        //    guard( "/images-preview/", req, res, function( prefixOkay, pathname ) {
-        //        if( prefixOkay ) {
-        //            pathname = pathname.replace( /^\/images-preview\//, "/images/" );
-        //            var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-        //            var cachepath = filepath.replace( /^websites\//, "cache/images-preview/" );
-
-
-        //            fs.exists( cachepath, function( cacheExists ) {
-        //                /* send cached image */
-        //                if( cacheExists )
-        //                    return res.sendfile( cachepath );
-
-        //                /* create cache directory */
-        //                mkdirp( path.dirname( cachepath ), function( err ) {
-        //                    if( err )
-        //                        return next( err );
-
-        //                    lwip.open( filepath, function( err, image ) {
-        //                        if( err )
-        //                            return next( err );
-        //                            console.log( image );
-
-        //                        image.batch()
-        //                            .contain( 200, 200, "white", "linear" )
-        //                            .writeFile( cachepath, function( err ) {
-        //                                if( err )
-        //                                    return next( err );
-        //                                
-        //                                res.sendfile( cachepath );
-
-        //                            });
-        //                    });
-        //                });
-
-        //            });
-        //        }
-        //        else
-        //            next();
-        //    });
-        //});
 
         prefixServeStatic( "/images/" );
 
