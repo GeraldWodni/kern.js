@@ -38,8 +38,11 @@ module.exports = function _hierarchy( k ) {
 
     function lookupFileThrow( website, filename ) {
         var filePath = lookupFile( website, filename );
-        if( filePath == null )
-            throw new Error( "hierarchy-lookupFile: '" + filename + "' not found!" ); 
+        if( filePath == null ) {
+            var err = new Error( "Not Found: '" + filename + "'" ); 
+            err.status = 404;
+            throw err;
+        }
 
         return filePath;
     }

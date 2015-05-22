@@ -39,6 +39,7 @@ var defaults = {
     viewFolder: 'views',
     rootFolder: __dirname,
     processCount: 1,
+    debugHosts: [ '127.', '10.', '192.168.' ],  // LAN-Clients are debug-hosts ( advanced debugging like stack traces etc. is displayed )
     cacheJade: true // disable cache until dependencies are checked
     // processCount: specify the number of worker-processes to create
 };
@@ -113,11 +114,11 @@ var Kern = function( callback, kernOpts ) {
         app.use( logger('dev') );
         //app.use( config() );
 
+        /* load locales now to support locale error messages (also required for static-404s) */
+        k.locales.route();
+
         /* serve static files */
         k.static.route();
-
-        /* load locales now to support locale error messages */
-        k.locales.route();
 
         /* enable dynamic-modules */
         if( typeof callback === 'function' )

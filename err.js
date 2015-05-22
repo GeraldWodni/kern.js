@@ -11,13 +11,30 @@ module.exports = function _err( k ) {
         k.jade.render( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ] ) );
     }
 
+    function isDebugHost( ip ) {
+        /* check all debugHost-prefixes */
+        var debugHosts = k.kernOpts.debugHosts || [];
+        for( var i = 0; i < debugHosts.length; i++ )
+            if( ip.indexOf( debugHosts[i] ) === 0 )
+                return true;
+
+        return false;
+    }
 
     function route() {
         k.app.use(function(err, req, res, next) {
             res.status(err.status || 500);
-            console.log( "ERROR HANDLER!".red.bold, err.message, "\n", err.stack );
-            console.trace();
+            /* short error message for hierarchy-404s */
+            if( err.status == 404 )
+                console.log( "ERROR HANDLER 404".red, err.message );
+            else {
+                console.log( "ERROR HANDLER!".red.bold, err.message, "\n", err.stack );
+                console.trace();
+            }
+
+            /* render error, view stack if debugHost */
             k.jade.render( req, res, "error", {
+                debugHost: isDebugHost( req.kern.remoteIp ),
                 message: err.message,
                 error: err
             });

@@ -64,6 +64,7 @@ module.exports = function _site( k, opts ) {
 
             req.kern = {
                 website: website,
+                remoteIp: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
                 lookupFile: function( filePath ) {
                     return k.hierarchy.lookupFileThrow( website, filePath );
                 },
