@@ -250,5 +250,6 @@
     "Index": "Index",
     "Time": "Zeit",
     "Actions": "Aktionen",
-    "Delete data": "Daten löschen"
+    "Delete data": "Daten löschen",
+    "Count sync": "Zählsynchronisation"
 }
