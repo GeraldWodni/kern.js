@@ -125,7 +125,9 @@ module.exports = function _site( k, opts ) {
             hierarchy: k.hierarchy,
             hooks: k.hooks,
             filters: k.filters,
+            getman:  k.getman,
             postman: k.postman,
+            requestman: k.requestman,
             website: website,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );

@@ -161,6 +161,18 @@ mixin glyph(icon, classes)
     - if( classes ) classes = ' ' + classes; else classes = '';
     i.glyphicon.glyphicon(class="glyphicon-#{icon}#{classes}")&attributes(attributes)
 
+mixin fa(icon, classes)
+    - if( classes ) classes = ' ' + classes; else classes = '';
+    i.fa(class="fa-#{icon}#{classes}")&attributes(attributes)
+
+mixin link(link, text)
+    - if( !text ) text = link;
+    a(href=link)= text
+
+mixin elink(link, text)
+    - if( !text ) text = link;
+    a(href=link,target="_blank")= text
+
 mixin messages(messages)
     each message in messages || []
         - var classes = "alert alert-" + ( message.type || "danger" );

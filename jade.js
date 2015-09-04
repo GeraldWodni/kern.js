@@ -63,7 +63,11 @@ module.exports = function _jade( k, opts ) {
                 var callerFile = this.filename;
                 var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
 
-                var file = k.hierarchy.lookupFileThrow( this.options.kernWebsite, path.join( k.kernOpts.viewFolder, path.join( callerDir, filename + '.jade' ) ) );
+                /* only append jade to non-suffixed includes */
+                if( filename.indexOf(".") < 0 )
+                    filename = filename + ".jade";
+
+                var file = k.hierarchy.lookupFileThrow( this.options.kernWebsite, path.join( k.kernOpts.viewFolder, path.join( callerDir, filename ) ) );
                 dependencies.push( file );
                 return file;
             };
