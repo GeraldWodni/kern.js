@@ -68,7 +68,7 @@ module.exports = function _hierarchy( k ) {
 
     function upParts( website ) {
         var parts = [ website ];
-        part = website;
+        var part = website;
 
         while( part = up( part ) )
             parts.push( part );
