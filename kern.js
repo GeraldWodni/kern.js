@@ -1,5 +1,6 @@
 // Main File, setup kern and spawn workers
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var cluster = require("cluster");
 var os      = require("os");

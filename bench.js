@@ -1,3 +1,4 @@
+"use strict";
 require("colors");
 var async   = require("async");
 var request = require("request");

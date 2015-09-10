@@ -1,5 +1,6 @@
 // CRUD Create Read Update Delete Interface
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var _       = require("underscore");
 var async   = require("async");
@@ -489,7 +490,7 @@ module.exports = function _crud( k ) {
                     if( req.postman.exists( "add" ) ) {
                         var obj = opts.readFields( req );
 
-                        function handleCreate( err, data ) {
+                        var handleCreate = function _handleCreate( err, data ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
@@ -508,7 +509,7 @@ module.exports = function _crud( k ) {
                         var id = opts.getRequestId( req );
                         var obj = opts.readFields( req );
 
-                        function handleUpdate( err ) {
+                        var handleUpdate = function _handleUpdate( err ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
@@ -521,7 +522,7 @@ module.exports = function _crud( k ) {
                     else if( req.postman.exists( "delete" ) ) {
                         var id = req.postman.escapedLink( "delete" );
 
-                        function handleDelete( err ) {
+                        var handleDelete = function _handleDelete( err ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
@@ -697,7 +698,7 @@ module.exports = function _crud( k ) {
                 });
             }) );
 
-            function deleteHandler( req, res, next ) {
+            var deleteHandler = function _deleteHandler( req, res, next ) {
                 var id = req.requestman.escapedLink( opts.idField );
 
                 if( req.method != "GET" ) {

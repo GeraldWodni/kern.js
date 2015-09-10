@@ -1,5 +1,6 @@
 // Hooks
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var _ = require( "underscore" );
 

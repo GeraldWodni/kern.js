@@ -1,5 +1,6 @@
 // User management
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var _       = require("underscore");
 var async   = require("async");

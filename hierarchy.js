@@ -1,5 +1,6 @@
 // hierarchy module - website inheritance
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var path    = require("path");
 var fs      = require("fs");

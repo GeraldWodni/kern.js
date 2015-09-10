@@ -1,5 +1,7 @@
 // Redis Database Interface
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
+
 var redis   = require("redis");
 var async   = require( "async" );
 

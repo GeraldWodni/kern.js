@@ -1,5 +1,6 @@
 // Sample application file
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 console.log( "ARGS:", process.argv );
 

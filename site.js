@@ -1,5 +1,6 @@
 // website loading (site.js)
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var express = require("express");
 var fs      = require("fs");
@@ -99,7 +100,7 @@ module.exports = function _site( k, opts ) {
         if( !opts.exactFilename )
             filename = "./" + k.hierarchy.lookupFileThrow( website, filename );
 
-        target = require( filename )
+        var target = require( filename )
 
         /* register module */
         if( opts.register ) {

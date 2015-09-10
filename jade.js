@@ -1,5 +1,6 @@
 // jade caching and rendering
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var jade    = require("jade");
 var fs      = require("fs");
@@ -64,7 +65,7 @@ module.exports = function _jade( k, opts ) {
                 var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
 
                 /* only append jade to non-suffixed includes */
-                if( filename.indexOf(".") < 0 )
+                if( filename.indexOf(".") < 2 )
                     filename = filename + ".jade";
 
                 var file = k.hierarchy.lookupFileThrow( this.options.kernWebsite, path.join( k.kernOpts.viewFolder, path.join( callerDir, filename ) ) );

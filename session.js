@@ -1,5 +1,6 @@
 // Session + Redis Store
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var crypto  = require("crypto");
 var moment  = require("moment");

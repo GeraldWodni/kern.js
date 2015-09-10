@@ -1,5 +1,6 @@
 // static content + less processing
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var url         = require("url");
 var fs          = require("fs");
