@@ -156,7 +156,7 @@ module.exports = function _site( k, opts ) {
             httpStatus: k.err.renderHttpStatus,
             serverConfig: k.kernOpts,
             prefixServeStatic: k.static.prefixServeStatic,
-            serverStaticFile: function _serveStatic( filename ) {
+            serveStaticFile: function _serveStatic( filename ) {
                 return function( req, res ) {
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, filename );
                     res.sendfile( filepath );
