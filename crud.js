@@ -627,7 +627,7 @@ module.exports = function _crud( k ) {
 
         //var r = router( k, [ opts.createPath, opts.readPath, opts.updatePath, opts.deletePath ], crud, opts );
         //var r = express.Router();
-        r = k.router;
+        var r = k.router;
 
         function applyPostman( callback ) {
             return function( req, res, next ) {
