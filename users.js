@@ -2,16 +2,19 @@
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var _           = require("underscore");
-var async       = require("async");
-var bcrypt      = require("bcrypt-nodejs");
-var md5         = require("md5");
-var nodemailer  = require("nodemailer");
-var url         = require("url");
+var _               = require("underscore");
+var captcha         = require("ascii-captcha");
+var async           = require("async");
+var bcrypt          = require("bcrypt-nodejs");
+var md5             = require("md5");
+var nodemailer      = require("nodemailer");
+var smtpTransport   = require("nodemailer-smtp-transport");
+var url             = require("url");
 
 module.exports = function _users( k ) {
     /* this keys are not stored in the database */
     var minPasswordLength = 4;
+    var captchaTimeout = 1800;
     var forbiddenKeys = [ "id", "prefix", "password" ];
 
     function getKey( prefix, id ) {
@@ -31,7 +34,11 @@ module.exports = function _users( k ) {
     }
 
     function getQueueEmailKey( prefix, email ) {
-        return prefix + ":user-queue-email" + email;
+        return prefix + ":user-queue-email:" + email;
+    }
+
+    function getCsrfKey( prefix, hash ) {
+        return prefix + ":user-csrf:" + hash;
     }
 
     function saveObject( userKey, obj, next ) {
@@ -113,6 +120,27 @@ module.exports = function _users( k ) {
             });
         });
     };
+
+    function confirmCreate( prefix, hash, next ) {
+        var queueKey = getQueueKey( prefix, hash );
+
+        /* fetch queued user */
+        k.rdb.hgetall( queueKey, function( err, obj ) {
+            if( err )
+                return next( err );
+            if( !obj )
+                return next( "Unknown Hash" );
+
+            /* create new user */
+            create( prefix, obj, function( err ) {
+                if( err )
+                    return next( err );
+
+                /* delete queued item */
+                k.rdb.del( queueKey, next );
+            });
+        });
+    }
 
     function loadById( prefix, id, next ) {
         k.rdb.hgetall( getKey( prefix, id ), function( err, data ) {
@@ -199,152 +227,245 @@ module.exports = function _users( k ) {
             }
 
             var userRegistration = req.kern.getWebsiteConfig( "userRegistration", {} );
+            var captchaWord = captcha.generateRandomText(5);
+            var csrf = md5( captcha.generateRandomText(32) );
+            var captchaPre = '<pre style="font-size:3px;line-height:2px;">' + captcha.word2Transformedstr(captchaWord) + '</pre>';
 
-            /* already logged in, load user and resume */
-            if( req.session && req.session.loggedInUsername ) {
-                loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
-                    if( err ) {
-                        /* Login invalid, no matching user found. ( logged in user most likely changed his own name ) -> destroy session */
-                        if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
-                            console.log( "Login invalid, destroy session".red.bold );
-                            return req.sessionInterface.destroy( req, res, function() {
-                                executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
+            /* save csrf and captcha (which is only used for registration) */
+            k.rdb.set( [ getCsrfKey( req.kern.website, csrf ), captchaWord, "EX", captchaTimeout ], function( err ) {
+                if( err )
+                    return next( err );
+
+                var vals = {
+                    register: userRegistration.enabled,
+                    captchaPre: captchaPre,
+                    csrf: csrf
+                }
+
+                /* already logged in, load user and resume */
+                if( req.session && req.session.loggedInUsername ) {
+                    loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
+                        if( err ) {
+                            /* Login invalid, no matching user found. ( logged in user most likely changed his own name ) -> destroy session */
+                            if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
+                                console.log( "Login invalid, destroy session".red.bold );
+                                return req.sessionInterface.destroy( req, res, function() {
+                                    executeOrRender( req, res, next, loginRenderer, vals );
+                                });
+                            }
+                            else
+                                return next( err, null );
+                        }
+
+                        req.user = data;
+                        next();
+                    });
+                    return;
+                }
+
+                /* check for credentials */
+                if( req.method === "POST" )
+                    k.postman( req, res, function() {
+                        /* all fields available? */
+                        if( req.postman.exists( ["login", "username", "password"] ) ) {
+                            var username = req.postman.username();
+                            console.log( "Login: ", username );
+                            login( req.kern.website, username, req.postman.password(), function( err, data ) {
+                                if( err )
+                                    return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
+
+                                req.sessionInterface.start( req, res, function() {
+                                    req.session.loggedInUsername = username;
+                                    req.user = data;
+                                    req.method = "GET";
+                                    next();
+                                });
+                            });
+                        }
+                        else if( req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
+
+                            async.auto({
+                                captcha: function( callback ) {
+                                    var sentCsrf = req.postman.alnum("csrf");
+                                    var sentCaptcha = req.postman.alnum("captcha").toUpperCase();
+                                    var csrfKey = getCsrfKey( req.kern.website, sentCsrf );
+                                    k.rdb.get( csrfKey, function( err, storedCaptcha ) {
+
+                                        if( err )
+                                            callback( err );
+                                        else
+                                            k.rdb.del( getCsrfKey, function( err ) {
+                                                if( sentCaptcha === storedCaptcha )
+                                                    callback( null );
+                                                else
+                                                    callback( req.locales.__("Captcha not correct") );
+                                            });
+                                    });
+                                },
+                                username: [ "captcha", function( callback ) {
+                                    console.log( "AUTO", "username" );
+                                    /* attempt to load user to check for existance */
+                                    var username = req.postman.username();
+                                    loadByName( req.kern.website, username, function( err, data ) {
+
+                                        /* new user */
+                                        if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 )
+                                            callback( null, username );
+                                        else
+                                        /* user exists */
+                                            callback( req.locals.__("Username exists")  );
+                                    });
+                                }],
+                                password: [ "captcha", function( callback ) {
+                                    console.log( "AUTO", "password" );
+                                    /* check password */
+                                    var password = req.postman.password();
+                                    if( !req.postman.fieldsMatch( "password", "password2" ) )
+                                        callback( req.locales.__( "Passwords do not match" ) );
+                                    else if( password.length < minPasswordLength )
+                                        callback( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
+                                    else
+                                        callback( null, password );
+                                }],
+                                passwordHash: [ "password", function( callback, results ) {
+                                    console.log( "AUTO", "passwordHash" );
+                                    bcrypt.hash( results.password, null, null, callback );
+                                }],
+                                email: [ "captcha", function( callback )  {
+                                    console.log( "AUTO", "email" );
+                                    /* check if email exists */
+                                    var email = req.postman.email();
+                                    loadByEmail( req.kern.website, email, function( err, emailUser ) {
+                                        if( err )
+                                            callback( err );
+                                        else if( emailUser != null )
+                                            callback( req.locales.__( "Email address already registered" ) );
+                                        else
+                                            callback( null, email );
+                                    });
+                                }],
+                                usernameKey: [ "username", function( callback, results ) {
+                                    console.log( "AUTO", "usernameKey" );
+                                    /* check registere-queue usersnames */
+                                    var usernameKey = getQueueNameKey( req.kern.website, results.username );
+                                    k.rdb.set( [ usernameKey, 1, "NX", "EX", userRegistration.timeout ], function( err, key ) {
+                                        console.log( "AUTO", "usernameKey-resp", err, key );
+                                        if( err )
+                                            callback( err );
+                                        else if( key != "OK" )
+                                            callback( req.locales.__( "Username already in register-queue, please check your email" ) );
+                                        else
+                                            callback( null, usernameKey );
+                                    });
+
+                                }],
+                                emailKey: [ "usernameKey", "email", function( callback, results ) {
+                                    console.log( "AUTO", "emailKey" );
+                                    /* check registere-queue emails */
+                                    var emailKey = getQueueEmailKey( req.kern.website, results.email );
+                                    k.rdb.set( [ emailKey, 1, "NX", "EX", userRegistration.timeout ], function( err, key ) {
+                                        console.log( "AUTO-RES", "emailKey", err, key );
+                                        if( err )
+                                            callback( err );
+                                        else if( key != "OK" )
+                                            callback( req.locales.__( "Email already in register-queue, please check your email" ) );
+                                        else
+                                            callback( null, emailKey );
+                                    });
+
+                                }],
+                                hash: function( callback ) {
+                                    console.log( "AUTO", "hash" );
+                                    /* create register-hash */
+                                    bcrypt.genSalt( 10, function( err, salt ) {
+                                        if( err )
+                                            callback( err );
+                                        else
+                                            callback( null, md5( salt ) );
+                                    });
+                                },
+                                queueKey: [ "usernameKey", "emailKey", "hash", "passwordHash", function( callback, results ) {
+                                    console.log( "AUTO", "queueKey" );
+
+                                    /* save new user */
+                                    var queueKey = getQueueKey( req.kern.website, results.hash );
+
+                                    k.rdb.hmset( queueKey, {
+                                        name:           results.username,
+                                        email:          results.email,
+                                        passwordHash:   results.passwordHash,
+                                        permissions:    userRegistration.permissions
+                                    }, function( err ) {
+                                        if( err ) return callback( err );
+                                        k.rdb.expire( queueKey, userRegistration.timeout, callback );
+                                    });
+                                }],
+                                sendEmail: [ "queueKey", function( callback, results ) {
+                                    console.log( "AUTO", "sendEmail" );
+                                    /* send email */
+                                    var emailTransport = nodemailer.createTransport( smtpTransport({
+                                        host: userRegistration.smtp.host,
+                                        port: userRegistration.smtp.port || 25,
+                                        tls: {
+                                            rejectUnauthorized: false
+                                        },
+                                        auth: {
+                                            user: userRegistration.smtp.user,
+                                            pass: userRegistration.smtp.password
+                                        }
+                                    }));
+
+                                    var link = userRegistration.link.replace( /{hash}/g, results.hash );
+                                    var text = userRegistration.email.text.replace( /{link}/g, link );
+
+                                    emailTransport.sendMail({
+                                        from: userRegistration.smtp.email,
+                                        to: results.email,
+                                        subject: userRegistration.email.subject,
+                                        text: text
+                                    }, callback );
+                                }]
+                            }, function( err, results ){
+                                console.log( "AUTO", "FIN", err, results );
+                                /* clean up queue and render error */
+                                if( err ) {
+                                    var deleteKeys = [];
+
+                                    /* TODO: only delete this keys if this instance has created it, currently this is a race condition */
+                                    if( "usernameKey"   in results ) deleteKeys.push( "usernameKey" );
+                                    if( "emailKey"      in results ) deleteKeys.push( "emailKey"    );
+                                    if( "queueKey"      in results ) deleteKeys.push( "queueKey"    );
+
+                                    k.rdb.del( deleteKeys, function() {
+                                        executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, vals ) );
+                                    });
+                                    return;
+                                }
+
+                                /* TODO: confirmation website which creates the real user */
+                                console.log( "REGISTRATION COMPLETE!" );
+                                var success = req.locales.__("Registration successfull, please confirm your email-address to activate your account");
+                                executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, vals ) );
+                            
                             });
                         }
                         else
-                            return next( err, null );
-                    }
+                            executeOrRender( req, res, next, loginRenderer, vals );
+                    });
+                /* show login form */
+                else {
+                    executeOrRender( req, res, next, loginRenderer, vals );
+                }
 
-                    req.user = data;
-                    next();
-                });
-                return;
-            }
+            }); /* end csrf safe */
 
-            /* check for credentials */
-            if( req.method === "POST" )
-                k.postman( req, res, function() {
-                    /* all fields available? */
-                    if( req.postman.exists( ["login", "username", "password"] ) ) {
-                        var username = req.postman.username();
-                        console.log( "Login: ", username );
-                        login( req.kern.website, username, req.postman.password(), function( err, data ) {
-                            if( err )
-                                return executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled } );
-
-                            req.sessionInterface.start( req, res, function() {
-                                req.session.loggedInUsername = username;
-                                req.user = data;
-                                req.method = "GET";
-                                next();
-                            });
-                        });
-                    }
-                    else if( req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
-                        var username = req.postman.username();
-
-                        /* attempt to load user to check for existance */
-                        loadByName( req.kern.website, username, function( err, data ) {
-
-                            /* new user */
-                            if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
-                                err = undefined;
-
-                                var renderError = function _renderError( err ) {
-                                    executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled, hideLogin: true } );
-                                }
-
-                                /* check password */
-                                var password = req.postman.password();
-                                if( !req.postman.fieldsMatch( "password", "password2" ) )
-                                    return renderError( req.locales.__( "Passwords do not match" ) );
-
-                                if( password.length < minPasswordLength )
-                                    return renderError( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
-
-                                /* check if email exists */
-                                var email = req.postman.email();
-                                loadByEmail( req.kern.website, email, function( err, emailUser ) {
-                                    if( err )
-                                        return renderError( err );
-                                    if( emailUser != null )
-                                        return renderError( req.locales.__( "Email address already registered" ) );
-
-                                    /* check registere-queue usersnames */
-                                    var registerExpires = req.kern.getWebsiteConfig( "registerTimeout", 3600 );
-                                    var usernameKey = getQueueNameKey( req.kern.website, username );
-                                    k.rdb.set( [ usernameKey, 1, "NX", "EX", registerExpires ], function( err, key ) {
-                                        if( err )
-                                            return renderError( err );
-                                        if( key != "OK" )
-                                            return renderError( req.locales.__( "Username already in register-queue, please check your email" ) );
-
-                                        /* check registere-queue emails */
-                                        var emailKey = getQueueEmailKey( k.kern.website, email );
-                                        k.rdb.set( [ emailKey, 1, "NX", "EX", registerExpires ], function( err, key ) {
-                                            if( err )
-                                                return renderError( err );
-                                            if( key != "OK" ) {
-                                                k.rdb.del( emailKey, function() {
-                                                    renderError( req.locales.__( "Email already in register-queue, please check your email" ) );
-                                                });
-                                                return;
-                                            }
-
-                                            /* TODO: async.auto all of these */
-
-
-                                            /* create register-hash */
-                                            bcrypt.genSalt( 10, function( err, salt ) {
-                                                if( err )
-                                                    return renderError( err );
-
-                                                var registerHash = md5( salt );
-
-
-                                                /* save new user */
-                                                //r.rdb.set( getQueueKey( req.kern.website, registerHash ), {
-                                                //    user
-                                                //
-
-                                                //}, function( err ) {
-
-                                                //    /* TODO: send email */
-                                                //    var transporter
-
-                                                //}
-
-                                            });
-
-                                            /* TODO: standard permissions */
-
-                                            /* TODO: confirmation website which creates the real user */
-                                            executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled, hideLogin: true } );
-                                        });
-
-
-                                    });
-                                });
-
-                            }
-                            else
-                            /* user exists */
-                                executeOrRender( req, res, next, loginRenderer, { error: req.locales.__("Username exists"), register: userRegistration.enabled, hideLogin: true } );
-                        });
-                    }
-                    else
-                        executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
-                });
-            /* show login form */
-            else {
-                executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
-            }
-        };
-    };
+        }; /* end login router */
+    }; /* end login required */
 
     var users = {
         minPasswordLength: minPasswordLength,
         create: create,
+        confirmCreate: confirmCreate,
         read:   loadById,
         readAll:readAll,
         /* TODO: remove ifs in crud to make this work!! */

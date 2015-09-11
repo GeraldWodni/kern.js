@@ -19,6 +19,7 @@ module.exports = function _filters( k ) {
     var registeredFilters = {
         address:    function( t ) { return f( t, /[^-,.\/ a-zA-Z0-9äöüßÄÖÜ]/g   ); },
         allocnum:   function( t ) { return f( t, /[^a-zA-Z0-9äöüßÄÖÜ]/g         ); },
+        alpha:      function( t ) { return f( t, /[^a-zA-Z]/g                   ); },
         alnum:      function( t ) { return f( t, /[^a-zA-Z0-9]/g                ); },
         alnumList:  function( t ) { return f( t, /[^,a-zA-Z0-9]/g               ); },
         boolean:    function( t ) { return f( t, /[^01]/g                       ); },

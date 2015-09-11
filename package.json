@@ -7,6 +7,7 @@
     "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
+    "ascii-captcha": "0.0.3",
     "async": "^0.9.0",
     "bcrypt-nodejs": "0.0.x",
     "clusterhub": "0.2.x",
