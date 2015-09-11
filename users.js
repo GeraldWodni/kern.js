@@ -2,10 +2,12 @@
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var _       = require("underscore");
-var async   = require("async");
-var bcrypt  = require("bcrypt-nodejs");
-var url     = require("url");
+var _           = require("underscore");
+var async       = require("async");
+var bcrypt      = require("bcrypt-nodejs");
+var md5         = require("md5");
+var nodemailer  = require("nodemailer");
+var url         = require("url");
 
 module.exports = function _users( k ) {
     /* this keys are not stored in the database */
@@ -20,6 +22,18 @@ module.exports = function _users( k ) {
         return prefix + ":usernames";
     }
 
+    function getQueueKey( prefix, id ) {
+        return prefix + ":user-queue:" + id;
+    }
+
+    function getQueueNameKey( prefix, name ) {
+        return prefix + ":user-queue-name:" + name;
+    }
+
+    function getQueueEmailKey( prefix, email ) {
+        return prefix + ":user-queue-email" + email;
+    }
+
     function saveObject( userKey, obj, next ) {
         obj = _.omit( obj, forbiddenKeys );
         k.rdb.hmset( userKey, obj, next );
@@ -32,7 +46,7 @@ module.exports = function _users( k ) {
 
         if( typeof id === "undefined" )
             id = obj[ "id" ];
-        
+
         var userKey = getKey( prefix, id );
 
         console.log( "SAVE, OBJ:", arguments );
@@ -45,7 +59,7 @@ module.exports = function _users( k ) {
             /* find matching name key */
             var namesKey = getNamesKey( prefix );
             k.rdb.hgetall( namesKey, function( err, names ) {
-                
+
                 async.mapSeries( _.keys( names ), function _users_save_updateName_map( name, d ) {
                     /* delete namekeys with same id but different name (hence allow renaming) */
                     if( names[ name ] == id && name != obj.name )
@@ -124,6 +138,19 @@ module.exports = function _users( k ) {
         });
     };
 
+    function loadByEmail( prefix, email, next ) {
+        readAll( prefix, function( err, users ) {
+            if( err )
+                return next( err );
+
+            for( var i = 0; i < users.length; i++ )
+                if( users[i].email == email )
+                    return next( null, users[i] );
+
+            next( null, null );
+        });
+    }
+
     function readAll( prefix, next ) {
         k.rdb.hgetall( getNamesKey( prefix ), function( err, data ) {
             if( err )
@@ -171,7 +198,7 @@ module.exports = function _users( k ) {
                 return next();
             }
 
-            var register = req.kern.getWebsiteConfig( "register", false );
+            var userRegistration = req.kern.getWebsiteConfig( "userRegistration", {} );
 
             /* already logged in, load user and resume */
             if( req.session && req.session.loggedInUsername ) {
@@ -181,7 +208,7 @@ module.exports = function _users( k ) {
                         if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
                             console.log( "Login invalid, destroy session".red.bold );
                             return req.sessionInterface.destroy( req, res, function() {
-                                executeOrRender( req, res, next, loginRenderer, { register: register } );
+                                executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
                             });
                         }
                         else
@@ -203,7 +230,7 @@ module.exports = function _users( k ) {
                         console.log( "Login: ", username );
                         login( req.kern.website, username, req.postman.password(), function( err, data ) {
                             if( err )
-                                return executeOrRender( req, res, next, loginRenderer, { error: err, register: register } );
+                                return executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled } );
 
                             req.sessionInterface.start( req, res, function() {
                                 req.session.loggedInUsername = username;
@@ -223,36 +250,94 @@ module.exports = function _users( k ) {
                             if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
                                 err = undefined;
 
+                                var renderError = function _renderError( err ) {
+                                    executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled, hideLogin: true } );
+                                }
+
+                                /* check password */
                                 var password = req.postman.password();
                                 if( !req.postman.fieldsMatch( "password", "password2" ) )
-                                    err = req.locales.__( "Passwords do not match" );
+                                    return renderError( req.locales.__( "Passwords do not match" ) );
 
-                                if( password.length < minPasswordLength ) 
-                                    err = req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength );
+                                if( password.length < minPasswordLength )
+                                    return renderError( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
 
-                                /* TODO: check if email exists */
-                                /* TODO: check registere-queue usersnames */
-                                /* TODO: check registere-queue emails */
-                                /* TODO: write to redis with TTL */
-                                /* TODO: standard permissions */
-                                /* TODO: send email */
+                                /* check if email exists */
+                                var email = req.postman.email();
+                                loadByEmail( req.kern.website, email, function( err, emailUser ) {
+                                    if( err )
+                                        return renderError( err );
+                                    if( emailUser != null )
+                                        return renderError( req.locales.__( "Email address already registered" ) );
 
-                                /* TODO: confirmation website which creates the real user */
+                                    /* check registere-queue usersnames */
+                                    var registerExpires = req.kern.getWebsiteConfig( "registerTimeout", 3600 );
+                                    var usernameKey = getQueueNameKey( req.kern.website, username );
+                                    k.rdb.set( [ usernameKey, 1, "NX", "EX", registerExpires ], function( err, key ) {
+                                        if( err )
+                                            return renderError( err );
+                                        if( key != "OK" )
+                                            return renderError( req.locales.__( "Username already in register-queue, please check your email" ) );
+
+                                        /* check registere-queue emails */
+                                        var emailKey = getQueueEmailKey( k.kern.website, email );
+                                        k.rdb.set( [ emailKey, 1, "NX", "EX", registerExpires ], function( err, key ) {
+                                            if( err )
+                                                return renderError( err );
+                                            if( key != "OK" ) {
+                                                k.rdb.del( emailKey, function() {
+                                                    renderError( req.locales.__( "Email already in register-queue, please check your email" ) );
+                                                });
+                                                return;
+                                            }
+
+                                            /* TODO: async.auto all of these */
 
 
-                                executeOrRender( req, res, next, loginRenderer, { error: err, register: register, hideLogin: true } );
+                                            /* create register-hash */
+                                            bcrypt.genSalt( 10, function( err, salt ) {
+                                                if( err )
+                                                    return renderError( err );
+
+                                                var registerHash = md5( salt );
+
+
+                                                /* save new user */
+                                                //r.rdb.set( getQueueKey( req.kern.website, registerHash ), {
+                                                //    user
+                                                //
+
+                                                //}, function( err ) {
+
+                                                //    /* TODO: send email */
+                                                //    var transporter
+
+                                                //}
+
+                                            });
+
+                                            /* TODO: standard permissions */
+
+                                            /* TODO: confirmation website which creates the real user */
+                                            executeOrRender( req, res, next, loginRenderer, { error: err, register: userRegistration.enabled, hideLogin: true } );
+                                        });
+
+
+                                    });
+                                });
+
                             }
                             else
                             /* user exists */
-                                executeOrRender( req, res, next, loginRenderer, { error: req.locales.__("Username exists"), register: register, hideLogin: true } );
+                                executeOrRender( req, res, next, loginRenderer, { error: req.locales.__("Username exists"), register: userRegistration.enabled, hideLogin: true } );
                         });
                     }
                     else
-                        executeOrRender( req, res, next, loginRenderer, { register: register } );
+                        executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
                 });
             /* show login form */
             else {
-                executeOrRender( req, res, next, loginRenderer, { register: register } );
+                executeOrRender( req, res, next, loginRenderer, { register: userRegistration.enabled } );
             }
         };
     };
