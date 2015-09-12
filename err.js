@@ -12,7 +12,7 @@ module.exports = function _err( k ) {
             code = 501;
 
         res.status( code );
-        k.jade.render( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ] ) );
+        k.jade.render( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ], opts.values || {} ) );
     }
 
     function isDebugHost( ip ) {

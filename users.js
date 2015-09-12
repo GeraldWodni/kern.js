@@ -129,7 +129,7 @@ module.exports = function _users( k ) {
             if( err )
                 return next( err );
             if( !obj )
-                return next( "Unknown Hash" );
+                return next( new Error( "Unknown hash" ) );
 
             /* create new user */
             create( prefix, obj, function( err ) {
