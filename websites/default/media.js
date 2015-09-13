@@ -133,21 +133,22 @@ module.exports = {
         });
 
         /* upload */
-        k.router.use("/upload/*", multer({
-            /* change target directory */
-            changeDest: function _upload_changeDest( dest, req, res ) {
-                var pathname = req.params[0];
-                if( pathname.indexOf( "files/" ) != 0 ) {
-                    res.status( 403 ).send({success:false, cracker: true});
-                    return false;
-                }
-                return k.hierarchy.lookupFile( req.kern.website, pathname )
-            },
-            /* rename special chars */
-            rename: function _upload_rename( fieldname, filename, req, res ) {
-                return k.filters.renameFile( filename );
-            }
-        }));
+        /* TODO: fix for new multer-API */
+        //k.router.use("/upload/*", multer({
+        //    /* change target directory */
+        //    changeDest: function _upload_changeDest( dest, req, res ) {
+        //        var pathname = req.params[0];
+        //        if( pathname.indexOf( "files/" ) != 0 ) {
+        //            res.status( 403 ).send({success:false, cracker: true});
+        //            return false;
+        //        }
+        //        return k.hierarchy.lookupFile( req.kern.website, pathname )
+        //    },
+        //    /* rename special chars */
+        //    rename: function _upload_rename( fieldname, filename, req, res ) {
+        //        return k.filters.renameFile( filename );
+        //    }
+        //}));
 
         /* uploader expects json */
         k.router.post( "/upload/*", function( req, res, next ) {

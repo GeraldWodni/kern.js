@@ -203,7 +203,8 @@ module.exports = function _site( k, opts ) {
             },
             reg: function( name ) {
                 return registeredSiteModules[ name ];
-            }
+            },
+            setupOpts: opts.setup
         });
 
         /* app requires cleanup */
