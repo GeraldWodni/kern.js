@@ -41,6 +41,7 @@
     "sandcastle": "^1.3.3",
     "should": "4.0.x",
     "ssh-keygen": "^0.2.1",
+    "stream-to-array": "^2.0.2",
     "supervisor": "0.6.x",
     "tar.gz": "^1.0.1",
     "tmp": "0.0.24",
