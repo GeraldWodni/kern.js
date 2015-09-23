@@ -113,7 +113,12 @@ module.exports = function _users( k ) {
             k.rdb.incr( userCounter, function( err, userId ) {
                 save( obj, prefix, userId, function( err ) {
                     if( !err )
-                        k.rdb.hset( getNamesKey( prefix ), obj[ "name" ], userId, next );
+                        k.rdb.hset( getNamesKey( prefix ), obj[ "name" ], userId, function( err ) {
+                            if( err )
+                                next( err, null );
+                            else
+                                next( null, userId );
+                        });
                     else
                         next( err, null );
                 });
@@ -132,12 +137,15 @@ module.exports = function _users( k ) {
                 return next( new Error( "Unknown hash" ) );
 
             /* create new user */
-            create( prefix, obj, function( err ) {
+            create( prefix, obj, function( err, userId ) {
                 if( err )
                     return next( err );
 
                 /* delete queued item */
-                k.rdb.del( queueKey, next );
+                k.rdb.del( queueKey, function( err ){
+                    obj.id = userId;
+                    next( err, obj );
+                });
             });
         });
     }
@@ -313,7 +321,7 @@ module.exports = function _users( k ) {
                                             callback( null, username );
                                         else
                                         /* user exists */
-                                            callback( req.locals.__("Username exists")  );
+                                            callback( req.locales.__("Username exists")  );
                                     });
                                 }],
                                 password: [ "captcha", function( callback ) {
