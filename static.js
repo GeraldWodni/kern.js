@@ -160,10 +160,16 @@ module.exports = function _static( k, opts ) {
                         if( err )
                             return next( err );
 
-                        var css = tree.toCSS();
-                        res.set( 'Content-Type', 'text/css' );
-                        res.send( css );
-                        lessCache.set( filepath, css );
+                        try {
+                            var css = tree.toCSS();
+                            res.set( 'Content-Type', 'text/css' );
+                            res.send( css );
+                            lessCache.set( filepath, css );
+                        }
+                        catch( e ) {
+                            console.log( "LESS-Error".bold.red, e.toString() );
+                            next( e );
+                        }
                     });
                 });
 

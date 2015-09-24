@@ -198,6 +198,22 @@ module.exports = function _users( k ) {
         });
     };
 
+    function changePassword( req, res, next ) {
+        k.postman( req, res, function() {
+
+            var password = req.postman.password();
+            if( !req.postman.fieldsMatch( "password", "password2" ) )
+                next( new Error( req.locales.__( "Passwords do not match" ) ) );
+            else if( password.length < minPasswordLength )
+                next( new Error( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) ) );
+            else {
+                var user = _.clone( req.user );
+                user.password = password
+                save( user, req.kern.website, user.id, next );
+            }
+        });
+    }
+
     function login( prefix, name, password, next ) {
         loadByName( prefix, name, function( err, data ) {
             if( err )
@@ -235,6 +251,18 @@ module.exports = function _users( k ) {
             }
 
             var userRegistration = req.kern.getWebsiteConfig( "userRegistration", {} );
+            _.defaults( userRegistration, {
+                enabled: false,
+                timeout: 1800,
+                permissions: '',
+                nameFilter: 'username',
+                minimumNameLength: 3,
+                link: "http://" + req.kern.website + "/confirm/{hash}",
+                email: {
+                    subject: "Registration",
+                    text: "Please klick the following link to complete your registration:\n{link}"
+                }
+            });
             var captchaWord = captcha.generateRandomText(5);
             var csrf = md5( captcha.generateRandomText(32) );
             var captchaPre = '<pre style="font-size:3px;line-height:2px;">' + captcha.word2Transformedstr(captchaWord) + '</pre>';
@@ -290,10 +318,14 @@ module.exports = function _users( k ) {
                                 });
                             });
                         }
-                        else if( req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
+                        else if( userRegistration.enabled && req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
 
-                            async.auto({
-                                captcha: function( callback ) {
+                            if( !userRegistration.smtp )
+                                return next( new Error( "UserRegistration: SMTP missing" ) );
+
+                            var results = {}
+                            async.series([
+                                function _captcha( callback ) {
                                     var sentCsrf = req.postman.alnum("csrf");
                                     var sentCaptcha = req.postman.alnum("captcha").toUpperCase();
                                     var csrfKey = getCsrfKey( req.kern.website, sentCsrf );
@@ -304,27 +336,32 @@ module.exports = function _users( k ) {
                                         else
                                             k.rdb.del( getCsrfKey, function( err ) {
                                                 if( sentCaptcha === storedCaptcha )
-                                                    callback( null );
+                                                    callback();
                                                 else
                                                     callback( req.locales.__("Captcha not correct") );
                                             });
                                     });
                                 },
-                                username: [ "captcha", function( callback ) {
+                                function _username( callback ) {
                                     console.log( "AUTO", "username" );
                                     /* attempt to load user to check for existance */
-                                    var username = req.postman.username();
+                                    var username = req.postman[ userRegistration.nameFilter ]( "username" );
+                                    if( username.length < userRegistration.minimumNameLength )
+                                        return callback( req.locales.__("Username too short, minimum length: {0}").format( userRegistration.minimumNameLength ) );
+
                                     loadByName( req.kern.website, username, function( err, data ) {
 
                                         /* new user */
-                                        if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 )
-                                            callback( null, username );
+                                        if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
+                                            results.username = username;
+                                            callback();
+                                        }
                                         else
                                         /* user exists */
                                             callback( req.locales.__("Username exists")  );
                                     });
-                                }],
-                                password: [ "captcha", function( callback ) {
+                                },
+                                function _password( callback ) {
                                     console.log( "AUTO", "password" );
                                     /* check password */
                                     var password = req.postman.password();
@@ -332,14 +369,16 @@ module.exports = function _users( k ) {
                                         callback( req.locales.__( "Passwords do not match" ) );
                                     else if( password.length < minPasswordLength )
                                         callback( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
-                                    else
-                                        callback( null, password );
-                                }],
-                                passwordHash: [ "password", function( callback, results ) {
+                                    else {
+                                        results.password = password;
+                                        callback();
+                                    }
+                                },
+                                function _hash( callback ) {
                                     console.log( "AUTO", "passwordHash" );
                                     bcrypt.hash( results.password, null, null, callback );
-                                }],
-                                email: [ "captcha", function( callback )  {
+                                },
+                                function _email( callback )  {
                                     console.log( "AUTO", "email" );
                                     /* check if email exists */
                                     var email = req.postman.email();
@@ -348,11 +387,13 @@ module.exports = function _users( k ) {
                                             callback( err );
                                         else if( emailUser != null )
                                             callback( req.locales.__( "Email address already registered" ) );
-                                        else
-                                            callback( null, email );
+                                        else {
+                                            results.email = email;
+                                            callback();
+                                        }
                                     });
-                                }],
-                                usernameKey: [ "username", function( callback, results ) {
+                                },
+                                function _usernameKey( callback ) {
                                     console.log( "AUTO", "usernameKey" );
                                     /* check registere-queue usersnames */
                                     var usernameKey = getQueueNameKey( req.kern.website, results.username );
@@ -362,12 +403,14 @@ module.exports = function _users( k ) {
                                             callback( err );
                                         else if( key != "OK" )
                                             callback( req.locales.__( "Username already in register-queue, please check your email" ) );
-                                        else
-                                            callback( null, usernameKey );
+                                        else {
+                                            results.usernameKey = usernameKey;
+                                            callback();
+                                        }
                                     });
 
-                                }],
-                                emailKey: [ "usernameKey", "email", function( callback, results ) {
+                                },
+                                function _emailKey( callback ) {
                                     console.log( "AUTO", "emailKey" );
                                     /* check registere-queue emails */
                                     var emailKey = getQueueEmailKey( req.kern.website, results.email );
@@ -377,22 +420,26 @@ module.exports = function _users( k ) {
                                             callback( err );
                                         else if( key != "OK" )
                                             callback( req.locales.__( "Email already in register-queue, please check your email" ) );
-                                        else
-                                            callback( null, emailKey );
+                                        else {
+                                            results.emailKey = emailKey;
+                                            callback();
+                                        }
                                     });
 
-                                }],
-                                hash: function( callback ) {
+                                },
+                                function _hash( callback ) {
                                     console.log( "AUTO", "hash" );
                                     /* create register-hash */
                                     bcrypt.genSalt( 10, function( err, salt ) {
                                         if( err )
                                             callback( err );
-                                        else
-                                            callback( null, md5( salt ) );
+                                        else {
+                                            results.hash = md5( salt );
+                                            callback();
+                                        }
                                     });
                                 },
-                                queueKey: [ "usernameKey", "emailKey", "hash", "passwordHash", function( callback, results ) {
+                                function _queueKey( callback ) {
                                     console.log( "AUTO", "queueKey" );
 
                                     /* save new user */
@@ -407,8 +454,8 @@ module.exports = function _users( k ) {
                                         if( err ) return callback( err );
                                         k.rdb.expire( queueKey, userRegistration.timeout, callback );
                                     });
-                                }],
-                                sendEmail: [ "queueKey", function( callback, results ) {
+                                },
+                                function _sendEmail( callback ) {
                                     console.log( "AUTO", "sendEmail" );
                                     /* send email */
                                     var emailTransport = nodemailer.createTransport( smtpTransport({
@@ -424,7 +471,9 @@ module.exports = function _users( k ) {
                                     }));
 
                                     var link = userRegistration.link.replace( /{hash}/g, results.hash );
-                                    var text = userRegistration.email.text.replace( /{link}/g, link );
+                                    var text = userRegistration.email.text
+                                        .replace( /{link}/g, link )
+                                        .replace( /{username}/g, results.username );
 
                                     emailTransport.sendMail({
                                         from: userRegistration.smtp.email,
@@ -432,29 +481,25 @@ module.exports = function _users( k ) {
                                         subject: userRegistration.email.subject,
                                         text: text
                                     }, callback );
-                                }]
-                            }, function( err, results ){
+                                }
+                            ], function( err ){
                                 console.log( "AUTO", "FIN", err, results );
+
                                 /* clean up queue and render error */
-                                if( err ) {
-                                    var deleteKeys = [];
+                                var deleteKeys = [];
+                                [ "usernameKey", "emailKey", "queueKey" ].forEach( function( keyName ) {
+                                    if( keyName in results )
+                                        deleteKeys.push( results[keyName] );
+                                });
 
-                                    /* TODO: only delete this keys if this instance has created it, currently this is a race condition */
-                                    if( "usernameKey"   in results ) deleteKeys.push( "usernameKey" );
-                                    if( "emailKey"      in results ) deleteKeys.push( "emailKey"    );
-                                    if( "queueKey"      in results ) deleteKeys.push( "queueKey"    );
-
-                                    k.rdb.del( deleteKeys, function() {
+                                if( err )
+                                    return k.rdb.del( deleteKeys, function() {
                                         executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, vals ) );
                                     });
-                                    return;
-                                }
 
-                                /* TODO: confirmation website which creates the real user */
                                 console.log( "REGISTRATION COMPLETE!" );
                                 var success = req.locales.__("Registration successfull, please confirm your email-address to activate your account");
                                 executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, vals ) );
-                            
                             });
                         }
                         else
@@ -480,6 +525,7 @@ module.exports = function _users( k ) {
         update: function( prefix, id, obj, callback ) {
             save( obj, prefix, id, callback );
         },
+        changePassword: changePassword,
         del: function( prefix, id, callback ) {
             return callback( new Error( "users.del not implemented" ) );
         },

@@ -30,9 +30,10 @@ block content
         if register
             if( !hideLogin )
                 p
-                    div.separator 
-                        span
-                            | OR
+                div.separator
+                    span
+                        | OR
+                p
 
             if( !hideRegister )
                 form(method='post',role='form')
@@ -44,5 +45,5 @@ block content
                     +hidden-field("csrf", csrf)
                     !=captchaPre
                     button.btn.btn-default(type='submit',name='register',value='yes')=__("Register")
-
+                    p
 

@@ -258,5 +258,13 @@
     "Time": "Time",
     "Actions": "Actions",
     "Delete data": "Delete data",
-    "Count sync": "Count sync"
+    "Count sync": "Count sync",
+    "Upload file": "Upload file",
+    "Register": "Register",
+    "Delete file": "Delete file",
+    "New folder": "New folder",
+    "Not Found": "Not Found",
+    "Username already in register-queue, please check your email": "Username already in register-queue, please check your email",
+    "Username too short, minimum length: {0}": "Username too short, minimum length: {0}",
+    "Captcha": "Captcha"
 }
