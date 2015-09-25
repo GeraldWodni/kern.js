@@ -19,7 +19,7 @@ module.exports = function _static( k, opts ) {
 
         /* contain in directory */
         if( pathname.indexOf( ".." ) >= 0 )
-            return k.app.renderHttpStatus( req, res, 403 );
+            return k.err.renderHttpStatus( req, res, 403 );
 
         callback( pathname.indexOf( prefix ) == 0, pathname );
     };

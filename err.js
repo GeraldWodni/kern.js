@@ -10,6 +10,7 @@ module.exports = function _err( k ) {
     function renderHttpStatus( req, res, code , opts ) {
         if( !_.has( httpStati, code ) )
             code = 501;
+        opts = opts || {}
 
         res.status( code );
         k.jade.render( req, res, "httpStatus", _.extend( { code: code }, httpStati[ code ], opts.values || {} ) );
