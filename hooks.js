@@ -31,8 +31,9 @@ module.exports = function( k ) {
     }
 
     function routePostHooks() {
-        k.app.use( function( req, res ) {
+        k.app.use( function( req, res, next ) {
             executeHooks( "post", req, res );
+            next();
         });
     }
 

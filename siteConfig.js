@@ -77,7 +77,7 @@ module.exports = function _siteConfig( k, opts ) {
                             if( err )
                                 console.log("Autoload-Error:".bold.red, err );
                             done();
-                        })
+                        });
                     else
                         done();
                 });

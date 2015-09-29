@@ -131,24 +131,27 @@ var Kern = function( callback, kernOpts ) {
 
         /* look for site-specific route */
         app.use( k.site.getOrLoad );
-        
+
         //app.use( "/", navigation( rdb ) );
 
         /* administration interface */
         app.use( "/admin", k.site.module( "default", "administration.js", { register: "admin" } ).router );
 
 
-        /** handle errors **/
-        k.err.route();
-
-        /* tail functions */
-        k.session.pushPostHook();
-        k.hooks.routePostHooks();
 
         /* configure websites (async) */
         var serverInstance = null;
         k.siteConfig.loadAll(function() {
+
+            /** handle errors **/
+            k.err.route();
+
+            /* tail functions */
+            k.session.pushPostHook();
+            k.hooks.routePostHooks();
+
             /* start listener */
+            console.log("All Sites loaded".bold.magenta);
             serverInstance = app.listen( kernOpts.port );
         });
 

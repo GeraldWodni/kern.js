@@ -24,7 +24,7 @@ module.exports = function _site( k, opts ) {
                 var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
                 websites[ website ] = target;
                 console.log("LoadWebsite".bold.green, website, websites );
-                return target;
+                next();
             } catch( err ) {
                 console.log("LoadWebsite-Error:".bold.red, err );
                 next( err );
@@ -32,12 +32,11 @@ module.exports = function _site( k, opts ) {
         }
         else
             next();
-
-        return null;
     }
 
     function getOrLoad(req, res, next) {
         var target;
+        var url = req.url;
         if( req.kern.website in websites )
             target = websites[ req.kern.website ];
         else
@@ -45,8 +44,15 @@ module.exports = function _site( k, opts ) {
             target = load( req.kern.website, next );
 
         /* execute target site-script */
-        if( target != null && "router" in target )
-            target.router( req, res, next );
+        if( target != null && "router" in target ) {
+            console.log( "Routing!");
+            target.router( req, res, function() { console.log( "Routed" );
+                /* repair req.url after routing websockets */
+                if( url.indexOf( ".websocket" ) >= 0 )
+                    req.url = url;
+                next();
+            } );
+        }
     }
 
     function routeRequestStart() {
