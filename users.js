@@ -269,6 +269,7 @@ module.exports = function _users( k ) {
 
             /* save csrf and captcha (which is only used for registration) */
             k.rdb.set( [ getCsrfKey( req.kern.website, csrf ), captchaWord, "EX", captchaTimeout ], function( err ) {
+                console.log( "loginRequired:csrf", err );
                 if( err )
                     return next( err );
 
@@ -369,14 +370,12 @@ module.exports = function _users( k ) {
                                         callback( req.locales.__( "Passwords do not match" ) );
                                     else if( password.length < minPasswordLength )
                                         callback( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
-                                    else {
-                                        results.password = password;
-                                        callback();
-                                    }
-                                },
-                                function _hash( callback ) {
-                                    console.log( "AUTO", "passwordHash" );
-                                    bcrypt.hash( results.password, null, null, callback );
+                                    else
+                                        bcrypt.hash( password, null, null, function( err, passwordHash ) {
+                                            if( err ) return callback( err );
+                                            results.passwordHash = passwordHash;
+                                            callback();
+                                        });
                                 },
                                 function _email( callback )  {
                                     console.log( "AUTO", "email" );
