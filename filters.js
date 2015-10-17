@@ -55,7 +55,9 @@ module.exports = function _filters( k ) {
         var filters = {};
         _.each( registeredFilters, function _filters_fetch_callback( filter, name ) {
             filters[ name ] = function( field ) {
-                return filter( fetch( field || name ) );
+                if( typeof field === "undefined" )
+                    field = name;
+                return filter( fetch( field ) );
             }
         });
         return filters;
