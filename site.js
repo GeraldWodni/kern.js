@@ -24,7 +24,7 @@ module.exports = function _site( k, opts ) {
                 var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
                 websites[ website ] = target;
                 console.log("LoadWebsite".bold.green, website, websites );
-                next();
+                next( null, target );
             } catch( err ) {
                 console.log("LoadWebsite-Error:".bold.red, err );
                 next( err );
@@ -34,25 +34,35 @@ module.exports = function _site( k, opts ) {
             next();
     }
 
-    function getOrLoad(req, res, next) {
+    function getTarget(req, callback) {
         var target;
-        var url = req.url;
+        /* website already loaded, return it */
         if( req.kern.website in websites )
-            target = websites[ req.kern.website ];
+            callback( null, websites[ req.kern.website ] );
+        /* get site specific script and execute it */
         else
-            /* get site specific script and execute it */
-            target = load( req.kern.website, next );
+            load( req.kern.website, callback );
+    }
 
-        /* execute target site-script */
-        if( target != null && "router" in target ) {
-            console.log( "Routing!");
-            target.router( req, res, function() { console.log( "Routed" );
-                /* repair req.url after routing websockets */
-                if( url.indexOf( ".websocket" ) >= 0 )
-                    req.url = url;
+    function getOrLoad(req, res, next) {
+        /* get site */
+        getTarget( req, function( err, target ){
+            if( err ) return next( err );
+
+            /* router? */
+            if( target != null && "router" in target ) {
+                console.log( "Routing!");
+                target.router( req, res, function() { console.log( "Routed" );
+                    /* repair req.url after routing websockets */
+                    if( url.indexOf( ".websocket" ) >= 0 )
+                        req.url = url;
+                    next();
+                } );
+            }
+            /* no router */
+            else
                 next();
-            } );
-        }
+        });
     }
 
     function routeRequestStart() {
