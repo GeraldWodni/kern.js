@@ -46,6 +46,7 @@ module.exports = function _site( k, opts ) {
 
     function getOrLoad(req, res, next) {
         /* get site */
+	var url = req.url;
         getTarget( req, function( err, target ){
             if( err ) return next( err );
 
