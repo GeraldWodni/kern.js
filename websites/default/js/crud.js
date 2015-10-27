@@ -21,16 +21,18 @@ $(function(){
             search = "^" + search + ".*$";
         }
 
+        var regExp = new RegExp( search, "i" );
+
         $(this).closest(".crud-list").find(".crud-item").each(function( index, item ) {
             var $item = $(item);
             var visibility;
             
             if( searchId )
-                visibility = $item.find("a.btn").attr("href").search( new RegExp( search, "i" ) ) >= 0;
+                visibility = $item.find("a.btn").attr("href").search( regExp ) >= 0;
             else
-                visibility = $item.text().replace(/[\n\r]/g, " ").search( new RegExp( search, "i" ) ) >= 0;
+                visibility = $item.text().replace(/[\n\r]/g, " ").search( regExp ) >= 0;
 
-            if( $item.is(":visible") != visibility )
+            if( true || $item.is(":visible") != visibility )
                 if( visibility )
                     $item.show();
                 else
