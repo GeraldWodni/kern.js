@@ -1,5 +1,6 @@
 // String prototype extenders
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 if( !String.prototype.format ) {
     String.prototype.format = function() {

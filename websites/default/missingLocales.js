@@ -26,7 +26,7 @@ module.exports = {
         }
 
         k.router.post( "/", function( req, res, next ) {
-            k.modules.postman( req, res, function() {
+            k.postman( req, res, function() {
                 console.log( req.postman.fields );
 
                 if( req.postman.exists( "reset" ) ) {

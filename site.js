@@ -1,8 +1,10 @@
 // website loading (site.js)
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var express = require("express");
 var fs      = require("fs");
+var path    = require("path");
 var os      = require("os");
 var _       = require("underscore");
 var async   = require( "async" );
@@ -22,7 +24,7 @@ module.exports = function _site( k, opts ) {
                 var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
                 websites[ website ] = target;
                 console.log("LoadWebsite".bold.green, website, websites );
-                return target;
+                next( null, target );
             } catch( err ) {
                 console.log("LoadWebsite-Error:".bold.red, err );
                 next( err );
@@ -30,21 +32,38 @@ module.exports = function _site( k, opts ) {
         }
         else
             next();
+    }
 
-        return null;
+    function getTarget(req, callback) {
+        var target;
+        /* website already loaded, return it */
+        if( req.kern.website in websites )
+            callback( null, websites[ req.kern.website ] );
+        /* get site specific script and execute it */
+        else
+            load( req.kern.website, callback );
     }
 
     function getOrLoad(req, res, next) {
-        var target;
-        if( req.kern.website in websites )
-            target = websites[ req.kern.website ];
-        else
-            /* get site specific script and execute it */
-            target = load( req.kern.website, next );
+        /* get site */
+	var url = req.url;
+        getTarget( req, function( err, target ){
+            if( err ) return next( err );
 
-        /* execute target site-script */
-        if( target != null && "router" in target )
-            target.router( req, res, next );
+            /* router? */
+            if( target != null && "router" in target ) {
+                console.log( "Routing!");
+                target.router( req, res, function() { console.log( "Routed" );
+                    /* repair req.url after routing websockets */
+                    if( url.indexOf( ".websocket" ) >= 0 )
+                        req.url = url;
+                    next();
+                } );
+            }
+            /* no router */
+            else
+                next();
+        });
     }
 
     function routeRequestStart() {
@@ -63,6 +82,7 @@ module.exports = function _site( k, opts ) {
 
             req.kern = {
                 website: website,
+                remoteIp: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
                 lookupFile: function( filePath ) {
                     return k.hierarchy.lookupFileThrow( website, filePath );
                 },
@@ -97,7 +117,7 @@ module.exports = function _site( k, opts ) {
         if( !opts.exactFilename )
             filename = "./" + k.hierarchy.lookupFileThrow( website, filename );
 
-        target = require( filename )
+        var target = require( filename )
 
         /* register module */
         if( opts.register ) {
@@ -123,7 +143,9 @@ module.exports = function _site( k, opts ) {
             hierarchy: k.hierarchy,
             hooks: k.hooks,
             filters: k.filters,
+            getman:  k.getman,
             postman: k.postman,
+            requestman: k.requestman,
             website: website,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
@@ -151,7 +173,7 @@ module.exports = function _site( k, opts ) {
             httpStatus: k.err.renderHttpStatus,
             serverConfig: k.kernOpts,
             prefixServeStatic: k.static.prefixServeStatic,
-            serverStaticFile: function _serveStatic( filename ) {
+            serveStaticFile: function _serveStatic( filename ) {
                 return function( req, res ) {
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, filename );
                     res.sendfile( filepath );
@@ -160,7 +182,7 @@ module.exports = function _site( k, opts ) {
             hierarchyRoot: function( website ) {
                 var root = k.hierarchy.website( website );
                 if( root )
-                    return path.join( kernOpts.websitesRoot, root );
+                    return path.join( k.kernOpts.websitesRoot, root );
                 else
                     return null;
             },
@@ -198,7 +220,8 @@ module.exports = function _site( k, opts ) {
             },
             reg: function( name ) {
                 return registeredSiteModules[ name ];
-            }
+            },
+            setupOpts: opts.setup
         });
 
         /* app requires cleanup */

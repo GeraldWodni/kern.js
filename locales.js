@@ -1,5 +1,6 @@
 // Locales
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var fs      = require("fs");
 var path    = require("path");
@@ -95,6 +96,7 @@ module.exports = function _locales( k, opts ) {
                 current:    current,
                 currentRoot:current.split("-")[0],
                 available:  localeNames,
+                reload: reload,
                 __:         function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); }
             };
 

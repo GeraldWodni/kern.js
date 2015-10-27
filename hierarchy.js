@@ -1,5 +1,6 @@
 // hierarchy module - website inheritance
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var path    = require("path");
 var fs      = require("fs");
@@ -38,8 +39,11 @@ module.exports = function _hierarchy( k ) {
 
     function lookupFileThrow( website, filename ) {
         var filePath = lookupFile( website, filename );
-        if( filePath == null )
-            throw new Error( "hierarchy-lookupFile: '" + filename + "' not found!" ); 
+        if( filePath == null ) {
+            var err = new Error( "Not Found: '" + filename + "'" ); 
+            err.status = 404;
+            throw err;
+        }
 
         return filePath;
     }
@@ -64,7 +68,7 @@ module.exports = function _hierarchy( k ) {
 
     function upParts( website ) {
         var parts = [ website ];
-        part = website;
+        var part = website;
 
         while( part = up( part ) )
             parts.push( part );

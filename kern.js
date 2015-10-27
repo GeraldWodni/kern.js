@@ -1,5 +1,6 @@
 // Main File, setup kern and spawn workers
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var cluster = require("cluster");
 var os      = require("os");
@@ -39,6 +40,7 @@ var defaults = {
     viewFolder: 'views',
     rootFolder: __dirname,
     processCount: 1,
+    debugHosts: [ '127.', '10.', '192.168.' ],  // LAN-Clients are debug-hosts ( advanced debugging like stack traces etc. is displayed )
     cacheJade: true // disable cache until dependencies are checked
     // processCount: specify the number of worker-processes to create
 };
@@ -113,11 +115,11 @@ var Kern = function( callback, kernOpts ) {
         app.use( logger('dev') );
         //app.use( config() );
 
+        /* load locales now to support locale error messages (also required for static-404s) */
+        k.locales.route();
+
         /* serve static files */
         k.static.route();
-
-        /* load locales now to support locale error messages */
-        k.locales.route();
 
         /* enable dynamic-modules */
         if( typeof callback === 'function' )
@@ -129,24 +131,27 @@ var Kern = function( callback, kernOpts ) {
 
         /* look for site-specific route */
         app.use( k.site.getOrLoad );
-        
+
         //app.use( "/", navigation( rdb ) );
 
         /* administration interface */
         app.use( "/admin", k.site.module( "default", "administration.js", { register: "admin" } ).router );
 
 
-        /** handle errors **/
-        k.err.route();
-
-        /* tail functions */
-        k.session.pushPostHook();
-        k.hooks.routePostHooks();
 
         /* configure websites (async) */
         var serverInstance = null;
         k.siteConfig.loadAll(function() {
+
+            /** handle errors **/
+            k.err.route();
+
+            /* tail functions */
+            k.session.pushPostHook();
+            k.hooks.routePostHooks();
+
             /* start listener */
+            console.log("All Sites loaded".bold.magenta);
             serverInstance = app.listen( kernOpts.port );
         });
 

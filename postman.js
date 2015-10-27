@@ -1,5 +1,6 @@
 // Receive and handle post data
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var qs  = require( "qs" );
 var _   = require("underscore");

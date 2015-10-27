@@ -12,6 +12,11 @@ block content
                 strong
                     = error
 
+        if success
+            div.alert.alert-success
+                strong
+                    = success
+
         if( !hideLogin )
             form(method='post',role='form')
                 div.form-group
@@ -25,15 +30,20 @@ block content
         if register
             if( !hideLogin )
                 p
-                    div.separator 
-                        span
-                            | OR
+                div.separator
+                    span
+                        | OR
+                p
 
-            form(method='post',role='form')
-                +text-field("username", __("Username"))
-                +text-field("email", __("Email"))
-                +password-field('password', __("Password"))
-                +password-field('password2', __("Confirm password"))
-                button.btn.btn-default(type='submit',name='register',value='yes')=__("Register")
-
+            if( !hideRegister )
+                form(method='post',role='form')
+                    +text-field("username", __("Username"))
+                    +text-field("email", __("Email"))
+                    +password-field('password', __("Password"))
+                    +password-field('password2', __("Confirm password"))
+                    +text-field("captcha", __("Captcha"))
+                    +hidden-field("csrf", csrf)
+                    !=captchaPre
+                    button.btn.btn-default(type='submit',name='register',value='yes')=__("Register")
+                    p
 

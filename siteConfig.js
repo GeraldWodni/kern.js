@@ -1,5 +1,6 @@
 // website specific configuration
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
+"use strict";
 
 var _       = require( "underscore" );
 var os      = require( "os" );
@@ -76,7 +77,7 @@ module.exports = function _siteConfig( k, opts ) {
                             if( err )
                                 console.log("Autoload-Error:".bold.red, err );
                             done();
-                        })
+                        });
                     else
                         done();
                 });

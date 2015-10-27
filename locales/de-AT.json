@@ -250,5 +250,14 @@
     "Index": "Index",
     "Time": "Zeit",
     "Actions": "Aktionen",
-    "Delete data": "Daten löschen"
+    "Delete data": "Daten löschen",
+    "Count sync": "Zählsynchronisation",
+    "Upload file": "Datei hochladen",
+    "Register": "Registrieren",
+    "Delete file": "Datei löschen",
+    "New folder": "Neuer Ordner",
+    "Not Found": "Nicht gefunden",
+    "Username already in register-queue, please check your email": "Benutzername bereits in Registrierablauf, Emailpostfach überprüfen",
+    "Username too short, minimum length: {0}": "Benutzername zu kurz, Mindestlänge: {0}",
+    "Captcha": "Captcha"
 }
