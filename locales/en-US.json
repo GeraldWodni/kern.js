@@ -268,5 +268,6 @@
     "Username too short, minimum length: {0}": "Username too short, minimum length: {0}",
     "Captcha": "Captcha",
     "template": "Template",
-    "Filter": "Filter"
+    "Filter": "Filter",
+    "Show templates only": "Show templates only"
 }

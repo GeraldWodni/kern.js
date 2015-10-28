@@ -261,5 +261,6 @@
     "Username too short, minimum length: {0}": "Benutzername zu kurz, Mindestlänge: {0}",
     "Captcha": "Captcha",
     "template": "Vorlage",
-    "Filter": "Filter"
+    "Filter": "Filter",
+    "Show templates only": "Nur Vorlagen anzeigen"
 }

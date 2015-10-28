@@ -148,9 +148,9 @@ mixin foreign-grouped-field(name, label, items, value, opts)
         label= label
         if opts && opts.inputGroup
             div.input-group
-                +_foreign-grouped-field(name, label, items, value, opts)&attributes(attributes)
+                +_foreign-grouped-field(name, label, items, value, opts)&attributes(attrs)
         else
-            +_foreign-grouped-field(name, label, items, value, opts)&attributes(attributes)
+            +_foreign-grouped-field(name, label, items, value, opts)&attributes(attrs)
 
 mixin textarea-field(name, label, value) 
     div.form-group
