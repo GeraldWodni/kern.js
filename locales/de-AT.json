@@ -259,5 +259,7 @@
     "Not Found": "Nicht gefunden",
     "Username already in register-queue, please check your email": "Benutzername bereits in Registrierablauf, Emailpostfach überprüfen",
     "Username too short, minimum length: {0}": "Benutzername zu kurz, Mindestlänge: {0}",
-    "Captcha": "Captcha"
+    "Captcha": "Captcha",
+    "template": "Vorlage",
+    "Filter": "Filter"
 }

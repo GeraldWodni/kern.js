@@ -125,6 +125,33 @@ mixin foreign-field(name, label, items, value, opts)
         else
             +_foreign-field(name, label, items, value, opts)&attributes(attributes)
 
+mixin _foreign-grouped-field(name, label, items, value, opts)
+    select.form-control(name=name)&attributes(attributes)
+        unless opts && opts.hideNone
+            optgroup(label="<"+__("None")+">")
+                option(value=0)= "<"+__("None")+">"
+        - var grouped = _.groupBy(items, opts.groupBy);
+        - var composeName = function( item ) { return opts && opts.composeName ? opts.composeName(item) : item.name };
+        each groupName in _.keys(grouped).sort()
+            optgroup(label=groupName)
+                each item in _.sortBy( grouped[groupName], function( item ) { return composeName( item ).toLowerCase(); } )
+                    -var id = (opts && opts.idField ? item[opts.idField] : item.id)
+                    -var name = composeName( item )
+                    if(id == value)
+                        option(value=id,selected='selected')= name
+                    else
+                        option(value=id)= name
+
+mixin foreign-grouped-field(name, label, items, value, opts)
+    - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {});
+    div.form-group
+        label= label
+        if opts && opts.inputGroup
+            div.input-group
+                +_foreign-grouped-field(name, label, items, value, opts)&attributes(attributes)
+        else
+            +_foreign-grouped-field(name, label, items, value, opts)&attributes(attributes)
+
 mixin textarea-field(name, label, value) 
     div.form-group
         label= label
