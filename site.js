@@ -53,7 +53,8 @@ module.exports = function _site( k, opts ) {
             /* router? */
             if( target != null && "router" in target ) {
                 console.log( "Routing!");
-                target.router( req, res, function() { console.log( "Routed" );
+                target.router( req, res, function( err ) { console.log( "Routed" );
+                    if( err ) return next( err );
                     /* repair req.url after routing websockets */
                     if( url.indexOf( ".websocket" ) >= 0 )
                         req.url = url;
