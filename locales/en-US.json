@@ -266,5 +266,8 @@
     "Not Found": "Not Found",
     "Username already in register-queue, please check your email": "Username already in register-queue, please check your email",
     "Username too short, minimum length: {0}": "Username too short, minimum length: {0}",
-    "Captcha": "Captcha"
+    "Captcha": "Captcha",
+    "template": "Template",
+    "Filter": "Filter",
+    "Show templates only": "Show templates only"
 }
