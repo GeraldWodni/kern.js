@@ -19,6 +19,7 @@
     "express-ws": "^1.0.0-rc.1",
     "geoip-lite": "^1.1.5",
     "gm": "^1.18.1",
+    "id3-parser": "^1.0.1",
     "jade": "1.9.x",
     "jszip": "^2.5.0",
     "less": "1.7.x",
