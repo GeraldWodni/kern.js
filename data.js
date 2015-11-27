@@ -9,7 +9,7 @@ var _       = require("underscore");
 module.exports = function _data( k ) {
     var websites = {};
 
-    const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
+    var dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
     function load( website ) {
         var files = k.hierarchy.paths( website, "data.js" ).reverse();
         var data = {
