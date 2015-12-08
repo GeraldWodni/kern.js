@@ -10,6 +10,10 @@ mixin script(src)
 mixin script-tag(scriptSource)
     script(type='text/javascript',src='#{scriptSource}')
 
+mixin script-json( id, obj )
+    script(type="application/json",id=id)&attributes(attributes)
+        != JSON.stringify( obj )
+
 //- include every required script exactly once
 mixin scripts()
     each scriptSource in scriptSources
