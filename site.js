@@ -147,6 +147,7 @@ module.exports = function _site( k, opts ) {
             getman:  k.getman,
             postman: k.postman,
             requestman: k.requestman,
+            proxyCache: k.proxyCache,
             website: website,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
@@ -205,12 +206,8 @@ module.exports = function _site( k, opts ) {
 
                 }, callback );
             },
-            createHierarchyReadStream: function( website, filename ) {
-                var filepath = k.hierarchy.lookupFile( website, filename );
-                if( filepath == null )
-                    return null;
-                return fs.createReadStream( filepath );
-            },
+            createHierarchyReadStream: k.hierarchy.createReadStream,
+            createHierarchyWriteStream: k.hierarchy.createWriteStream,
             hostname: os.hostname(),
             getWebsiteConfig: function( key, defaultValue ) {
                 var value = k.siteConfig.get( website, key, defaultValue );
