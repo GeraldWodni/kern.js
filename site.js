@@ -166,7 +166,8 @@ module.exports = function _site( k, opts ) {
             useSiteModule: function( prefix, website, filename, opts ) {
                 //console.log( "USE".magenta.bold, website, filename );
                 var subTarget = siteModule( website, filename, opts );
-                router.use( prefix, subTarget.router );
+                if( prefix != null )
+                    router.use( prefix, subTarget.router );
             },
             exitHook: function _exitHook( callback ) {
                 app.exitHooks.push( callback );
@@ -211,9 +212,9 @@ module.exports = function _site( k, opts ) {
             hostname: os.hostname(),
             getWebsiteConfig: function( key, defaultValue ) {
                 var value = k.siteConfig.get( website, key, defaultValue );
-                console.log( "getWebsiteConfig", website, key, value, defaultValue )
-                console.log( websiteConfigs[ website ] ); 
-                console.log( websiteConfigs );
+                //console.log( "getWebsiteConfig", website, key, value, defaultValue )
+                //console.log( websiteConfigs[ website ] ); 
+                //console.log( websiteConfigs );
                 return value;
             },
             reg: function( name ) {
