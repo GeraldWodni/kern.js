@@ -53,7 +53,8 @@ module.exports = function _site( k, opts ) {
             /* router? */
             if( target != null && "router" in target ) {
                 console.log( "Routing!");
-                target.router( req, res, function() { console.log( "Routed" );
+                target.router( req, res, function( err ) { console.log( "Routed" );
+                    if( err ) return next( err );
                     /* repair req.url after routing websockets */
                     if( url.indexOf( ".websocket" ) >= 0 )
                         req.url = url;
@@ -146,6 +147,7 @@ module.exports = function _site( k, opts ) {
             getman:  k.getman,
             postman: k.postman,
             requestman: k.requestman,
+            proxyCache: k.proxyCache,
             website: website,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
@@ -164,7 +166,8 @@ module.exports = function _site( k, opts ) {
             useSiteModule: function( prefix, website, filename, opts ) {
                 //console.log( "USE".magenta.bold, website, filename );
                 var subTarget = siteModule( website, filename, opts );
-                router.use( prefix, subTarget.router );
+                if( prefix != null )
+                    router.use( prefix, subTarget.router );
             },
             exitHook: function _exitHook( callback ) {
                 app.exitHooks.push( callback );
@@ -204,18 +207,14 @@ module.exports = function _site( k, opts ) {
 
                 }, callback );
             },
-            createHierarchyReadStream: function( website, filename ) {
-                var filepath = k.hierarchy.lookupFile( website, filename );
-                if( filepath == null )
-                    return null;
-                return fs.createReadStream( filepath );
-            },
+            createHierarchyReadStream: k.hierarchy.createReadStream,
+            createHierarchyWriteStream: k.hierarchy.createWriteStream,
             hostname: os.hostname(),
             getWebsiteConfig: function( key, defaultValue ) {
                 var value = k.siteConfig.get( website, key, defaultValue );
-                console.log( "getWebsiteConfig", website, key, value, defaultValue )
-                console.log( websiteConfigs[ website ] ); 
-                console.log( websiteConfigs );
+                //console.log( "getWebsiteConfig", website, key, value, defaultValue )
+                //console.log( websiteConfigs[ website ] ); 
+                //console.log( websiteConfigs );
                 return value;
             },
             reg: function( name ) {

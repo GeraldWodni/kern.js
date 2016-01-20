@@ -117,14 +117,27 @@ module.exports = function _hierarchy( k ) {
         routes[ source ] = target;
     }
 
+    /* stream wrappers */
+    function createReadStream( website, filename ) {
+        var filepath = lookupFile( website, filename );
+        return fs.createReadStream( filepath || "" );
+    }
+
+    function createWriteStream( _website, filename ) {
+        var filepath = path.join( websitesRoot, website( _website ), filename );
+        return fs.createWriteStream( filepath ); 
+    }
+
     return {
-        addRoute:       addRoute,
-        lookupFile:     lookupFile,
-        lookupFileThrow:lookupFileThrow,
-        up:             up,
-        upParts:        upParts,
-        upExists:       upExists,
-        paths:          paths,
-        website:        website
+        addRoute:           addRoute,
+        createReadStream:   createReadStream,
+        createWriteStream:  createWriteStream,
+        lookupFile:         lookupFile,
+        lookupFileThrow:    lookupFileThrow,
+        up:                 up,
+        upParts:            upParts,
+        upExists:           upExists,
+        paths:              paths,
+        website:            website
     }
 }

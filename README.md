@@ -96,7 +96,37 @@ Overall the hierarchy allows you to eliminate lots of redundancy for your websit
 ## Data
 *TODO*
 ### data.js (website's main data-description)
-*TODO*
+Contains the data-model description for a website. Returns an object containing CRUDs, which can be received in any site-script by calling k.getData().
+Example file:
+```
+module.exports = {
+    setup: function( k ) {
+
+        var connection = k.getDb();
+
+        var groups = k.crud.sql( connection, {
+            table: "groups",
+            foreignKeys: {
+                user:   { crud: k.users, unPrefix: true }
+            }
+        } );
+        var devices = k.crud.sql( connection, {
+            selectListQuery: "SELECT `devices`.`id`, `devices`.`name`, `groups`.`name` AS `groupName` FROM `devices` INNER JOIN `groups` ON `groups`.`id`=`devices`.`group` ORDER BY `groupName`, `name`",
+            table: "devices",
+            foreignBoldName: 'groupName',
+            foreignKeys: {
+                group:  { crud: groups }
+            }
+        });
+
+        return {
+            devices:    devices,
+            groups:     groups
+        };
+    }
+}
+```
+
 ### Database
 *TODO*
 ### Redis

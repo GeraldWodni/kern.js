@@ -102,6 +102,7 @@ var Kern = function( callback, kernOpts ) {
         loadModule( k, "postman"    );
         loadModule( k, "cache"      );
         loadModule( k, "site"       );
+        loadModule( k, "proxyCache" );
         loadModule( k, "siteConfig" );
         loadModule( k, "static"     );
         loadModule( k, "jade"       );
