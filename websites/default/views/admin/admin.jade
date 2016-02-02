@@ -38,9 +38,10 @@ html(lang=__('current-locale'))
     body
         div.navbar.navbar-fixed-top(role='navigation')
             div.navbar-header
-                a.navbar-brand(href="/")
-                    block brand-name
-                        | kern.js
+                block brand-link
+                    a.navbar-brand(href="/")
+                        block brand-name
+                            | kern.js
             ul
                 block navItems
                     each menuItem in menu || []

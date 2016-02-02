@@ -13,7 +13,8 @@ mixin crud( opts )
         div.crud-fields(class=(opts.startExpanded || !opts.showList)?"":"col-sm-8")
             if opts.values
                 block crudPreEditItem
-                +crudEdit( opts )
+                block crudEditItem
+                    +crudEdit( opts )
             else if opts.showAdd
                 +crudAdd( opts )
             else

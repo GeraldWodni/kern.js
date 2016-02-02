@@ -75,6 +75,9 @@ module.exports = function _locales( k, opts ) {
     
     /* TODO: finish this function, always yields notFound */
     function __( locale, text ) {
+        if( text.length > 0 && text.charAt(0) === "=" )
+            return text.substring(1);
+    
         var resolved = locales[ locale ][ text ];
         if( resolved == undefined )
             return notFound( text );

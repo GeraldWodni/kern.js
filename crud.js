@@ -66,7 +66,7 @@ module.exports = function _crud( k ) {
                 else if( data.length == 0 )
                     callback( null, [] );
                 else
-                    callback( null, data[0] );
+                    callback( null, data[0], data );
             });
         }
 
@@ -743,7 +743,7 @@ module.exports = function _crud( k ) {
 
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
-        function renderAll( req, res, next, values ) {
+        function renderAll( req, res, next, values, fullData ) {
             var renderCrud = r.getCrud( req );
 
             renderCrud.readList( function( err, items ) {
@@ -788,6 +788,7 @@ module.exports = function _crud( k ) {
                         fields: fields,
                         scripts: opts.scripts || [],
                         values: r.getValues( req, fields, values ),
+                        fullData: fullData,
                         formAction: req.baseUrl,
                         showList: getOptional( k, opts.showList, req ),
                         showAdd: opts.showAdd,
@@ -800,7 +801,7 @@ module.exports = function _crud( k ) {
         }
 
         k.router.get(opts.editPath, function( req, res, next ) {
-            r.getCrud( req ).read( r.getRequestId( req ), function( err, data ) {
+            r.getCrud( req ).read( r.getRequestId( req ), function( err, data, fullData ) {
                 if( err )
                     return next( err );
 
@@ -811,7 +812,7 @@ module.exports = function _crud( k ) {
                 }
                 /* dataset found, render "edit" */
                 else
-                    renderAll( req, res, next, data );
+                    renderAll( req, res, next, data, fullData );
             });
         });
 
