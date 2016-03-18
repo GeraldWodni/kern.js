@@ -2,6 +2,7 @@
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
+var async   = require('async');
 var path    = require("path");
 var fs      = require("fs");
 
@@ -128,12 +129,72 @@ module.exports = function _hierarchy( k ) {
         return fs.createWriteStream( filepath ); 
     }
 
+    function readTree( opts, callback ) {
+        var tree = { dirs: {}, files: [] };
+
+        /* queue worker */
+        var treeQueue = async.queue( function( task, next ) {
+
+            /* directory contents */
+            fs.readdir( task.dirpath, function( err, filenames ) {
+                if( err )
+                    return next( err );
+
+                /* run stat for content */
+                async.mapSeries( filenames, function( filename, d ) {
+                    var filepath = path.join( task.dirpath, filename );
+                    fs.stat( filepath, function( err, stat ) {
+                        if( err )
+                            return d( err );
+
+                        /* spawn new worker for every directory */
+                        if( stat.isDirectory() ) {
+                            var prefix = path.join( task.prefix, filename ); 
+                            var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
+                            task.tree.dirs[ filename ] = newTree;
+                            treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
+                        }
+                        /* just add file */
+                        else {
+                            var link = path.join( task.prefix, filename );
+                            task.tree.files.push( { name: filename, link: link } );
+                        }
+                        d();
+                    });
+                }, next );
+            });
+        });
+
+        /* all done, callback */
+        treeQueue.drain = function( err ) {
+            callback( err, tree );
+        };
+        treeQueue.push( { dirpath: opts.dirpath, tree: tree, prefix: opts.prefix || "" } );
+    }
+
+    function readHierarchyTree( website, dirpath, opts, callback ) {
+        if( typeof callback === "undefined" ) {
+            callback = opts;
+            opts = {};
+        }
+
+        var filepath = lookupFile( website, dirpath );
+        if( filepath == null )
+            return callback( new Error( "No Directory" ) );
+
+        opts.dirpath = filepath;
+        readTree( opts, callback );
+    }
+
+
     return {
         addRoute:           addRoute,
         createReadStream:   createReadStream,
         createWriteStream:  createWriteStream,
         lookupFile:         lookupFile,
         lookupFileThrow:    lookupFileThrow,
+        readTree:           readTree,
+        readHierarchyTree:  readHierarchyTree,
         up:                 up,
         upParts:            upParts,
         upExists:           upExists,
