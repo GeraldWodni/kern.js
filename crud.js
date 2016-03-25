@@ -406,7 +406,8 @@ module.exports = function _crud( k ) {
         opts = _.extend( {
             readFields: function( req ) {
                 var values = {};
-                _.each( opts.fields, function( fieldOpts, field ) {
+                var fields = _.isFunction( opts.fields ) ? opts.fields( req ) : opts.fields;
+                _.each( fields, function( fieldOpts, field ) {
                     var source = fieldOpts.source || "postman";
                     var filterName = fieldOpts.filter || opts.filters[ fieldOpts.type ] || field;
 
@@ -557,8 +558,10 @@ module.exports = function _crud( k ) {
             handlePost: handlePost,
             getRequestId: opts.getRequestId,
             getFields: function( req ) {
-                var jadeFields =  {}
-                _.each( opts.fields, function( fieldOpts, field ) {
+                var jadeFields =  {};
+                var fields = _.isFunction( opts.fields ) ? opts.fields( req ) : opts.fields;
+
+                _.each( fields, function( fieldOpts, field ) {
                     /* ignore fields with no type (idsignore fields with no type (ids)) */
                     if( fieldOpts.type ) {
                         var element = "text-field"

@@ -70,7 +70,7 @@ mixin checkbox-field(name, label, value)
     div.form-group
         div.checkbox
             label
-                if(value)
+                if(value && value !== "false")
                     input(type='checkbox',name=name,checked="checked")&attributes(attributes)
                 else
                     input(type='checkbox',name=name)&attributes(attributes)

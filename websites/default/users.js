@@ -5,25 +5,32 @@ var bcrypt      = require("bcrypt-nodejs");
 var colors      = require("colors");
 var util        = require("util");
 var querystring = require("querystring");
+var _           = require("underscore");
 
 
 module.exports = {
     setup: function( k ) {
 
+        var websiteFields = {};
         k.crud.presenter( k, k.users, {
             
             title: "Users",
             path: "/admin/users",
             unPrefix: true,
 
-            fields: {
-                id:         { name: "id", filter: "id", source: "requestman" },
-                name:       { text: "Name",             type: "text", filter: "username", attributes: { required: true } },
-                password:   { text: "Password",         type: "password" },
-                password2:  { text: "Confirm password", type: "password", filter: "drop" },
-                permissions:{ text: "Permissions",      type: "text", attributes: { required: true } }
-            }
+            fields: function( req ) {
+                /* fields not yet generated for this website */
+                if( !_.has( websiteFields, req.kern.website ) )
+                    websiteFields[ req.kern.website ] = _.extend({
+                        id:         { name: "id", filter: "id", source: "requestman" },
+                        name:       { text: "Name",             type: "text", filter: "username", attributes: { required: true } },
+                        password:   { text: "Password",         type: "password" },
+                        password2:  { text: "Confirm password", type: "password", filter: "drop" },
+                        permissions:{ text: "Permissions",      type: "text", attributes: { required: true } }
+                    }, req.kern.getWebsiteConfig( "additionalAdminUserFields", {} ));
 
+                return websiteFields[ req.kern.website ]
+            }
         });
 
         return;
