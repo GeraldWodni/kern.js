@@ -29,11 +29,11 @@ module.exports = {
 
         function websiteSubmodules( website ) {
             var routers = {
-                early:  { router: express.Router(), menu: [] },
-                main:   { router: express.Router(), menu: [] },
-                admin:  { router: express.Router(), menu: [] },
-                late:   { router: express.Router(), menu: [] },
-                final:  { router: express.Router(), menu: [] }
+                early:  { router: k.newRouter(), menu: [] },
+                main:   { router: k.newRouter(), menu: [] },
+                admin:  { router: k.newRouter(), menu: [] },
+                late:   { router: k.newRouter(), menu: [] },
+                final:  { router: k.newRouter(), menu: [] }
             };
             subModules[ website ] = routers;
         };

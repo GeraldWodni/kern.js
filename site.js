@@ -46,7 +46,7 @@ module.exports = function _site( k, opts ) {
 
     function getOrLoad(req, res, next) {
         /* get site */
-	var url = req.url;
+        var url = req.url;
         getTarget( req, function( err, target ){
             if( err ) return next( err );
 
@@ -126,7 +126,7 @@ module.exports = function _site( k, opts ) {
             registeredSiteModules[ opts.register ] = target;
         }
 
-        var router = express.Router();
+        var router = newRouter();
         target.setup({
             db: k.db,
             getDb: function() {
@@ -149,6 +149,7 @@ module.exports = function _site( k, opts ) {
             requestman: k.requestman,
             proxyCache: k.proxyCache,
             website: website,
+            newRouter: newRouter,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
                 k.app.ws.apply( this, arguments );
@@ -230,6 +231,29 @@ module.exports = function _site( k, opts ) {
         /* attach new router */
         target.router = router;
         return target;
+    };
+
+    /* create customized express router */
+    function newRouter() {
+        var router = express.Router();
+
+        /* overwrite postman */
+        router.postman = function() {
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.splice( -1, 1 )[0];     /* remove original callback */
+            if( callback.length == 3 )                  /* insert wrapper instead ( arity 3 ) */
+                args.push(function( req, res, next ) {
+                    k.postman( req, res, function(){
+                        callback( req, res, next );
+                    });
+                });
+            else                                        /* otherwise assume function of arity 2 */
+                args.push(function( req, res ) {
+                    k.postman( req, res, callback );
+                });
+            router.post.apply( router, args );     /* route post */
+        };
+        return router;
     };
 
     return {
