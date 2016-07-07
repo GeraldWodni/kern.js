@@ -12,7 +12,7 @@ module.exports = function _rdb( k, opts )  {
     rdb.getField = function _rdb_getField( item, field ) { 
         var index = field.indexOf( "." );
         if( index > 0 ) 
-            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
+            return _rdb_getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
         else
             return item[ field ]
     };

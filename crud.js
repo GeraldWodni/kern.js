@@ -60,7 +60,13 @@ module.exports = function _crud( k ) {
         }
 
         function read( key, callback ) {
-            db.query( opts.selectIdQuery, [ opts.table, opts.key, key ], function( err, data ) {
+            var values = [ opts.table, opts.key, key ];
+            if( _.has( key, "key" ) ) {
+                values = key;
+                values.values = [ opts.table, opts.key, key.key ];
+            }
+
+            db.query( opts.selectIdQuery, values, function( err, data ) {
                 if( err )
                     callback( err );
                 else if( data.length == 0 )
@@ -132,7 +138,8 @@ module.exports = function _crud( k ) {
                 readWhere: readWhere,
                 update: update,
                 del:    del,
-                foreignKeys: opts.foreignKeys || []
+                foreignKeys: opts.foreignKeys || [],
+                allowsQueryObjects: true
             }, opts );
     }
 
@@ -804,6 +811,7 @@ module.exports = function _crud( k ) {
         }
 
         k.router.get(opts.editPath, function( req, res, next ) {
+            /* TODO: overwrite getCrud to set current req? */
             r.getCrud( req ).read( r.getRequestId( req ), function( err, data, fullData ) {
                 if( err )
                     return next( err );
