@@ -139,7 +139,7 @@ module.exports = function _crud( k ) {
                 update: update,
                 del:    del,
                 foreignKeys: opts.foreignKeys || [],
-                allowsQueryObjects: true
+                type: "sql"
             }, opts );
     }
 
@@ -473,9 +473,19 @@ module.exports = function _crud( k ) {
             } });
         }
         else
-            opts = _.extend( opts, { getCrud: function _getCrudPlain() {
-                return crud;
-            } });
+            if( crud.type === "sql" )
+                opts = _.extend( opts, { getCrud: function _getCrudSql( req ) {
+                    /* overwrite sql-crud for this very call (bind req) */
+                    return _.extend( {}, crud, {
+                        read: function _crudManager_sql_read( key, callback ) {
+                            crud.read( { req: req, key: key }, callback );
+                        }
+                    });
+                } });
+            else
+                opts = _.extend( opts, { getCrud: function _getCrudPlain() {
+                    return crud;
+                } });
 
         return opts;
     }

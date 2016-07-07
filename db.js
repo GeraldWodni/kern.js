@@ -27,9 +27,12 @@ module.exports = function _db( k ) {
             return query;
 
         var indexedValues = true;       /* find indexedValues if any */
+        var obj = null;                 /* initially empty lookup object */
         if( !_.isArray( values ) ) {
-            if( _.has( values, "values" ) )
-                values = values.values;
+            if( _.has( values, "values" ) ) {
+                obj = values;
+                values = obj.values;
+            }
             else
                 indexedValues = false;
         }
@@ -60,7 +63,7 @@ module.exports = function _db( k ) {
                     value = this.escape( values[ valueIndex++ ], this.config.stringifyObjects, timeZone );
             }
             else {
-                value = k.rdb.getField( values, match[1] );
+                value = k.rdb.getField( obj, match[1] );
                 /* object as key */
                 if( match[0][1] == '#' )
                     value = mysql.escapeId( value );
