@@ -29,8 +29,8 @@ module.exports = function _db( k ) {
         var indexedValues = true;       /* find indexedValues if any */
         var obj = null;                 /* initially empty lookup object */
         if( !_.isArray( values ) ) {
+            obj = values;
             if( _.has( values, "values" ) ) {
-                obj = values;
                 values = obj.values;
             }
             else
@@ -38,7 +38,7 @@ module.exports = function _db( k ) {
         }
 
 
-        console.log( "Q:".bold.red, query, values );
+        console.log( "Q:".bold.red, query );
 
         var regex = /{#?([$_.a-zA-Z0-9]+)}|\?\??/g;
         var chunkIndex = 0;
