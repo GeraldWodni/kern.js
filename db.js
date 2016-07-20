@@ -51,12 +51,17 @@ module.exports = function _db( k ) {
 
             /* indexed attribute(s) */
             if( match[0][0] == '?' ) {
-                if( !indexedValues )
-                    throw "queryFormatter: Indexed values must be served either a values array or the base object must contain a key named values";
-                if( valueIndex >= values.length )
+                if( !indexedValues ) {
+                    /* pass single object directly */
+                    if( valueIndex++ == 0 )
+                        value = this.escape( values, this.config.stringifyObjects, timeZone );
+                    else
+                        throw "queryFormatter: Indexed values must be served either a values array or the base object must contain a key named values";
+                }
+                else if( valueIndex >= values.length )
                     throw "queryFormatter: Indexed values out of bounds!";
                 /* indexed key(s) */
-                if( match[0] == '??' )
+                else if( match[0] == '??' )
                     value = mysql.escapeId( values[ valueIndex++ ] );
                 /* indexed value(s) */
                 else if( match[0] == '?' )
