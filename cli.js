@@ -15,7 +15,8 @@ var rl =  readline.createInterface({ input: process.stdin, output: process.stdou
 var rdb;
 
 function end() {
-    rdb.quit();
+    if( rdb )
+        rdb.quit();
     rl.close();
 }
 
@@ -229,6 +230,7 @@ function usage() {
             text += " " + toText( command );
         });
         console.log( text );
+        end();
     });
 }
 
