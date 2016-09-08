@@ -10,7 +10,11 @@ module.exports = function _db( k ) {
 
     function add( website, config ) {
         console.log( "MySql-Pool for ".bold.green, website );
-        config.queryFormat = queryFormatter;    /* apply custom format */
+        /* apply custom format */
+	var debugLog = config.debugLog || false;
+        config.queryFormat = function _queryFormatter( query, values, timeZone ) { 
+            return queryFormatter.call( this, query, values, timeZone, debugLog );
+        }
         pools[ website ] = mysql.createPool( config );
     }
 
@@ -22,7 +26,7 @@ module.exports = function _db( k ) {
     }
 
     /* custom query formatting */
-    function queryFormatter( query, values, timeZone ) {
+    function queryFormatter( query, values, timeZone, debugLog ) {
         if( values == null )            /* nothing to replace */
             return query;
 
@@ -37,8 +41,8 @@ module.exports = function _db( k ) {
                 indexedValues = false;
         }
 
-
-        console.log( "Q:".bold.red, query, values );
+        if( debugLog )
+            console.log( "Q:".bold.red, query, values );
 
         var regex = /{#?([$_.a-zA-Z0-9]+)}|\?\??/g;
         var chunkIndex = 0;
@@ -88,7 +92,8 @@ module.exports = function _db( k ) {
         if( chunkIndex < query.length ) /* remaining chunk */
             result += query.slice( chunkIndex );
 
-        console.log( "A:".bold.green, result );
+        if( debugLog )
+            console.log( "A:".bold.green, result );
 
         return result;
     }
