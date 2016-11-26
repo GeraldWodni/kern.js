@@ -132,8 +132,76 @@ module.exports = {
 ### Redis
 *TODO*
 
-## postman, getman & filters
-*TODO*
+## postman, getman, requestman & filters
+Input sanitization for:
+- getman: GET parameters, parameters from the url-query string i.e. `/search?needle=foobar`
+- postman: POST parameters (form-encoded POST)
+- requestman: express-js url-parameters i.e. `'/api/items/get/:id'`
+
+### getman & requestman
+getman and requestman are called in plain sequence within a request i.e.:
+```
+k.router.get("/articles/:id", function( req, res, next ) {
+    k.requestman( req );
+    db.query( "SELECT * FROM articles WHERE id=?", [ req.requestman.uint('id') ], function( err, data ) {
+        if( err ) return next( err );
+        if( data.length == 0 )
+            return k.httpStatus( req, res, 404 );
+        k.jade.render( req, res, "article", data[0] );
+    });
+});
+```
+
+### postman
+postman on the other hand needs to wait for the request-body to be processed, so a callback needs to be specified:
+```
+k.router.post("/article/new", function( req, res, next ) {
+    k.postman( req, res, function() {
+        db.query( "INSERT INTO articles (time, title, text) VALUES( NOW(), ?, ? )",
+            [ req.postman.singleLine( 'title' ), req.postman.text( 'text' ) ],
+        function( err, result ) {
+            if( err ) return next( err );
+            res.json( { success: true, id: result.insertId } );
+        });
+    });
+});
+```
+if postman receives 'application/json' as Content-Type, it replaces req.body with a parsed JSON object.
+
+### filters
+All three methods use the same sanitization filters.
+Each filter is impleemented as a function which expects the only argument to be the name of the parameter.
+If no parameter-name is passed, the function will assume its own function-name as parameter-name.
+i.e. `req.postman.id()` is the same as calling `req.postman.id('id')`.
+
+Here is a list of the currently implemented filters. Currently they are maintained for English and German. Feel free to submit your own language.
+- address:    `/[^-,.\/ a-zA-Z0-9äöüßÄÖÜ]/g`
+- allocnum:   `/[^a-zA-Z0-9äöüßÄÖÜ]/g`
+- alpha:      `/[^a-zA-Z]/g`
+- alnum:      `/[^a-zA-Z0-9]/g`
+- alnumList:  `/[^,a-zA-Z0-9]/g`
+- boolean:    `/[^01]/g`
+- color:      `/[^#a-fA-F0-9]/g`
+- dateTime:   `/[^-: 0-9]/g`
+- decimal:    `/[^-.,0-9]/g` and replace ',' with '.'
+- email:      `/[^-@+\_.0-9a-zA-Z]/g`
+- escapedLink:decodeURIComponent and `/[^-\_.a-zA-Z0-9\/]/g`
+- filename:   `/[^-\_.0-9a-zA-Z]/g`
+- hex:        `/[^-0-9a-f]/g`
+- id:         `/[^-\_.:a-zA-Z0-9]/g`
+- int:        `/[^-0-9]/g`
+- link:       `/[^-\_.a-zA-Z0-9\/]/g`
+- linkItem:   `/[^-\_.a-zA-Z0-9]/g`
+- linkList:   `/[^-,\_.a-zA-Z0-9]/g`
+- password:   no manipulation
+- raw:        no manipulation
+- singleLine: `/[^-\_\/ a-zA-Z0-9äöüßÄÖÜ]/g`
+- telephone:  `/[^-+ 0-9]/g`
+- text:       no manipulation
+- uint:       `/[^0-9]/g`
+- url:        `/[^-?#@&,+\_.:\/a-zA-Z0-9]/g`
+- username:   `/[^-@\_.a-zA-Z0-9]/g`
+- renameFile: replace non-ascii chars by synonyms i.e. 'ä' becomes 'ae'
 
 ## Users & Sessions
 *TODO*
