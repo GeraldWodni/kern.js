@@ -184,23 +184,23 @@ Here is a list of the currently implemented filters. Currently they are maintain
 - color:      `/[^#a-fA-F0-9]/g`
 - dateTime:   `/[^-: 0-9]/g`
 - decimal:    `/[^-.,0-9]/g` and replace ',' with '.'
-- email:      `/[^-@+\_.0-9a-zA-Z]/g`
-- escapedLink:decodeURIComponent and `/[^-\_.a-zA-Z0-9\/]/g`
-- filename:   `/[^-\_.0-9a-zA-Z]/g`
+- email:      `/[^-@+_.0-9a-zA-Z]/g`
+- escapedLink:decodeURIComponent and `/[^-_.a-zA-Z0-9\/]/g`
+- filename:   `/[^-_.0-9a-zA-Z]/g`
 - hex:        `/[^-0-9a-f]/g`
-- id:         `/[^-\_.:a-zA-Z0-9]/g`
+- id:         `/[^-_.:a-zA-Z0-9]/g`
 - int:        `/[^-0-9]/g`
-- link:       `/[^-\_.a-zA-Z0-9\/]/g`
-- linkItem:   `/[^-\_.a-zA-Z0-9]/g`
-- linkList:   `/[^-,\_.a-zA-Z0-9]/g`
+- link:       `/[^-_.a-zA-Z0-9\/]/g`
+- linkItem:   `/[^-_.a-zA-Z0-9]/g`
+- linkList:   `/[^-,_.a-zA-Z0-9]/g`
 - password:   no manipulation
 - raw:        no manipulation
-- singleLine: `/[^-\_\/ a-zA-Z0-9äöüßÄÖÜ]/g`
+- singleLine: `/[^-_\/ a-zA-Z0-9äöüßÄÖÜ]/g`
 - telephone:  `/[^-+ 0-9]/g`
 - text:       no manipulation
 - uint:       `/[^0-9]/g`
-- url:        `/[^-?#@&,+\_.:\/a-zA-Z0-9]/g`
-- username:   `/[^-@\_.a-zA-Z0-9]/g`
+- url:        `/[^-?#@&,+_.:\/a-zA-Z0-9]/g`
+- username:   `/[^-@_.a-zA-Z0-9]/g`
 - renameFile: replace non-ascii chars by synonyms i.e. 'ä' becomes 'ae'
 
 ## Users & Sessions
