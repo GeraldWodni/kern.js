@@ -202,7 +202,7 @@ mixin link(link, text)
 
 mixin elink(link, text)
     - if( !text ) text = link;
-    a(href=link,target="_blank")= text
+    a(href=link,target="_blank")&attributes(attributes)= text
 
 mixin messages(messages)
     each message in messages || []
