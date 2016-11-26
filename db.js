@@ -33,10 +33,9 @@ module.exports = function _db( k ) {
         var indexedValues = true;       /* find indexedValues if any */
         var obj = null;                 /* initially empty lookup object */
         if( !_.isArray( values ) ) {
-            if( _.has( values, "values" ) ) {
-                obj = values;
+            obj = values;
+            if( _.has( values, "values" ) )
                 values = obj.values;
-            }
             else
                 indexedValues = false;
         }
