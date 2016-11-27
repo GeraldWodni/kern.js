@@ -13,6 +13,7 @@ var _       = require("underscore");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
 var cookieParser = require( "cookie-parser" );
+var http    = require("http");
 
 /* TODO: add session support for token and co */
 //var session = require('express-session') , RedisStore = require('connect-redis')(session);
@@ -201,6 +202,61 @@ var Kern = function( callback, kernOpts ) {
                     var child = cluster.fork();
                     child.send( { authToken: authToken } );
                 }
+
+                /* TODO: each website shall spawn at least one new process, and reverse-authenticate here */
+                /* TODO: overwrite require prototype and add file-watchers to all included files for each website */
+                /* TODO: only restart affected websites */
+                /* TODO: fix cache to contain website */
+                /* opaque: does not transmit headers correctly */
+                /* http://stackoverflow.com/questions/20351637/how-to-create-a-simple-http-proxy-in-node-js */
+                http.createServer(
+                function onRequest(req, res) {
+                    var targetUrl = req.headers.host;
+                    var colonPos = targetUrl.indexOf( ":" );
+                    if( colonPos > 0 )
+                        targetUrl = targetUrl.substring( 0, colonPos );
+
+                    console.log( "MasterProxy".bold.magenta, targetUrl, req.method );
+                    var options = {
+                        hostname: targetUrl,
+                        port: kernOpts.port,
+                        path: req.url,
+                        method: req.method
+                    };
+
+                    var proxy = http.request(options, function (proxyRes) {
+                        proxyRes.pipe(res, { end: true });
+                    });
+                    req.pipe(proxy, { end: true });
+
+                }).listen(9000);
+
+                /* works transparent http://www.catonmat.net/http-proxy-in-nodejs/ */
+                http.createServer(function(request, response) {
+                    var targetHostName = request.headers.host;
+                    var colonPos = targetHostName.indexOf( ":" );
+                    if( colonPos > 0 )
+                        targetHostName = targetHostName.substring( 0, colonPos );
+
+                  var proxy = http.createClient(kernOpts.port, targetHostName);
+                  var proxy_request = proxy.request(request.method, request.url, request.headers);
+                  proxy_request.addListener('response', function (proxy_response) {
+                    proxy_response.addListener('data', function(chunk) {
+                      response.write(chunk, 'binary');
+                    });
+                    proxy_response.addListener('end', function() {
+                      response.end();
+                    });
+                    response.writeHead(proxy_response.statusCode, proxy_response.headers);
+                  });
+                  request.addListener('data', function(chunk) {
+                    proxy_request.write(chunk, 'binary');
+                  });
+                  request.addListener('end', function() {
+                    proxy_request.end();
+                  });
+                }).listen(7000);
+
 
             } else {
                 /* worker */
