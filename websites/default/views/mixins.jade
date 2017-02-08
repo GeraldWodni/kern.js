@@ -66,6 +66,9 @@ mixin tel-field(name, label, value)
 mixin url-field(name, label, value)
     +field(name, 'url', label, value)&attributes(attributes)
 
+mixin file-field(name, label)
+    +field(name, 'file', label)&attributes(attributes)
+
 mixin checkbox-field(name, label, value)
     div.form-group
         div.checkbox
