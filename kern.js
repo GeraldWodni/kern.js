@@ -40,7 +40,7 @@ var defaults = {
     websitesRoot: 'websites',
     viewFolder: 'views',
     rootFolder: __dirname,
-    processCount: 1,
+    processCount: 1, // TODO: change this to CPU count or # of websites, allow multiple processes per website
     debugHosts: [ '127.', '10.', '192.168.' ],  // LAN-Clients are debug-hosts ( advanced debugging like stack traces etc. is displayed )
     cacheJade: true // disable cache until dependencies are checked
     // processCount: specify the number of worker-processes to create
