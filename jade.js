@@ -37,7 +37,8 @@ module.exports = function _jade( k, opts ) {
             __locale: req.locales,
             _: _,
             moment: moment,
-            hostname: os.hostname()
+            hostname: os.hostname(),
+            _filename: path.parse(filepath).name
         });
 
         if( filepath in jadeCache ) {
