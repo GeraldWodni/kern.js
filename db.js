@@ -15,7 +15,19 @@ module.exports = function _db( k ) {
         config.queryFormat = function _queryFormatter( query, values, timeZone ) { 
             return queryFormatter.call( this, query, values, timeZone, debugLog );
         }
-        pools[ website ] = mysql.createPool( config );
+        var pool = mysql.createPool( config );
+        pool.pquery = function _promiseQuery() {
+            var _pqueryArguments = arguments;
+            return new Promise( function( resolve, reject ) {
+                pool.call( pool, _pqueryArguments, function( err, results, fields ) {
+                    if( err )
+                        reject( err );
+                    else
+                        resolve( results );
+                });
+            });
+        };
+        pools[ website ] = pool;
     }
 
     function get( website ) {
