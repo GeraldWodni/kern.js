@@ -37,9 +37,12 @@ module.exports = function _jade( k, opts ) {
             __locale: req.locales,
             _: _,
             moment: moment,
-            hostname: os.hostname(),
-            _filename: path.parse(filepath).name
+            hostname: os.hostname()
         });
+
+	/* TODO: make this a permanent member of above locals */
+	if( path.parse )
+            locals._filename = path.parse(filepath).name;
 
         if( filepath in jadeCache ) {
             console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
