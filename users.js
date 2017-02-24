@@ -205,7 +205,7 @@ module.exports = function _users( k ) {
             if( !req.postman.fieldsMatch( "password", "password2" ) )
                 next( new Error( req.locales.__( "Passwords do not match" ) ) );
             else if( password.length < minPasswordLength )
-                next( new Error( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) ) );
+                next( new Error( req.locales.__( "Password too short, minimum length: {0}" ).format( minPasswordLength ) ) );
             else {
                 var user = _.clone( req.user );
                 user.password = password
@@ -260,7 +260,7 @@ module.exports = function _users( k ) {
                 link: "http://" + req.kern.website + "/confirm/{hash}",
                 email: {
                     subject: "Registration",
-                    text: "Please klick the following link to complete your registration:\n{link}"
+                    text: "Please click the following link to complete your registration:\n{link}"
                 }
             });
             var captchaWord = captcha.generateRandomText(5);
@@ -369,7 +369,7 @@ module.exports = function _users( k ) {
                                     if( !req.postman.fieldsMatch( "password", "password2" ) )
                                         callback( req.locales.__( "Passwords do not match" ) );
                                     else if( password.length < minPasswordLength )
-                                        callback( req.locales.__( "Password to short, minimum: {0}" ).format( minPasswordLength ) );
+                                        callback( req.locales.__( "Password too short, minimum length {0}" ).format( minPasswordLength ) );
                                     else
                                         bcrypt.hash( password, null, null, function( err, passwordHash ) {
                                             if( err ) return callback( err );
@@ -401,7 +401,7 @@ module.exports = function _users( k ) {
                                         if( err )
                                             callback( err );
                                         else if( key != "OK" )
-                                            callback( req.locales.__( "Username already in register-queue, please check your email" ) );
+                                            callback( req.locales.__( "Username pending registration, please check your email" ) );
                                         else {
                                             results.usernameKey = usernameKey;
                                             callback();
@@ -418,7 +418,7 @@ module.exports = function _users( k ) {
                                         if( err )
                                             callback( err );
                                         else if( key != "OK" )
-                                            callback( req.locales.__( "Email already in register-queue, please check your email" ) );
+                                            callback( req.locales.__( "Email address already pending registration, please check your email" ) );
                                         else {
                                             results.emailKey = emailKey;
                                             callback();
@@ -497,7 +497,7 @@ module.exports = function _users( k ) {
                                     });
 
                                 console.log( "REGISTRATION COMPLETE!" );
-                                var success = req.locales.__("Registration successfull, please confirm your email-address to activate your account");
+                                var success = req.locales.__("Registration successful, please confirm your email address to activate your account");
                                 executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, vals ) );
                             });
                         }
