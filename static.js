@@ -23,10 +23,9 @@ module.exports = function _static( k, opts ) {
 
         callback( pathname.indexOf( prefix ) == 0, pathname );
     };
-    
-    function prefixServeStatic( prefix ) {
 
-        k.app.use( function( req, res, next ) {
+    function prefixServeStatic( router, prefix ) {
+	router.use( function( req, res, next ) {
             guard( prefix, req, res, function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
@@ -100,7 +99,7 @@ module.exports = function _static( k, opts ) {
                 .write( cachepath, next );
         });
 
-        prefixServeStatic( "/images/" );
+        prefixServeStatic( k.app, "/images/" );
 
         //app.get("/images/:file", function( req, res, next ) {
         //    serveStatic( "images", req, res );

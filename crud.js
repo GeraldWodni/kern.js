@@ -837,6 +837,39 @@ module.exports = function _crud( k ) {
             });
         });
 
+        if( opts.csvPath )
+                k.router.get( opts.csvPath, function( req, res, next ) {
+                    var fields = r.getFields( req );
+                    var text = "", separator = "";
+                    var keys = _.keys( fields );
+
+                    /* header */
+                    keys.forEach( function( field ) {
+                        text += separator + field
+                        separator = "\t"
+                    });
+
+                    /* values */
+                    r.getCrud( req ).readList( function( err, items ) {
+                        if( err ) return next( err );
+                        items.forEach( function( row ) {
+                            separator = "";
+                            text += "\n";
+
+                            keys.forEach( function( key ) {
+                                var value = ( row[ key ] || "" ) + "";
+                                value = value.replace( /"/g, '""' );
+                                text += separator + '"' + value + '"';
+                                separator = "\t";
+                            });
+                            
+                        });
+                        res.setHeader('Content-type', 'text/csv');
+                        res.setHeader('Content-disposition', 'attachment;filename=Download.csv');
+                        res.end( text );
+                    });
+                });
+
         k.router.get( opts.addPath, function( req, res, next ) {
             renderAll( req, res, next );
         });

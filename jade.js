@@ -7,6 +7,7 @@ var fs      = require("fs");
 var path    = require("path");
 var os      = require("os");
 var moment  = require("moment");
+var marked  = require("marked");
 var _       = require("underscore");
 
 module.exports = function _jade( k, opts ) {
@@ -37,6 +38,7 @@ module.exports = function _jade( k, opts ) {
             __locale: req.locales,
             _: _,
             moment: moment,
+            marked: marked,
             hostname: os.hostname()
         });
 
