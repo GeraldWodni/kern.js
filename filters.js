@@ -53,7 +53,27 @@ module.exports = function _filters( k ) {
 
     /* return a new fetcher which supports all registered filters */
     registeredFilters.fetch = function _filters_fetch( fetch ) {
-        var filters = {};
+        var filters = {
+            /* walk array through filter */
+            array: function( filter, field ) {
+                var values = [];
+                if( typeof field === "undefined" )
+                    field = filter;
+
+                var data = fetch( field );
+                if( !Array.isArray( data ) )
+                    if( typeof data === "undefined" || data === "" )
+                        data = [];          // no value generates empty array
+                    else
+                        data = [ data ];    // convert single value to array
+
+                data.forEach( function( item ) {
+                    values.push( registeredFilters[ filter ]( item ) );
+                });
+
+                return values;
+            }
+        };
         _.each( registeredFilters, function _filters_fetch_callback( filter, name ) {
             filters[ name ] = function( field ) {
                 if( typeof field === "undefined" )
