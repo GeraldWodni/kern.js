@@ -60,6 +60,9 @@ mixin text-field(name, label, value, opts)
 mixin email-field(name, label, value)
     +field(name, 'email', label, value)&attributes(attributes)
 
+mixin number-field(name, label, value, opts)
+    +field(name, 'number', label, value, opts)&attributes(attributes)
+
 mixin tel-field(name, label, value)
     +field(name, 'tel', label, value)&attributes(attributes)
 

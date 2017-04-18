@@ -262,5 +262,17 @@
     "Captcha": "Captcha",
     "template": "Vorlage",
     "Filter": "Filter",
-    "Show templates only": "Nur Vorlagen anzeigen"
+    "Show templates only": "Nur Vorlagen anzeigen",
+    "Categories": "Kategorien",
+    "Position": "Position",
+    "bottom": "unten",
+    "CSS-Class": "CSS-Klasse",
+    "top": "oben",
+    "Category": "Kategorie",
+    "Articles": "Artikel",
+    "Display": "Anzeigen",
+    "markdown": "Markdown",
+    "plaintext": "Klartext",
+    "html": "HTML",
+    "Intro": "Intro"
 }

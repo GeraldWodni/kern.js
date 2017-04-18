@@ -19,7 +19,7 @@ module.exports = function _crud( k ) {
             key: "id",
             foreignName: "name",
             foreignNameSeparator: " ",
-            orderBy: "name",
+            orderBy: opts.foreignName || "name",
             selectFields: "",
             nestTables: false
         }, opts );
@@ -367,6 +367,7 @@ module.exports = function _crud( k ) {
             filters: {
                 date:       "dateTime",
                 email:      "email",
+                number:     "decimal",
                 enum:       "alnum",
                 tel:        "telephone",
                 text:       "address",
@@ -382,6 +383,7 @@ module.exports = function _crud( k ) {
                 email:      "email-field",
                 enum:       "enum-field",
                 foreign:    "foreign-field",
+                number:     "number-field",
                 tel:        "tel-field",
                 text:       "text-field",
                 textarea:   "textarea-field",
@@ -754,7 +756,6 @@ module.exports = function _crud( k ) {
             addPath: "/",
             title: "Crud",
             path: "/admin/crud",
-            idField: "id",
             editPath: "/edit/:id?",
             jadeFile: "admin/crud",
             showAdd: true,
@@ -801,7 +802,7 @@ module.exports = function _crud( k ) {
 
                     var jadeCrudOpts = {
                         items: items,
-                        idField: opts.id,
+                        idField: opts.idField || crud.key || "id",
                         display: renderCrud.foreignName,
                         boldDisplay: renderCrud.foreignBoldName,
                         link: opts.path,

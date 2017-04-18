@@ -33,6 +33,10 @@ module.exports = function _jade( k, opts ) {
             throw new Error( message.bold.red );
         }
 
+        moment.fn.sqlFormat = function() {
+            return this.format( "YYYY-MM-DD HH:mm:ss" );
+        }
+
         locals = _.extend( locals || {}, {
             __: req.locales.__,
             __locale: req.locales,
