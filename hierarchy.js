@@ -5,6 +5,7 @@
 var async   = require('async');
 var path    = require("path");
 var fs      = require("fs");
+var _       = require("underscore");
 
 
 module.exports = function _hierarchy( k ) {
@@ -129,8 +130,46 @@ module.exports = function _hierarchy( k ) {
         return fs.createWriteStream( filepath ); 
     }
 
+    function createHideShowFilter( hideFilters, showFilters ) {
+        return function( name ) {
+            /* every hide filter must be negative */
+            if( !_.every( hideFilters || [ /^\./g ], function( hideFilter ) {
+                hideFilter.lastIndex = 0; // reset regex's internal match offset
+                return !hideFilter.test( name );
+            }) )
+                return false;
+
+            /* any show filter must be positive */
+            return _.some( showFilters || [ /.*/ ], function( showFilter ) {
+                showFilter.lastIndex = 0;
+                return showFilter.test( name );
+            });
+        };
+    }
+
+    function checkFilters( website, filename, opts ) {
+        opts = createDirFileFilters( opts );
+        var info = path.parse( filename );
+        var file = lookupFile( website, filename )
+        //console.log( "FILE", file, path.join( websitesRoot, website ) );
+
+        return  opts.dirnameFilter ( info.dir  )
+            &&  opts.filenameFilter( info.base )
+            &&  file != null
+            && (!opts.lockWebsite || file.indexOf( path.join( websitesRoot, website ) ) == 0 );
+    }
+
+    function createDirFileFilters( opts ) {
+        return _.extend( {}, {
+            dirnameFilter:  createHideShowFilter( opts.dirHideFilters,  opts.dirShowFilters  ),
+            filenameFilter: createHideShowFilter( opts.fileHideFilters, opts.fileShowFilters )
+        }, opts );
+    }
+
     function readTree( opts, callback ) {
         var tree = { dirs: {}, files: [] };
+
+        opts = createDirFileFilters( opts );
 
         /* queue worker */
         var treeQueue = async.queue( function( task, next ) {
@@ -147,15 +186,18 @@ module.exports = function _hierarchy( k ) {
                         if( err )
                             return d( err );
 
+                        console.log( stat.isDirectory(), task.prefix );
                         /* spawn new worker for every directory */
                         if( stat.isDirectory() ) {
                             var prefix = path.join( task.prefix, filename ); 
-                            var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
-                            task.tree.dirs[ filename ] = newTree;
-                            treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
+                            if( opts.dirnameFilter( prefix ) ) {
+                                var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
+                                task.tree.dirs[ filename ] = newTree;
+                                treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
+                            }
                         }
                         /* just add file */
-                        else {
+                        else if( opts.dirnameFilter( task.prefix ) && opts.filenameFilter( filename ) ) {
                             var link = path.join( task.prefix, filename );
                             task.tree.files.push( { name: filename, link: link } );
                         }
@@ -189,6 +231,7 @@ module.exports = function _hierarchy( k ) {
 
     return {
         addRoute:           addRoute,
+        checkFilters:       checkFilters,
         createReadStream:   createReadStream,
         createWriteStream:  createWriteStream,
         lookupFile:         lookupFile,

@@ -98,6 +98,7 @@ module.exports = {
         /* TODO: is website really required? won't it be "default" always? */
         //addSiteModule( "navigation","default", "navigation.js",     "Navigation",   "list",     { router: "admin" } );
         addSiteModule( "media",     "default", "media.js",          "Media",        "picture",  { router: "admin" } );
+        addSiteModule( "editor",    "default", "editor.js",         "Editor",       "edit",     { router: "admin" } );
         addSiteModule( "users",     "default", "users.js",          "Users",        "user",     { router: "admin" } );
         addSiteModule( "locales",   "default", "missingLocales.js", "",             "comment",  { router: "admin" } );
 

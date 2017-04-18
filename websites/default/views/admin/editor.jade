@@ -1,0 +1,55 @@
+extends admin-site
+
+//- TODO: merge with media and move to mixins or a separete file.jade
+mixin directory(subTree, dirName)
+    li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
+        +glyph("folder-open")
+        = " " + dirName
+        button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
+            +glyph("folder-close")
+        button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
+            +glyph("upload")
+        button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
+            +glyph("trash")
+        ul
+            +dirTreeWalker( subTree )
+
+mixin dirTree(tree)
+    ul.filetree&attributes(attributes)
+        +dirTreeWalker(tree)
+
+mixin dirTreeWalker(tree)
+    each subTree, dirName in tree.dirs
+        +directory(subTree, dirName)
+    each file in tree.files
+        li.file
+            a(href=file.link)
+                +glyph("file")
+                = " " + file.name
+            button.btn.btn-default.btn-xs(type="button",data-action="delete-file",title=__("Delete file"))
+                +glyph("trash")
+
+
+
+block content
+    h1= __("Editor")
+
+    +messages( messages )
+
+    +dirTree( tree )
+
+    +modal("newFolderModal", __("New folder"), __("Create"))
+        +text-field("name", __("Name"))
+
+    +modal("uploadModal", __("Upload"), __("Upload"))
+        input(type="file",name="file",multiple="multiple")
+
+    div.hidden#directoryTemplate
+        +directory({dirs:[],files:[],prefix:"{prefix}"},"{name}")
+        
+append styles
+    +style-tag("/css/fileinput.min.css")
+
+append scripts
+    +script-tag("/js/fileinput.min.js")
+    +script-tag("/js/media.js")
