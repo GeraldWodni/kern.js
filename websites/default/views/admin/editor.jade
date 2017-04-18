@@ -38,6 +38,9 @@ block content
 
     +dirTree( tree )
 
+    if content
+        +textarea-field("content", "Content", content )
+
     +modal("newFolderModal", __("New folder"), __("Create"))
         +text-field("name", __("Name"))
 
