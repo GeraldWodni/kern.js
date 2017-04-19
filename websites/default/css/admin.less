@@ -94,18 +94,49 @@ ul.filetree {
     padding-left: 0;
     list-style: none;
 
+    form.form-inline {
+        float: right;
+    }
+
     ul {
         list-style: none;
     }
 
-    li {
-        padding: 3px 0;
 
-        button {
-            //visibility: hidden;
+    li {
+        padding: 3px 0px 3px 5px; 
+        border-radius: 3px;
+
+        form {
+            visibility: hidden;
         }
-        &:hover > button {
+        &:hover > form {
             visibility: visible;
         }
+
+        &.directory:hover {
+            background: #EEE;
+        }
+        &.file:hover {
+            background: #DDD;
+        }
+    }
+
+    & > li  {
+        padding-right: 5px;
     }
 }
+
+/* quick fix for xs input in filetrees */
+.input-xs {
+    height: 22px;
+    padding: 2px 5px;
+    font-size: 12px;
+    line-height: 1.5; /* If Placeholder of the input is moved up, rem/modify this. */
+    border-radius: 3px;
+}
+
+textarea#editor {
+    min-height: 500px;
+}
+

@@ -8,15 +8,17 @@ mixin directory(subTree, dirName)
         //- button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
         //-    +glyph("folder-close")
         form.form-inline(method="post",action=subTree.prefix + "/" + dirName)
-            input(type="text",name="name",placeholder=__("New name"))
-            button.btn.btn-primary.btn-xs(type="submit",name="create-dir",title=__("New Folder"))
-                +glyph("plus")
-                |  
-                +glyph("folder-close")
-            button.btn.btn-primary.btn-xs(type="submit",name="create-file",title=__("New file"))
-                +glyph("plus")
-                |  
-                +glyph("file")
+            span.input-group
+                input.form-control.input-xs(type="text",name="name",placeholder=__("New name"))
+                span.input-group-btn
+                    button.btn.btn-primary.btn-xs(type="submit",name="create-dir",title=__("New Folder"))
+                        +glyph("plus")
+                        |  
+                        +glyph("folder-close")
+                    button.btn.btn-primary.btn-xs(type="submit",name="create-file",title=__("New file"))
+                        +glyph("plus")
+                        |  
+                        +glyph("file")
             button.btn.btn-default.btn-xs(type="submit",name="delete-dir",title=__("Delete folder"))
                 +glyph("trash")
         ul
@@ -44,27 +46,19 @@ block content
     h1= __("Editor")
 
     +messages( messages )
+    
+    .row
+        +dirTree( tree ).col-lg-4.col-md-5
 
-    +dirTree( tree )
+        if showEditor
+            div#editor-panel.col-lg-8.col-md-7
+                h2=__("Edit")
+                    |  - 
+                    =filename
+                form(method="post")
+                    +textarea-field("content", "Content", content )#editor
+                    button(type="submit" name="save" value="yes").btn.btn-primary=__("Save")
 
-    if showEditor
-        h2=__("Edit")
-            |  - 
-            =filename
-        form(method="post")
-            +textarea-field("content", "Content", content )
-            button(type="submit" name="save" value="yes").btn.btn-primary=__("Save")
-
-
-    +modal("newFolderModal", __("New folder"), __("Create"))
-        +text-field("name", __("Name"))
-
-    +modal("uploadModal", __("Upload"), __("Upload"))
-        input(type="file",name="file",multiple="multiple")
-
-    div.hidden#directoryTemplate
-        +directory({dirs:[],files:[],prefix:"{prefix}"},"{name}")
-        
 append styles
     +style-tag("/css/fileinput.min.css")
 

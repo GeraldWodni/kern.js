@@ -32,7 +32,7 @@ module.exports = {
                 prefix: "/admin/editor/edit"
             }),
             function( err, tree ) {
-                k.jade.render( req, res, "admin/editor", _.extend( { tree: tree }, values ) );
+                k.jade.render( req, res, "admin/editor", k.reg("admin").values( req, _.extend( { tree: tree }, values ) ) );
             });
         }
 
