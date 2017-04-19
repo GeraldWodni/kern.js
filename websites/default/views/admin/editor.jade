@@ -41,27 +41,24 @@ mixin dirTreeWalker(tree)
                     +glyph("trash")
 
 
+block main-content
+    div.container-fluid.main-content#editor-wrapper
+        block content
+            .row
+                .col-lg-3.col-md-5
+                    h1= __("Editor")
+                    +dirTree( tree )
 
-block content
-    h1= __("Editor")
-
-    +messages( messages )
-    
-    .row
-        +dirTree( tree ).col-lg-4.col-md-5
-
-        if showEditor
-            div#editor-panel.col-lg-8.col-md-7
-                h2=__("Edit")
-                    |  - 
-                    =filename
-                form(method="post")
-                    +textarea-field("content", "Content", content )#editor
-                    button(type="submit" name="save" value="yes").btn.btn-primary=__("Save")
-
-append styles
-    +style-tag("/css/fileinput.min.css")
+                if showEditor
+                    div.col-lg-9.col-md-7
+                        +messages( messages )
+                        h2=__("Edit")
+                            |  - 
+                            =filename
+                        form(method="post")
+                            +textarea-field("content", "Content", content)( data-type=contentType )#editor-textarea
+                            button(type="submit" name="save" value="yes").btn.btn-primary=__("Save")
 
 append scripts
-    +script-tag("/js/fileinput.min.js")
-    +script-tag("/js/media.js")
+    +script-tag("/js/ace-min/ace.js")
+    +script-tag("/js/editor.js")

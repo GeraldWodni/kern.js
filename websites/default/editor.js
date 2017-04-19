@@ -94,7 +94,8 @@ module.exports = {
         k.router.get("/edit/*", function( req, res ) {
             guardFile( req, res, function( filename, filepath ) {
                 fs.readFile( filepath, function( err, content ) {
-                    renderAll( req, res, { showEditor: true, filename: filename, content: content.toString() } );
+                    var contentType = path.parse(filename).ext.replace( /^\./, "" );
+                    renderAll( req, res, { showEditor: true, filename: filename, contentType: contentType, content: content.toString() } );
                 });
             });
         });
