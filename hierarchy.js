@@ -147,16 +147,45 @@ module.exports = function _hierarchy( k ) {
         };
     }
 
+    /* check if directory name is allowed i.e. when creating a new directory */
+    function checkDirname( website, dirname, opts ) {
+        opts = createDirFileFilters( opts );
+        var dir = path.normalize( path.join(  websitesRoot, website, dirname ) );
+
+        if(     opts.dirnameFilter( dirname )
+            &&  dir.indexOf( websitesRoot ) == 0
+            && (!opts.lockWebsite || dir.indexOf( path.join( websitesRoot, website ) ) == 0 ) )
+            return dir;
+        else
+            return null;
+    }
+
+    function checkFilename( website, filename, opts ) {
+        opts = createDirFileFilters( opts );
+        var info = path.parse( filename );
+        var file = path.normalize( path.join(  websitesRoot, website, filename ) );
+
+        if (    opts.dirnameFilter ( info.dir  )
+            &&  opts.filenameFilter( info.base )
+            &&  file.indexOf( websitesRoot ) == 0   // lock to websites
+            && (!opts.lockWebsite || file.indexOf( path.join( websitesRoot, website ) ) == 0 ) ) // lock to given website
+            return file;
+        else
+            return null;
+    }
+
     function checkFilters( website, filename, opts ) {
         opts = createDirFileFilters( opts );
         var info = path.parse( filename );
         var file = lookupFile( website, filename )
-        //console.log( "FILE", file, path.join( websitesRoot, website ) );
 
-        return  opts.dirnameFilter ( info.dir  )
+        if (    opts.dirnameFilter ( info.dir  )
             &&  opts.filenameFilter( info.base )
             &&  file != null
-            && (!opts.lockWebsite || file.indexOf( path.join( websitesRoot, website ) ) == 0 );
+            && (!opts.lockWebsite || file.indexOf( path.join( websitesRoot, website ) ) == 0 ) )
+            return file;
+        else
+            return null;
     }
 
     function createDirFileFilters( opts ) {
@@ -231,6 +260,8 @@ module.exports = function _hierarchy( k ) {
 
     return {
         addRoute:           addRoute,
+        checkDirname:       checkDirname,
+        checkFilename:      checkFilename,
         checkFilters:       checkFilters,
         createReadStream:   createReadStream,
         createWriteStream:  createWriteStream,

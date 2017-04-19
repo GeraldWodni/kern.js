@@ -5,12 +5,20 @@ mixin directory(subTree, dirName)
     li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
         +glyph("folder-open")
         = " " + dirName
-        button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
-            +glyph("folder-close")
-        button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
-            +glyph("upload")
-        button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
-            +glyph("trash")
+        //- button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
+        //-    +glyph("folder-close")
+        form.form-inline(method="post",action=subTree.prefix + "/" + dirName)
+            input(type="text",name="name",placeholder=__("New name"))
+            button.btn.btn-primary.btn-xs(type="submit",name="create-dir",title=__("New Folder"))
+                +glyph("plus")
+                |  
+                +glyph("folder-close")
+            button.btn.btn-primary.btn-xs(type="submit",name="create-file",title=__("New file"))
+                +glyph("plus")
+                |  
+                +glyph("file")
+            button.btn.btn-default.btn-xs(type="submit",name="delete-dir",title=__("Delete folder"))
+                +glyph("trash")
         ul
             +dirTreeWalker( subTree )
 
@@ -26,8 +34,9 @@ mixin dirTreeWalker(tree)
             a(href=file.link)
                 +glyph("file")
                 = " " + file.name
-            button.btn.btn-default.btn-xs(type="button",data-action="delete-file",title=__("Delete file"))
-                +glyph("trash")
+            form.form-inline(method="post",action=file.link)
+                button.btn.btn-default.btn-xs(type="submit",name="delete-file",title=__("Delete file"))
+                    +glyph("trash")
 
 
 
@@ -38,8 +47,14 @@ block content
 
     +dirTree( tree )
 
-    if content
-        +textarea-field("content", "Content", content )
+    if showEditor
+        h2=__("Edit")
+            |  - 
+            =filename
+        form(method="post")
+            +textarea-field("content", "Content", content )
+            button(type="submit" name="save" value="yes").btn.btn-primary=__("Save")
+
 
     +modal("newFolderModal", __("New folder"), __("Create"))
         +text-field("name", __("Name"))
