@@ -3,6 +3,7 @@
 
 var fs          = require("fs");
 var path        = require("path");
+var pathparse	= require("path-parse");
 var rmrf        = require("rmrf");
 var _           = require("underscore");
 
@@ -61,7 +62,7 @@ module.exports = {
                     if( filepath == null )
                         return k.httpStatus( req, res, 403 );
                     /* create directory: TODO: make mode configurable */
-                    fs.mkdir( filepath, 0o777, function( err ) {
+                    fs.mkdir( filepath, function( err ) {
                         renderAll( req, res );
                     });
                 }
@@ -94,7 +95,7 @@ module.exports = {
         k.router.get("/edit/*", function( req, res ) {
             guardFile( req, res, function( filename, filepath ) {
                 fs.readFile( filepath, function( err, content ) {
-                    var contentType = path.parse(filename).ext.replace( /^\./, "" );
+                    var contentType = pathparse(filename).ext.replace( /^\./, "" );
                     renderAll( req, res, { showEditor: true, filename: filename, contentType: contentType, content: content.toString() } );
                 });
             });

@@ -4,6 +4,7 @@
 
 var async   = require('async');
 var path    = require("path");
+var pathparse	= require("path-parse");
 var fs      = require("fs");
 var _       = require("underscore");
 
@@ -162,7 +163,7 @@ module.exports = function _hierarchy( k ) {
 
     function checkFilename( website, filename, opts ) {
         opts = createDirFileFilters( opts );
-        var info = path.parse( filename );
+        var info = pathparse( filename );
         var file = path.normalize( path.join(  websitesRoot, website, filename ) );
 
         if (    opts.dirnameFilter ( info.dir  )
@@ -176,7 +177,7 @@ module.exports = function _hierarchy( k ) {
 
     function checkFilters( website, filename, opts ) {
         opts = createDirFileFilters( opts );
-        var info = path.parse( filename );
+        var info = pathparse( filename );
         var file = lookupFile( website, filename )
 
         if (    opts.dirnameFilter ( info.dir  )

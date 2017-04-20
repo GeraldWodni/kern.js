@@ -6,12 +6,20 @@ $(document).ready(function(){
     $sourceTextarea.after('<div id="editor" class="form-control" style="height:' + height + 'px"> </div>').hide();
     $sourceTextarea.siblings("label").hide();
 
-    var modes = [ "jade", "js", "json", "less" ];
+    var modes = {
+        jade:   "jade",
+    	js:   	"javascript",
+	json:   "json",
+        less:   "less",
+        md:     "markdown"
+    };
     var mode = $sourceTextarea.attr("data-type");
 
     var editor = ace.edit("editor");
-    if( modes.indexOf( mode ) >= 0 )
-        editor.getSession().setMode("ace/mode/" + mode);
+    if( mode in modes )
+        editor.getSession().setMode("ace/mode/" + modes[mode]);
+    else
+        editor.getSession().setMode("ace/mode/plain_text");
     editor.getSession().setTabSize(4);
     editor.getSession().setUseSoftTabs(true);
     editor.setTheme("ace/theme/github");
