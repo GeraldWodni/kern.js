@@ -756,6 +756,7 @@ module.exports = function _crud( k ) {
             addPath: "/",
             title: "Crud",
             path: "/admin/crud",
+            idField: "id",
             editPath: "/edit/:id?",
             jadeFile: "admin/crud",
             showAdd: true,
@@ -802,7 +803,7 @@ module.exports = function _crud( k ) {
 
                     var jadeCrudOpts = {
                         items: items,
-                        idField: opts.idField || crud.key || "id",
+                        idField: opts.id,
                         display: renderCrud.foreignName,
                         boldDisplay: renderCrud.foreignBoldName,
                         link: opts.path,
