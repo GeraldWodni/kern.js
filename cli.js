@@ -10,6 +10,7 @@ var redis  = require("redis");
 var bcrypt = require("bcrypt-nodejs");
 var readline  = require("readline");
 var Writable = require('stream').Writable;
+var util   = require("util");
 var rl =  readline.createInterface({ input: process.stdin, output: process.stdout });
 
 var rdb;
@@ -191,8 +192,20 @@ function getUserId( website, username, callback ) {
 /* query and set new password */
 function setPassword( website, id ) {
     rl.close();
-    var muted = new Writable({ write: function(chunk, encoding, callback) { callback(); } });
+    /* explicit muted write stream  */
+    function MutedStream(opts){
+        if(!(this instanceof MutedStream))
+            return new MutedStream(opts);
+        Writable.call(this, opts);
+    }
+    util.inherits(MutedStream, Writable);
+    MutedStream.prototype._write = function( chunk, encoding, callback ) { callback(); };
+    var muted = new MutedStream();
     rl = readline.createInterface({ input: process.stdin, output: muted, terminal: true });
+
+    muted.on("error", function( err ) {
+    	console.log( "readline-Error:", err.status, err.stack );
+    });
 
     process.stdout.write( "Enter password" );
     rl.question( "Enter", function( pass1 ) {
