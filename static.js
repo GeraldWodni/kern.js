@@ -25,7 +25,7 @@ module.exports = function _static( k, opts ) {
     };
 
     function prefixServeStatic( router, prefix ) {
-	router.use( function( req, res, next ) {
+        router.use( function( req, res, next ) {
             guard( prefix, req, res, function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );

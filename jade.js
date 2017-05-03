@@ -74,7 +74,8 @@ module.exports = function _jade( k, opts ) {
             /* override jade's resolvePath to use kern-hierarchy */
             jade.Parser.prototype.resolvePath = function (filename, purpose) {
                 var callerFile = this.filename;
-                var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( '/views/' ) + '/views/'.length ) );
+                var viewsDir = path.sep + 'views' + path.sep;
+                var callerDir = path.dirname( callerFile.substring( callerFile.lastIndexOf( viewsDir ) + viewsDir.length ) );
 
                 /* only append jade to non-suffixed includes */
                 if( filename.indexOf(".") < 2 )
