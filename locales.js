@@ -42,14 +42,34 @@ module.exports = function _locales( k, opts ) {
         return defaultLocale;
     }
 
-    function getBestMatch( requests ) {
-        for( var i = 0; i < requests.length; i++ ) {
-            var request = requests[i].trim();
-            if( request.length == 0 )
-                continue;
+    function sortRequested( requested ) {
 
-            /* ignore weights */
-            if( request.indexOf( "q=" ) == 0 )
+        /* parse quality groups */
+        var items = [];
+        requested.replace( /\s/g, '' ).split( ',' ).forEach( function( item ) {
+            var qIndex = item.indexOf( ";q=" );
+            if( qIndex > 0 )
+                items.push({
+                    language: item.substring( 0, qIndex ),
+                    quality: parseFloat( item.substring( qIndex + 3 ) ),
+                });
+            else
+                items.push({ language: item, quality: 1.0 });
+        });
+
+        /* sort by descending quality, then select language attribute */
+        return _.pluck( _.sortBy( items,
+            function( item ) { return -item.quality; } ),
+            'language'
+        );
+    }
+
+    function getBestMatch( requested ) {
+        var requests = sortRequested( requested );
+
+        for( var i = 0; i < requests.length; i++ ) {
+            var request = requests[i];
+            if( request.length == 0 )
                 continue;
 
             /* perfect match */
@@ -90,7 +110,7 @@ module.exports = function _locales( k, opts ) {
     function route() {
         k.app.use( function _locales( req, res, next ) {
             var requested = req.headers["accept-language"] || "en-us";
-            var current = getBestMatch( requested.replace( /;/g, "," ).split( ",") );
+            var current = getBestMatch( requested );
 
             //console.log( requested );
             //console.log("Closest:", current );

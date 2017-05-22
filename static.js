@@ -11,11 +11,13 @@ var imageMagick = require("gm").subClass({imageMagick: true});
 
 module.exports = function _static( k, opts ) {
 
+    var guardRegex = new RegExp( '\\' + path.sep, 'g' );
     function guard( prefix, req, res, callback ) {
 
+        /* normalize to os-independent path */
         var pathname = url.parse( req.url ).pathname;
         pathname = path.normalize( pathname );
-        //console.log( pathname );
+        pathname = pathname.replace( guardRegex, '/' );
 
         /* contain in directory */
         if( pathname.indexOf( ".." ) >= 0 )
@@ -25,7 +27,7 @@ module.exports = function _static( k, opts ) {
     };
 
     function prefixServeStatic( router, prefix ) {
-	router.use( function( req, res, next ) {
+        router.use( function( req, res, next ) {
             guard( prefix, req, res, function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );

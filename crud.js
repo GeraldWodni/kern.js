@@ -370,7 +370,7 @@ module.exports = function _crud( k ) {
                 number:     "decimal",
                 enum:       "alnum",
                 tel:        "telephone",
-                text:       "address",
+                text:       "text",
                 foreign:    "uint",
                 textarea:   "text",
                 checkbox:   "exists",
@@ -446,7 +446,17 @@ module.exports = function _crud( k ) {
                         }
                     }
                     else
-                        values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+                        try {
+                            values[ field ] = req[ source ][ filterName ]( fieldOpts.name || field );
+                        }
+                        catch( err ) {
+                            /* attempt to resolve error to human readabletext */
+                            if( typeof req[ source ] === "undefined" )
+                                throw new Error( "readFields: unknown source '" + source + "'" );
+                            if( typeof req[ source ][ filterName ] === "undefined" )
+                                throw new Error( "readFields: unknown filtername '" + filtername + "' from source '" + source + "'" );
+                            throw err;
+                        }
 
 
 

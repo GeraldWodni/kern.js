@@ -8,8 +8,8 @@ $(document).ready(function(){
 
     var modes = {
         jade:   "jade",
-    	js:   	"javascript",
-	json:   "json",
+        js:     "javascript",
+        json:   "json",
         less:   "less",
         md:     "markdown"
     };
@@ -22,6 +22,7 @@ $(document).ready(function(){
         editor.getSession().setMode("ace/mode/plain_text");
     editor.getSession().setTabSize(4);
     editor.getSession().setUseSoftTabs(true);
+    editor.getSession().setUseWrapMode(true);
     editor.setTheme("ace/theme/github");
 
     editor.getSession().setValue($sourceTextarea.val());
