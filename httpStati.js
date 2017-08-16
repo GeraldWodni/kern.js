@@ -7,5 +7,6 @@ module.exports = {
     404: { title: "Not Found", text: "The specified resource could not be found." },
     422: { title: "Unprocessable Entity", text: "The request contains semantic errors." },
     501: { title: "Not Implemented", text: "The request cannot be fulfilled." },
+    502: { title: "Bad Gateway", text: "Invalid response received from upstream server." },
     503: { title: "Service Unavailable", text: "The server is currently unavailable, or you have reached an unconfigured host." }
 };
