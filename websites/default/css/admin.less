@@ -136,6 +136,43 @@ ul.filetree {
     border-radius: 3px;
 }
 
+.file {
+    float: left;
+    display: block;
+    min-height: 128px;
+    width: 192px;
+
+    margin: 5px 10px;
+
+    border-radius: 5px;
+    padding: 5px;
+
+    border: 1px solid #CCC;
+
+    .file-type {
+        display: block;
+        border-radius: 3px;
+        background-color: #EEE;
+
+        min-height: 128px;
+
+        text-align: center;
+        vertical-align: center;
+        line-height: 128px;
+        font-size: 64px;
+
+        padding: 5px;
+        border: 1px solid #CCC;
+    }
+
+    .file-label {
+        margin-top: 5px;
+        display: block;
+        text-align: center;
+        min-height: 3em;
+    }
+}
+
 #editor-wrapper {
     padding-left: @grid-gutter-width;
     padding-right: @grid-gutter-width;

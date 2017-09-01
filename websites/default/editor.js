@@ -28,11 +28,12 @@ module.exports = {
         }
 
         /* render directory tree & editor */
-        function renderAll( req, res, values ) {
+        function renderAll( req, res, next, values ) {
             k.hierarchy.readHierarchyTree( req.kern.website, ".", _.extend( {}, hierarchyFilters, {
                 prefix: "/admin/editor/edit"
             }),
             function( err, tree ) {
+                if( err ) return next( err );
                 k.jade.render( req, res, "admin/editor", k.reg("admin").values( req, _.extend( { tree: tree }, values ) ) );
             });
         }
@@ -53,7 +54,7 @@ module.exports = {
                     /* write empty file */
                     fs.writeFile( filepath, "", function( err ) {
                         if( err ) return next( err );
-                        renderAll( req, res );
+                        renderAll( req, res, next );
                     });
                 }
                 else if( req.postman.exists( "create-dir" ) ) {
@@ -63,13 +64,13 @@ module.exports = {
                         return k.httpStatus( req, res, 403 );
                     /* create directory: TODO: make mode configurable */
                     fs.mkdir( filepath, function( err ) {
-                        renderAll( req, res );
+                        renderAll( req, res, next );
                     });
                 }
                 else if( req.postman.exists( "delete-dir" ) ) {
                     filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
                     rmrf( filepath );
-                    renderAll( req, res );
+                    renderAll( req, res, next );
                 }
                 else
                     guardFile( req, res, function( filename, filepath ) {
@@ -77,12 +78,12 @@ module.exports = {
                             var content = req.postman.raw("content").replace(/\r\n/g, "\n");
 
                             k.hierarchy.createWriteStream( req.kern.website, filename ).end( content );
-                            renderAll( req, res, { showEditor: true, filename: filename, content: content } );
+                            renderAll( req, res, next, { showEditor: true, filename: filename, content: content } );
                         }
                         else if( req.postman.exists("delete-file") )
                             fs.unlink( filepath, function( err ) {
                                 if( err ) return next( err );
-                                renderAll( req, res, { messages: [ { type: "success", title: req.locales.__("File deleted"), text: filename } ] } );
+                                renderAll( req, res, next, { messages: [ { type: "success", title: req.locales.__("File deleted"), text: filename } ] } );
                             });
                         else
                             return next( new Error( "Unknown editor-edit method" ) );
@@ -92,18 +93,18 @@ module.exports = {
         });
 
         /* edit file */
-        k.router.get("/edit/*", function( req, res ) {
+        k.router.get("/edit/*", function( req, res, next ) {
             guardFile( req, res, function( filename, filepath ) {
                 fs.readFile( filepath, function( err, content ) {
                     var contentType = pathparse(filename).ext.replace( /^\./, "" );
-                    renderAll( req, res, { showEditor: true, filename: filename, contentType: contentType, content: content.toString() } );
+                    renderAll( req, res, next, { showEditor: true, filename: filename, contentType: contentType, content: content.toString() } );
                 });
             });
         });
 
         /* no file selected, just render tree */
-        k.router.get( "/", function( req, res ) {
-            renderAll( req, res );
+        k.router.get( "/", function( req, res, next ) {
+            renderAll( req, res, next );
         });
     }
 };

@@ -2,40 +2,63 @@ extends admin-site
 
 mixin directory(subTree, dirName)
     li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
-        +glyph("folder-open")
-        = " " + dirName
-        button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
-            +glyph("folder-close")
-        button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
-            +glyph("upload")
-        button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
-            +glyph("trash")
+        a(href="/admin/media" + subTree.prefix + "/" + dirName)
+            +glyph("folder-open")
+            = " " + dirName
+        //- button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
+        //-     +glyph("folder-close")
+        //- button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
+        //-     +glyph("upload")
+        //- button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
+        //-     +glyph("trash")
         ul
             +dirTreeWalker( subTree )
 
 mixin dirTree(tree)
     ul.filetree&attributes(attributes)
-        +dirTreeWalker(tree)
+        li.directory
+            a(href="/admin/media")
+                +glyph("folder-open")
+                |  /
+            ul
+                +dirTreeWalker(tree)
 
 mixin dirTreeWalker(tree)
     each subTree, dirName in tree.dirs
         +directory(subTree, dirName)
-    each file in tree.files
-        li.file
-            a(href=file.link)
-                +glyph("file")
-                = " " + file.name
-            button.btn.btn-default.btn-xs(type="button",data-action="delete-file",title=__("Delete file"))
-                +glyph("trash")
+
+mixin file(file)
+        a(href=file.link).file
+            span.file-type
+                if file.extension == ".pdf"
+                    +fa("file-pdf-o")
+                else if file.extension == ".txt"
+                    +fa("file-text-o")
+                else if _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension )
+                    +fa("file-image-o")
+                else
+                    +fa("file-o")
+            span.file-label
+                = file.name
 
 
+block main-content
+    div.container-fluid.main-content#media-wrapper
+        block content
+            .row
+                .col-lg-3.col-md-5
+                    h1= __("Media")
+                    +dirTree( tree )
 
-block content
-    h1= __("Media")
-
-    +messages( messages )
-
-    +dirTree( tree )
+                if showFiles || true
+                    div.col-lg-9.col-md-7
+                        +messages( messages )
+                        h2= __("Content of")
+                            |  
+                            = currentPath
+                        .file-container
+                            each file in currentFiles
+                                +file( file )
 
     +modal("newFolderModal", __("New folder"), __("Create"))
         +text-field("name", __("Name"))
