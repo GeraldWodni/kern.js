@@ -6,6 +6,7 @@
 require("colors");
 var _ = require("underscore");
 var async  = require("async");
+var fs     = require("fs");
 var redis  = require("redis");
 var bcrypt = require("bcrypt-nodejs");
 var readline  = require("readline");
@@ -33,6 +34,45 @@ var sections = {
                 });
                 end();
             });
+        },
+        import: function( website, params ) {
+            var filename = params[0];
+            var obj = JSON.parse( fs.readFileSync( filename ) + "" );
+            console.log( obj );
+            end();
+        },
+        export: function( website, params ) {
+            var filename = params[0];
+            var obj = { users: [] };
+            rdb.multi()
+                .get( website + ":users" )
+                .hgetall( website + ":usernames" )
+                .exec( function( err, results ) {
+                    if( err ) return showErr( err );
+                    obj.maxId = results[0];
+                    var usernames = results[1];
+                    obj.usernames = usernames;
+                    async.map( _.keys(usernames), function( username, done ) {
+                        var index = usernames[username];
+                        rdb.hgetall( website + ":user:" + index, function( err, userObj ) {
+                            if( err ) return done( err );
+                            done( null, userObj );
+                        });
+                    }, function( err, results ) {
+                        if( err) return showErr( err );
+                        results.forEach( function( userObj ) {
+                            obj.users.push( userObj );
+                        });
+
+                        var json = JSON.stringify(obj, null, 4);
+                        if( filename )
+                            fs.writeFileSync( filename, json );
+                        else
+                            console.log( json );
+
+                        end();
+                    });
+                });
         },
         list: function( website, params ) {
             rdb.multi()
@@ -204,7 +244,7 @@ function setPassword( website, id ) {
     rl = readline.createInterface({ input: process.stdin, output: muted, terminal: true });
 
     muted.on("error", function( err ) {
-    	console.log( "readline-Error:", err.status, err.stack );
+        console.log( "readline-Error:", err.status, err.stack );
     });
 
     process.stdout.write( "Enter password" );
