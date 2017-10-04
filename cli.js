@@ -38,12 +38,24 @@ var sections = {
         import: function( website, params ) {
             var filename = params[0];
             var obj = JSON.parse( fs.readFileSync( filename ) + "" );
-            console.log( obj );
-            end();
+            var multi = rdb.multi();
+
+            var usernames = {};
+            multi.set( website + ":users", obj.maxId );
+            _.each( obj.users, function( userObj, userId ) {
+                multi.hmset( website + ":users:" + userId, obj.usernames );
+                usernames[ userObj.name ] = userId;
+            });
+            multi.hmset( website + ":usernames", usernames );
+            multi.exec( function( err ) {
+                if( err ) return showErr( err );
+                console.log( "Import successfull" );
+                end();
+            });
         },
         export: function( website, params ) {
             var filename = params[0];
-            var obj = { users: [] };
+            var obj = { users: {} };
             rdb.multi()
                 .get( website + ":users" )
                 .hgetall( website + ":usernames" )
@@ -51,18 +63,15 @@ var sections = {
                     if( err ) return showErr( err );
                     obj.maxId = results[0];
                     var usernames = results[1];
-                    obj.usernames = usernames;
                     async.map( _.keys(usernames), function( username, done ) {
                         var index = usernames[username];
                         rdb.hgetall( website + ":user:" + index, function( err, userObj ) {
                             if( err ) return done( err );
-                            done( null, userObj );
+                            obj.users[ index ] = userObj;
+                            done( null );
                         });
-                    }, function( err, results ) {
+                    }, function( err ) {
                         if( err) return showErr( err );
-                        results.forEach( function( userObj ) {
-                            obj.users.push( userObj );
-                        });
 
                         var json = JSON.stringify(obj, null, 4);
                         if( filename )
