@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# get script directory
+KERNDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+# cd and launc npm in screen
+cd "$KERNDIR"
+screen -S kern.js -d -m npm start
+sleep 3

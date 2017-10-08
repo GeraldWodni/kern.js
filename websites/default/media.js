@@ -12,6 +12,13 @@ var _       = require("underscore");
 module.exports = {
     setup: function( k ) {
 
+        /* protection filters, TODO: allow overwrite per user-permission */
+        var hierarchyFilters = {
+            dirShowFilters:  [ /.*/g ],
+            fileShowFilters: [ /.*/g ],
+            lockWebsite: true
+        };
+
         function readTree( opts, callback ) {
             var tree = { dirs: {}, files: [] };
 
@@ -150,19 +157,44 @@ module.exports = {
         //    }
         //}));
 
+        /* render directory tree & files */
+        function renderAll( req, res, next, values ) {
+            k.hierarchy.readHierarchyTree( req.kern.website, "media", _.extend( {}, hierarchyFilters, {
+                prefix: "/"
+            }),
+            function( err, tree ) {
+                if( err ) return next( err );
+                //console.log( "TREE", tree );
+
+                var currentPath = req.path;
+                var node = tree;
+                /* get files in current folder */
+                if( currentPath != "/" ) {
+                    req.path.substr(1).split("/").forEach( ( part ) => {
+                        node = node.dirs[ part ];
+                    });
+                }
+
+                var currentFiles = node.files;
+                currentFiles.forEach( function( file ) {
+                    file.extension = path.extname( file.name );
+                });
+
+                k.jade.render( req, res, "admin/media", k.reg("admin").values( req, _.extend( {
+                    tree: tree,
+                    currentPath: currentPath,
+                    currentFiles: currentFiles
+                }, values ) ) );
+            });
+        }
+
         /* uploader expects json */
         k.router.post( "/upload/*", function( req, res, next ) {
             res.send( { success: false } );
         });
 
-        k.router.get( "/", function( req, res, next ) {
-            var filePath = k.hierarchy.lookupFile( req.kern.website, "files" );
-            readTree( { dirpath: filePath, prefix: "/files" }, function( err, tree ) {
-                if( err )
-                    console.log( "ERROR".bold.red, err );
-                //console.log( util.inspect( tree, { colors: true, depth: null } ) );
-                k.jade.render( req, res, "admin/media", k.reg("admin").values( req, { tree: tree } ) );
-            });
+        k.router.get( "/*", function( req, res, next ) {
+            renderAll( req, res, next );
         });
     }
 };
