@@ -43,7 +43,7 @@ var sections = {
             var usernames = {};
             multi.set( website + ":users", obj.maxId );
             _.each( obj.users, function( userObj, userId ) {
-                multi.hmset( website + ":users:" + userId, obj.usernames );
+                multi.hmset( website + ":user:" + userId, userObj );
                 usernames[ userObj.name ] = userId;
             });
             multi.hmset( website + ":usernames", usernames );

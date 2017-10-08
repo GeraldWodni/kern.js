@@ -283,5 +283,9 @@
     "html": "HTML",
     "Intro": "Intro",
     "Editor": "Editor",
-    "Reverse Charge": "Reverse Charge"
+    "Reverse Charge": "Reverse Charge",
+    "Current": "Current",
+    "Date of payment": "Date of payment",
+    "Current year": "Current year",
+    "Last customer invoices": "Last customer invoices"
 }

@@ -48,7 +48,12 @@ module.exports = function _siteConfig( k, opts ) {
 
                     var finalConfig = {};
 
-                    var config = JSON.parse( data );
+                    try {
+                        var config = JSON.parse( data );
+                    } catch( err ) {
+                        console.log( "WebSite Config ERROR".bold.red, website );
+                        throw err;
+                    }
                     _.each( config, function _it( websiteConfig, host ) {
                         if( new RegExp( host, "i" ).test( os.hostname() ) ) {
                             finalConfig = _.extend( finalConfig, websiteConfig );
