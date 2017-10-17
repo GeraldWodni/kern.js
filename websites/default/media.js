@@ -170,9 +170,9 @@ module.exports = {
                 var node = tree;
                 /* get files in current folder */
                 if( currentPath != "/" ) {
-                    req.path.substr(1).split("/").forEach( ( part ) => {
-                        node = node.dirs[ part ];
-                    });
+                    //req.path.substr(1).split("/").forEach( ( part ) => {
+                    //    node = node.dirs[ part ];
+                    //});
                 }
 
                 var currentFiles = node.files;

@@ -283,5 +283,9 @@
     "Last customer invoices": "Letzte Kundenrechnungen",
     "Minutes": "Minuten",
     "Upload": "Upload",
-    "Content of": "Inhalt von"
+    "Content of": "Inhalt von",
+    "Country": "Land",
+    "Important": "Wichtig",
+    "Delay": "Verzögerung",
+    "VAT-ID": "UID"
 }

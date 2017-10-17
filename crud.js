@@ -83,7 +83,7 @@ module.exports = function _crud( k ) {
         /* TODO: difference to readForeignKey? function really needed to justify enum foreignBoldName? */
         function readList( callback, listOpts ) {
             listOpts = listOpts || {};
-            db.query( listOpts.query || opts.selectListQuery, [ opts.table, opts.orderBy ], callback );
+            db.query( listOpts.query || opts.selectListQuery, listOpts.parameters || [ opts.table, opts.orderBy ], callback );
         }
 
         function readForeignKey( callback, foreignOpts ) {
@@ -778,6 +778,12 @@ module.exports = function _crud( k ) {
         function renderAll( req, res, next, values, fullData ) {
             var renderCrud = r.getCrud( req );
 
+	    var listOpts = {};
+            if( opts.selectEditListQuery && _.isObject( values ) ) {
+                listOpts.query = opts.selectEditListQuery;
+                listOpts.parameters = values;
+            }
+
             renderCrud.readList( function( err, items ) {
                 if( err ) {
                     return next( err );
@@ -829,7 +835,7 @@ module.exports = function _crud( k ) {
 
                     k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
                 });
-            }, { req: req } );
+            }, listOpts );
         }
 
         k.router.get(opts.editPath, function( req, res, next ) {
