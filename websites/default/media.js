@@ -86,56 +86,38 @@ module.exports = {
             return filepath;
         }
 
-        /* create new folder */
-        k.router.post( "/new-folder", function( req, res, next ) {
+        k.router.post("/*", function( req, res, next ) {
+            console.log( "POST" );
             k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
+                var filename = req.params[0];
+                var name     = req.postman.text("name");
+                var filepath = path.join( "media", filename, name );
 
-                /* create directory */
-                fs.mkdir( filepath, function( err ) {
-                    if( err )
-                        return next( err );
-                    console.log( "NEW-folder".bold.yellow, filepath );
-                    res.send({success: true});
-                });
-
-            });
-        });
-
-        /* delete folder */
-        k.router.post( "/delete-folder", function( req, res, next ) {
-            k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
-
-                /* create directory */
-                rmrf( filepath );
-                console.log( "Delete-folder".bold.yellow, filepath );
-                res.send({success: true});
-            });
-        });
-
-        /* delete folder */
-        k.router.post( "/delete-file", function( req, res, next ) {
-            k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
-
-                /* create directory */
-                fs.unlink( filepath, function( err ) {
-                    if( err )
-                        return next( err );
-
-                    console.log( "Delete-file".bold.yellow, filepath );
-                    res.send({success: true});
-                });
+                if( req.postman.exists( "create-dir" ) ) {
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    if( filepath == null )
+                        return k.httpStatus( req, res, 403 );
+                    console.log( "CREATE-DIR", filepath );
+                    fs.mkdir( filepath, function( err ) {
+                        if( err ) return next( err );
+                        renderAll( req, res, next );
+                    });
+                }
+                else if( req.postman.exists( "delete-dir" ) ) {
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    rmrf( filepath );
+                    res.redirect( 301, path.dirname( path.join( "/admin/media", req.path ) ) );
+                }
+                else if( req.postman.exists( "delete-file" ) ) {
+                    filepath = path.join( filepath, req.postman.filename( "delete-file" ) );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    fs.unlink( filepath, ( err ) => {
+                        if( err ) return next( err );
+                        renderAll( req, res, next );
+                    });
+                }
+                else
+                    return next( new Error( "Unknown POST-action" ) );
             });
         });
 
@@ -168,16 +150,26 @@ module.exports = {
 
                 var currentPath = req.path;
                 var node = tree;
+                console.log( "CURRENT-PATH:", currentPath );
+
                 /* get files in current folder */
                 if( currentPath != "/" ) {
-                    //req.path.substr(1).split("/").forEach( ( part ) => {
-                    //    node = node.dirs[ part ];
-                    //});
+                    try {
+                        req.path.substr(1).split("/").forEach( ( part ) => {
+                            if( !node || !node.dirs || !node.dirs[ part ] )
+                                throw new Error( "Unknown Path" );
+                            node = node.dirs[ part ];
+                        });
+                    } catch( err ) {
+                        return next( err );
+                    }
                 }
 
-                var currentFiles = node.files;
-                currentFiles.forEach( function( file ) {
+                var currentFiles = [];
+                node.files.forEach( function( file ) {
+                    console.log( file );
                     file.extension = path.extname( file.name );
+                    currentFiles.push( file );
                 });
 
                 k.jade.render( req, res, "admin/media", k.reg("admin").values( req, _.extend( {

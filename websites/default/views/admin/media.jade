@@ -2,15 +2,20 @@ extends admin-site
 
 mixin directory(subTree, dirName)
     li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
-        a(href="/admin/media" + subTree.prefix + "/" + dirName)
+        -var dirUrl = "/admin/media" + subTree.prefix + ( subTree.prefix == "/" ? "" : "/" ) + dirName;
+        a(href=dirUrl)
             +glyph("folder-open")
             = " " + dirName
-        //- button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
-        //-     +glyph("folder-close")
-        //- button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
-        //-     +glyph("upload")
-        //- button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
-        //-     +glyph("trash")
+        form.form-inline(method="post",action=dirUrl)
+            span.input-group
+                input.form-control.input-xs(type="text",name="name",placeholder=__("New name"))
+                span.input-group-btn
+                    button.btn.btn-primary.btn-xs(type="submit",name="create-dir",title=__("New Folder"))
+                        +glyph("plus")
+                        |  
+                        +glyph("folder-close")
+            button.btn.btn-default.btn-xs(type="submit",name="delete-dir",title=__("Delete folder"))
+                +glyph("trash")
         ul
             +dirTreeWalker( subTree )
 
@@ -29,6 +34,9 @@ mixin dirTreeWalker(tree)
 
 mixin file(file)
         a(href=file.link).file
+            form.form-inline(method="post")
+                button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete folder"))
+                    +glyph("trash")
             span.file-type
                 if file.extension == ".pdf"
                     +fa("file-pdf-o")

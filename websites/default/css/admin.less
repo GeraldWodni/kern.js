@@ -136,7 +136,7 @@ ul.filetree {
     border-radius: 3px;
 }
 
-.media .file {
+.file-container .file {
     float: left;
     display: block;
     min-height: 128px;
@@ -170,6 +170,19 @@ ul.filetree {
         display: block;
         text-align: center;
         min-height: 3em;
+    }
+
+    form {
+        float: right;
+        margin: 5px;
+        display: none;
+        position: relative;
+        width: 23px;
+        margin-left: -23px;
+    }
+
+    &:hover form {
+        display: block;
     }
 }
 
