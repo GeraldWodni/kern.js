@@ -294,5 +294,18 @@
     "Country": "Country",
     "Important": "Important",
     "Delay": "Delay",
-    "VAT-ID": "VAT-ID"
+    "VAT-ID": "VAT-ID",
+    "letter": "Letter",
+    "Payment target": "Payment target",
+    "English": "English",
+    "The specified resource could not be found.": "The specified resource could not be found.",
+    "New Folder": "New Folder",
+    "New name": "New name",
+    "Delete folder": "Delete folder",
+    "Employees": "Employees",
+    "News": "News",
+    "New file": "New file",
+    "Image": "Image",
+    "Priority": "Priority",
+    "Description": "Description"
 }
