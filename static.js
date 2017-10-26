@@ -102,6 +102,7 @@ module.exports = function _static( k, opts ) {
         });
 
         prefixServeStatic( k.app, "/images/" );
+        prefixServeStatic( k.app, "/media/" );
 
         //app.get("/images/:file", function( req, res, next ) {
         //    serveStatic( "images", req, res );

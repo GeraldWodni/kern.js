@@ -216,7 +216,7 @@ module.exports = function _hierarchy( k ) {
                         if( err )
                             return d( err );
 
-                        console.log( stat.isDirectory(), task.prefix );
+                        //console.log( stat.isDirectory(), task.prefix );
                         /* spawn new worker for every directory */
                         if( stat.isDirectory() ) {
                             var prefix = path.join( task.prefix, filename ); 

@@ -2,60 +2,86 @@
 // (c)copyright 2014 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var qs  = require( "qs" );
-var _   = require("underscore");
+const Busboy    = require("busboy");
+const qs        = require("qs");
+const _         = require("underscore");
 
 module.exports = function _postman( k ) {
-    return function postman( req, res, callback ) {
-        var body = '';
+    return function postman( req, res, opts, callback ) {
+        /*  if no opts are passed, treat as callback */
+        if( _.isFunction( opts ) && typeof callback == "undefined" ) {
+            callback = opts;
+            opts = {};
+        }
 
-        req.on( 'data', function( data ) {
-            body += data;
+        const contentType = req.get( "Content-Type" );
 
-            /* abort on flooding-attack */
-            if( body.length > 1e6 )
-                req.connection.destroy();
-        });
+        function addPostman( fields ) {
+            req.postman = _.extend( req.postman || {}, {
+                fields: fields,
+                exists:     function( field ) {
+                                /* allow passing of single value or array */
+                                if( ! _.isArray( field ) )
+                                    field = [ field ];
+                                return _.every( field, function( f ) {
+                                    return f in fields;
+                                });
+                            },
+                equals:     function( field, value ) {
+                                return fields[ field ] == value;
+                            },
+                fieldsMatch:function( fieldA, fieldB ) {
+                                return fields[ fieldA ] === fields[ fieldB ];
+                            }
+            } );
 
-        req.on( "end", function() {
-            var contentType = req.get( "Content-Type" );
-            switch( contentType ) {
-                case 'application/json':
-                    req.body = JSON.parse( body );
-                    break;
-                /* assume post-data */
-                default:
-                    var fields = qs.parse( body );
+            /* register postman fetcher */
+            req.postman = _.extend( req.postman, k.filters.fetch( function( field ) {
+                return fields[ field ] || "";
+            }) );
+        }
 
-                    var filter = function( field, filter ) {
-                        return (fields[ field ] || "").replace( filter, '' );
-                    };
+        if( contentType.toLowerCase().indexOf( "multipart/form-data" ) == 0 ) {
+            let fields = {};
+            /* connect handlers */
+            var busboy = new Busboy( _.extend( { headers: req.headers }, opts.busboy ) );
+            if( !_.has( opts, "onFile" ) )
+                throw new Error( "multipart/form-data not expected: No file handler installed" );
 
-                    req.postman = _.extend( req.postman || {}, {
-                        fields: fields,
-                        exists:     function( field ) {
-                                        /* allow passing of single value or array */
-                                        if( ! _.isArray( field ) )
-                                            field = [ field ];
-                                        return _.every( field, function( f ) {
-                                            return f in fields;
-                                        });
-                                    },
-                        equals:     function( field, value ) {
-                                        return fields[ field ] == value;
-                                    },
-                        fieldsMatch:function( fieldA, fieldB ) {
-                                        return fields[ fieldA ] === fields[ fieldB ];
-                                    }
-                    } );
+            busboy.on( "file", opts.onFile );
+            busboy.on( "field", ( name, value ) => {
+                console.log( "GOT FIELD:", name );
+                fields[ name ] = value;
+            });
+            busboy.on( "finish", () => {
+                addPostman( fields );
+                callback( req, res );
+            });
+            req.pipe( busboy );
+        }
+        else {
+            let body = '';
+            /* handle simple upload */
+            req.on( 'data', function( data ) {
+                body += data;
 
-                    /* register postman fetcher */
-                    req.postman = _.extend( req.postman, k.filters.fetch( function( field ) { 
-                        return fields[ field ] || "";
-                    }) );
-            }
+                /* beware of multipart filesize */
+                if( body.length > 1e6 )
+                    req.connection.destroy();
+            });
 
-            callback( req, res );
-        });
+            req.on( "end", function() {
+                switch( contentType ) {
+                    case 'application/json':
+                        req.body = JSON.parse( body );
+                        break;
+                    /* assume post-data */
+                    default:
+                        addPostman( qs.parse( body ) );
+                }
+
+                callback( req, res );
+            });
+        }
     };
 };

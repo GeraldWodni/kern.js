@@ -19,49 +19,6 @@ module.exports = {
             lockWebsite: true
         };
 
-        function readTree( opts, callback ) {
-            var tree = { dirs: {}, files: [] };
-
-            /* queue worker */
-            var treeQueue = async.queue( function( task, next ) {
-
-                /* directory contents */
-                fs.readdir( task.dirpath, function( err, filenames ) {
-                    if( err )
-                        return next( err );
-
-                    /* run stat for content */
-                    async.mapSeries( filenames, function( filename, d ) {
-                        var filepath = path.join( task.dirpath, filename );
-                        fs.stat( filepath, function( err, stat ) {
-                            if( err )
-                                return d( err );
-
-                            /* spawn new worker for every directory */
-                            if( stat.isDirectory() ) {
-                                var prefix = path.join( task.prefix, filename ); 
-                                var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
-                                task.tree.dirs[ filename ] = newTree;
-                                treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
-                            }
-                            /* just add file */
-                            else {
-                                var link = path.join( task.prefix, filename );
-                                task.tree.files.push( { name: filename, link: link } );
-                            }
-                            d();
-                        });
-                    }, next );
-                });
-            });
-
-            /* all done, callback */
-            treeQueue.drain = function( err ) {
-                callback( err, tree );
-            };
-            treeQueue.push( { dirpath: opts.dirpath, tree: tree, prefix: opts.prefix } );
-        }
-
         function sanitizePath( req, res, directoryPrefix ) {
             /* get link or compose of prefix and name */
             var link;
@@ -88,8 +45,14 @@ module.exports = {
 
         k.router.post("/*", function( req, res, next ) {
             console.log( "POST" );
-            k.postman( req, res, function() {
-                var filename = req.params[0];
+            var filename = req.params[0];
+
+            k.postman( req, res, { onFile: (field, file, name ) => {
+                var filepath = path.join( "media", filename, name );
+                console.log( "GOT FILE:", field );
+                file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
+            }}, () => {
+                console.log( "POSTF:", req.postman.fields );
                 var name     = req.postman.text("name");
                 var filepath = path.join( "media", filename, name );
 
@@ -115,6 +78,13 @@ module.exports = {
                         if( err ) return next( err );
                         renderAll( req, res, next );
                     });
+                }
+                else if( req.postman.exists( "upload-file" ) ) {
+                    console.log("UPLOAD!".bold.yellow);
+                    if( req.postman.exists( "ajax-upload" ) )
+                        res.status(200).json( { "success": true } );
+                    else
+                        renderAll( req, res, next );
                 }
                 else
                     return next( new Error( "Unknown POST-action" ) );
@@ -150,7 +120,6 @@ module.exports = {
 
                 var currentPath = req.path;
                 var node = tree;
-                console.log( "CURRENT-PATH:", currentPath );
 
                 /* get files in current folder */
                 if( currentPath != "/" ) {
@@ -169,6 +138,7 @@ module.exports = {
                 node.files.forEach( function( file ) {
                     console.log( file );
                     file.extension = path.extname( file.name );
+                    file.link = path.join( "/media", file.link );
                     currentFiles.push( file );
                 });
 

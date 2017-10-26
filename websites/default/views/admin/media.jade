@@ -49,6 +49,20 @@ mixin file(file)
             span.file-label
                 = file.name
 
+mixin fileUpload()
+    form(method="post",enctype="multipart/form-data").box
+        .box-input
+            input(type="file",name="files[]", id="file", data-multiple-caption="{count} files selected",multiple).box-file
+            label(for="file")
+                strong Choose a file
+                span.box-dragndrop or drag it here
+                | .
+            button(type="submit",name="upload-file",value="yepp").box-button Upload
+        .box-uploading Uploadingh &hellip;
+        .box-success Done!
+        .box-error Error!
+            span
+            | .
 
 block main-content
     div.container-fluid.main-content#media-wrapper
@@ -60,6 +74,7 @@ block main-content
 
                 if showFiles || true
                     div.col-lg-9.col-md-7
+                        +fileUpload
                         +messages( messages )
                         h2= __("Content of")
                             |  

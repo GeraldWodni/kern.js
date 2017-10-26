@@ -10,6 +10,7 @@
     "ascii-captcha": "0.0.3",
     "async": "^0.9.0",
     "bcrypt-nodejs": "0.0.x",
+    "busboy": "^0.2.14",
     "cheerio": "^1.0.0-rc.2",
     "clusterhub": "0.2.x",
     "colors": "^0.6.2",
