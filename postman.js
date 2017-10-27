@@ -50,12 +50,14 @@ module.exports = function _postman( k ) {
 
             busboy.on( "file", opts.onFile );
             busboy.on( "field", ( name, value ) => {
-                console.log( "GOT FIELD:", name );
                 fields[ name ] = value;
             });
             busboy.on( "finish", () => {
                 addPostman( fields );
                 callback( req, res );
+            });
+            busboy.on( "error", (err) => {
+                console.log( "Postman-Busboy-Error".bold.red, err );
             });
             req.pipe( busboy );
         }

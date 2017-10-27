@@ -37,30 +37,39 @@ mixin file(file)
             form.form-inline(method="post")
                 button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete folder"))
                     +glyph("trash")
-            span.file-type
+            - var style = "";
+            - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
+            if isImage && file.link.indexOf("/images") == 0
+                - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
+
+            span.file-type(style=style)
                 if file.extension == ".pdf"
                     +fa("file-pdf-o")
                 else if file.extension == ".txt"
                     +fa("file-text-o")
-                else if _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension )
-                    +fa("file-image-o")
+                else if isImage
+                    if style !== ""
+                        |  
+                    else
+                        +fa("file-image-o")
                 else
                     +fa("file-o")
             span.file-label
                 = file.name
 
 mixin fileUpload()
-    form(method="post",enctype="multipart/form-data").box
-        .box-input
+    form(method="post",enctype="multipart/form-data").file-upload
+        .file-input
+            +fa("download").fa-3x
             input(type="file",name="files[]", id="file", data-multiple-caption="{count} files selected",multiple).box-file
             label(for="file")
-                strong Choose a file
-                span.box-dragndrop or drag it here
+                strong.choose Choose a file
+                span.drag-n-drop  or drag it here
                 | .
             button(type="submit",name="upload-file",value="yepp").box-button Upload
-        .box-uploading Uploadingh &hellip;
-        .box-success Done!
-        .box-error Error!
+        .status.uploading Uploading &hellip;
+        .status.success.text-success Done!
+        .status.error.text-danger Error!
             span
             | .
 
@@ -74,11 +83,11 @@ block main-content
 
                 if showFiles || true
                     div.col-lg-9.col-md-7
-                        +fileUpload
                         +messages( messages )
                         h2= __("Content of")
                             |  
                             = currentPath
+                        +fileUpload
                         .file-container
                             each file in currentFiles
                                 +file( file )
@@ -92,9 +101,5 @@ block main-content
     div.hidden#directoryTemplate
         +directory({dirs:[],files:[],prefix:"{prefix}"},"{name}")
         
-append styles
-    +style-tag("/css/fileinput.min.css")
-
 append scripts
-    +script-tag("/js/fileinput.min.js")
     +script-tag("/js/media.js")

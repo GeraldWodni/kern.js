@@ -14,7 +14,7 @@ module.exports = {
 
         /* protection filters, TODO: allow overwrite per user-permission */
         var hierarchyFilters = {
-            dirShowFilters:  [ /.*/g ],
+            dirShowFilters:  [ /^\/images$/g, /^\/images\/.*/g, /^\/media$/g, /^\/media\/.*/g, /^\/files$/g, /^\/files\/.*/g ],
             fileShowFilters: [ /.*/g ],
             lockWebsite: true
         };
@@ -48,15 +48,22 @@ module.exports = {
             var filename = req.params[0];
 
             k.postman( req, res, { onFile: (field, file, name ) => {
-                var filepath = path.join( "media", filename, name );
-                console.log( "GOT FILE:", field );
-                file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
+                var name = k.filters.filename( name );
+                if( name == "" ) {
+                    file.on("data", ()=>{});
+                    file.on("end", ()=>{});
+                    return console.log( "Ignoring empty file" );
+                }
+                var filepath = path.join( "/", filename, k.filters.filename( name ) );
+                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters ) != null )
+                    file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
             }}, () => {
-                console.log( "POSTF:", req.postman.fields );
                 var name     = req.postman.text("name");
-                var filepath = path.join( "media", filename, name );
+                var filepath = path.join( "/", filename, k.filters.filename( name ) );
+                console.log( "FILEPATH:", filepath.bold.red );
 
                 if( req.postman.exists( "create-dir" ) ) {
+                    console.log( "CD-FILEPATH:", filepath.bold.red, req.kern.website, hierarchyFilters );
                     filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
                     if( filepath == null )
                         return k.httpStatus( req, res, 403 );
@@ -86,8 +93,10 @@ module.exports = {
                     else
                         renderAll( req, res, next );
                 }
-                else
+                else {
+                    console.log("Unknown POST-Action".bold.red);
                     return next( new Error( "Unknown POST-action" ) );
+                }
             });
         });
 
@@ -111,7 +120,7 @@ module.exports = {
 
         /* render directory tree & files */
         function renderAll( req, res, next, values ) {
-            k.hierarchy.readHierarchyTree( req.kern.website, "media", _.extend( {}, hierarchyFilters, {
+            k.hierarchy.readHierarchyTree( req.kern.website, "/", _.extend( {}, hierarchyFilters, {
                 prefix: "/"
             }),
             function( err, tree ) {
@@ -138,7 +147,7 @@ module.exports = {
                 node.files.forEach( function( file ) {
                     console.log( file );
                     file.extension = path.extname( file.name );
-                    file.link = path.join( "/media", file.link );
+                    //file.link = path.join( "/media", file.link );
                     currentFiles.push( file );
                 });
 
