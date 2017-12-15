@@ -377,6 +377,7 @@ module.exports = function _crud( k ) {
                 password:   "passwords",
                 folder:     "filepath",
                 file:       "filepath",
+                image:      "filepath",
                 h3:         "drop",
                 h4:         "drop"
             },
@@ -393,6 +394,7 @@ module.exports = function _crud( k ) {
                 password:   "password-field",
                 folder:     "enum-field",
                 file:       "enum-field",
+                image:      "enum-field",
                 h3:         "h3",
                 h4:         "h4"
             },
@@ -823,25 +825,48 @@ module.exports = function _crud( k ) {
 
                     /* extra asyncronous queries like folder-listings */
                     async.map( _.keys( fields ), function( fieldName, done ) {
+
+                        function treeReader( treeOpts, defaults ) {
+                            _.defaults( treeOpts, defaults );
+
+                            k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
+                                if( err ) return next( err );
+                                var keyValues = {};
+                                if( treeOpts.addNone )
+                                    keyValues[ "" ] = "<" + req.locales.__("None") + ">";
+                                _.each( tree, function( item ) {
+                                    var value = item;
+                                    if( treeOpts.hidePrefix )
+                                        value = value.substring( treeOpts.prefix.length );
+
+                                    keyValues[ item ] = value;
+                                });
+                                fields[ fieldName ].keyValues = keyValues;
+                                done();
+                            });
+                        }
+
                         switch( fields[ fieldName ].type ) {
                             case 'file':
-                                var treeOpts = fields[ fieldName ].fileOpts || {};
-                                _.defaults( treeOpts, { root: "/", filesOnly: true });
-
-                                k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
-                                    if( err ) return next( err );
-                                    fields[ fieldName ].keyValues = _.object( tree, tree );
-                                    done();
+                                treeReader( fields[ fieldName ].fileOpts || {}, {
+                                    root: "/",
+                                    filesOnly: true,
+                                    addNone: true
+                                });
+                                break;
+                            case 'image':
+                                treeReader( fields[ fieldName ].fileOpts || {}, {
+                                    root: "/images",
+                                    prefix: "/images",
+                                    hidePrefix: true,
+                                    addNone: true
                                 });
                                 break;
                             case 'folder':
-                                var treeOpts = fields[ fieldName ].folderOpts || {};
-                                _.defaults( treeOpts, { root: "/", foldersOnly: true });
-
-                                k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
-                                    if( err ) return next( err );
-                                    fields[ fieldName ].keyValues = _.object( tree, tree );
-                                    done();
+                                treeReader( fields[ fieldName ].folderOpts || {}, {
+                                    root: "/",
+                                    foldersOnly: true,
+                                    addNone: true
                                 });
                                 break;
                             default:
