@@ -375,6 +375,8 @@ module.exports = function _crud( k ) {
                 textarea:   "text",
                 checkbox:   "exists",
                 password:   "passwords",
+                folder:     "filepath",
+                file:       "filepath",
                 h3:         "drop",
                 h4:         "drop"
             },
@@ -389,6 +391,8 @@ module.exports = function _crud( k ) {
                 textarea:   "textarea-field",
                 checkbox:   "checkbox-field",
                 password:   "password-field",
+                folder:     "enum-field",
+                file:       "enum-field",
                 h3:         "h3",
                 h4:         "h4"
             },
@@ -817,23 +821,55 @@ module.exports = function _crud( k ) {
                     if( err )
                         return next( err );
 
-                    var jadeCrudOpts = {
-                        items: items,
-                        idField: opts.id,
-                        display: renderCrud.foreignName,
-                        boldDisplay: renderCrud.foreignBoldName,
-                        link: opts.path,
-                        fields: fields,
-                        scripts: opts.scripts || [],
-                        values: r.getValues( req, fields, values ),
-                        fullData: fullData,
-                        formAction: req.baseUrl,
-                        showList: getOptional( k, opts.showList, req ),
-                        showAdd: opts.showAdd,
-                        startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
-                    };
+                    /* extra asyncronous queries like folder-listings */
+                    async.map( _.keys( fields ), function( fieldName, done ) {
+                        switch( fields[ fieldName ].type ) {
+                            case 'file':
+                                var treeOpts = fields[ fieldName ].fileOpts || {};
+                                _.defaults( treeOpts, { root: "/", filesOnly: true });
 
-                    k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                                k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
+                                    if( err ) return next( err );
+                                    fields[ fieldName ].keyValues = _.object( tree, tree );
+                                    done();
+                                });
+                                break;
+                            case 'folder':
+                                var treeOpts = fields[ fieldName ].folderOpts || {};
+                                _.defaults( treeOpts, { root: "/", foldersOnly: true });
+
+                                k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
+                                    if( err ) return next( err );
+                                    fields[ fieldName ].keyValues = _.object( tree, tree );
+                                    done();
+                                });
+                                break;
+                            default:
+                                done();
+                        }
+                    }, function( err ) {
+
+                        if( err )
+                            return next( err );
+
+                        var jadeCrudOpts = {
+                            items: items,
+                            idField: opts.id,
+                            display: renderCrud.foreignName,
+                            boldDisplay: renderCrud.foreignBoldName,
+                            link: opts.path,
+                            fields: fields,
+                            scripts: opts.scripts || [],
+                            values: r.getValues( req, fields, values ),
+                            fullData: fullData,
+                            formAction: req.baseUrl,
+                            showList: getOptional( k, opts.showList, req ),
+                            showAdd: opts.showAdd,
+                            startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
+                        };
+
+                        k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                    });
                 });
             }, listOpts );
         }
