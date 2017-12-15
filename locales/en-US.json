@@ -309,5 +309,9 @@
     "Priority": "Priority",
     "Description": "Description",
     "Albums": "Albums",
-    "Folder": "Folder"
+    "Folder": "Folder",
+    "survey": "survey",
+    "commissioned": "commissioned",
+    "emergency-measures": "emergency-measures",
+    "estimate": "estimate"
 }

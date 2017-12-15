@@ -302,5 +302,9 @@
     "Priority": "Priorität",
     "Description": "Beschreibung",
     "Albums": "Alben",
-    "Folder": "Ordner"
+    "Folder": "Ordner",
+    "survey": "Besichtigung",
+    "commissioned": "Beauftragt",
+    "emergency-measures": "Notmaßnahme",
+    "estimate": "Aufmaß"
 }
