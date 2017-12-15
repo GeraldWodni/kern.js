@@ -368,7 +368,7 @@ module.exports = function _crud( k ) {
                 date:       "dateTime",
                 email:      "email",
                 number:     "decimal",
-                enum:       "alnum",
+                enum:       "id",
                 tel:        "telephone",
                 text:       "text",
                 foreign:    "uint",

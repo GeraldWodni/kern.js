@@ -307,5 +307,9 @@
     "New file": "New file",
     "Image": "Image",
     "Priority": "Priority",
-    "Description": "Description"
+    "Description": "Description",
+    "survey": "survey",
+    "commissioned": "commissioned",
+    "emergency-measures": "emergency-measures",
+    "estimate": "estimate"
 }
