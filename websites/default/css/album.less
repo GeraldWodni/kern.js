@@ -1,0 +1,89 @@
+ul.album {
+    padding-left: 0;
+    list-style: none;
+    overflow: hidden;
+
+    li {
+        @side: 128px;
+        @padding: 0px;
+        @margin: 20px;
+
+        float: left;
+        margin: 0 @margin @margin 0;
+        padding: 0;
+
+        border-radius: 3px;
+        overflow: hidden;
+
+        box-shadow: 2px 2px 3px #EEE;
+        box-shadow: 2px 2px 4px #DDD;
+
+        img {
+        }
+    }
+}
+
+#album-overlay {
+    display: none;
+    @font-size: 50px;
+
+    background: #000;
+
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+
+    //background-image: url(/images/2017-ft-Kalkar/2017-04-21_14-32-34.jpg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    .album-btn {
+        position: absolute;
+        top: 0;
+
+        display: flex;
+        align-items: center;
+        width: 50%;
+
+        cursor: pointer;
+        font-size: @font-size;
+
+        color: rgba( 255, 255, 255, 0.5 );
+        text-shadow: 0 0 1px rgba( 0, 0, 0, 0.2 );
+
+        &:hover {
+            color: #FFF;
+            text-shadow: 0 0 1px #000;
+        }
+    }
+
+    .prev, .next {
+        bottom: 0;
+        padding: 20px;
+    }
+
+    .prev {
+        left: 0;
+    }
+
+    .next {
+        right: 0;
+        justify-content: flex-end;
+    }
+
+    .close {
+        color: rgba( 255, 255, 255, 0.8 );
+        text-shadow: 0 0 1px rgba( 0, 0, 0, 0.5 );
+
+        right: 0;
+        z-index: 3010;
+        justify-content: center;
+        width: 1em;
+
+        opacity: 1.0;
+    }
+}
