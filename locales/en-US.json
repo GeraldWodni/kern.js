@@ -313,5 +313,7 @@
     "survey": "survey",
     "commissioned": "commissioned",
     "emergency-measures": "emergency-measures",
-    "estimate": "estimate"
+    "estimate": "estimate",
+    "Close": "Close",
+    "Download": "Download"
 }

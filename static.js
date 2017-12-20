@@ -101,6 +101,13 @@ module.exports = function _static( k, opts ) {
                 .write( cachepath, next );
         });
 
+        k.app.get("/images-download/*", function( req, res, next ) {
+            /* add disposition header and route to image */
+            req.url = req.url.replace( /^\/images\-download\//, "/images/" );
+            res.header("Content-Disposition", path.basename( req.url ));
+            next();
+        });
+
         prefixServeStatic( k.app, "/images/" );
         prefixServeStatic( k.app, "/media/" );
 

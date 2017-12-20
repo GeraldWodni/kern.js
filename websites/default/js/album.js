@@ -1,43 +1,83 @@
 $(function() {
     var $overlay = $("#album-overlay");
+    var $btnPrev = $overlay.find(".prev");
+    var $btnNext = $overlay.find(".next");
+    var $btnClose= $overlay.find(".close");
+    var $btnDownload = $overlay.find(".download");
     var $a = null; /* last clicked preview link */
 
+    var preLoadImg = null; /* preLoad handle, only one and global for easy garbage collection */
+
+    function preLoad( $preA ) {
+        var preLoadImg = new Image();
+        preLoadImg.src = $preA.attr("data-album-image");
+    }
+
     /* load image of current a */
-    function loadImage() {
-        $overlay.css( "background-image", "url(" + $a.attr("data-album-image") + ")" );
+    function loadImage( $btn ) {
+        var url = $a.attr("data-album-image");
+
+        /* download button target */
+        $btnDownload.attr( "href", $a.attr("data-album-download") );
+
+        /* TODO: show loading dail instead of chevron */
+        var img = new Image();
+        img.src = url;
+        /* not loaded: display wait-spinner */
+        if( img.naturalWidth === 0 ) {
+            $btn.addClass("loading");
+            img.onload = function() {
+                $overlay.css( "background-image", "url(" + url + ")" );
+                $btn.removeClass("loading");
+            }
+        }
+        /* already loaded: just display */
+        else
+            $overlay.css( "background-image", "url(" + url + ")" );
     }
 
     $(".album a").click(function(evt) {
         evt.preventDefault();
         $a = $(this);
 
-        loadImage();
+        loadImage( $btnNext.add( $btnPrev ) );
         $overlay.css( "display", "block" );
+        preLoad( nextLink( $a ) );
     });
 
-    $overlay.find(".prev").click( function(evt) {
-        evt.preventDefault();
-        var $prevA = $a.closest("li").prev("li").find("a");
-        if( $prevA.length == 1 )
-            $a = $prevA;
+    function prevLink( $current ) {
+        var $prev = $current.closest("li").prev("li").find("a");
+        if( $prev.length == 1 )
+            return $prev;
         else
             /* wrap around */
-            $a = $a.closest("ul").find("li").last().find("a");
-        loadImage();
-    });
+            return $current.closest("ul").find("li").last().find("a");
+    }
 
-    $overlay.find(".next").click( function(evt) {
-        evt.preventDefault();
-        var $nextA = $a.closest("li").next("li").find("a");
-        if( $nextA.length == 1 )
-            $a = $nextA;
+    function nextLink( $current ) {
+        var $next = $current.closest("li").next("li").find("a");
+        if( $next.length == 1 )
+            return $next;
         else
             /* wrap around */
-            $a = $a.closest("ul").find("li:eq(0)").find("a");
-        loadImage();
+            return $current.closest("ul").find("li:eq(0)").find("a");
+    }
+
+    $btnPrev.click( function(evt) {
+        evt.preventDefault();
+        $a = prevLink( $a );
+        loadImage( $btnPrev );
+        preLoad( prevLink( $a ) );
     });
 
-    $overlay.find(".close").click( function(evt) {
+    $btnNext.click( function(evt) {
+        evt.preventDefault();
+        $a = nextLink( $a );
+        loadImage( $btnNext );
+        preLoad( nextLink( $a ) );
+    });
+
+    $btnClose.click( function(evt) {
         evt.preventDefault();
         $overlay.css( "display", "none" );
     });

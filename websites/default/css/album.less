@@ -64,6 +64,13 @@ ul.album {
     .prev, .next {
         bottom: 0;
         padding: 20px;
+
+        .loading {
+            display: none;
+        }
+        &.loading .loading {
+            display: inline;
+        }
     }
 
     .prev {
@@ -75,15 +82,24 @@ ul.album {
         justify-content: flex-end;
     }
 
-    .close {
+    .close, .download {
         color: rgba( 255, 255, 255, 0.8 );
         text-shadow: 0 0 1px rgba( 0, 0, 0, 0.5 );
 
-        right: 0;
         z-index: 3010;
         justify-content: center;
         width: 1em;
 
         opacity: 1.0;
+    }
+
+    .close {
+        right: 0;
+    }
+
+    .download {
+        left: 0;
+        margin-top: 9px;
+        .fa { font-size: 80%; }
     }
 }
