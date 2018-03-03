@@ -152,7 +152,7 @@ module.exports = function _site( k, opts ) {
             newRouter: newRouter,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
-                k.app.ws.apply( this, arguments );
+                k.ws.apply( this, arguments );
             },
             siteRequire: function _siteRequire( website, filename ) {
 

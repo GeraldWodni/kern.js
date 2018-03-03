@@ -7,6 +7,7 @@ var os      = require("os");
 var path    = require("path");
 var url     = require("url");
 var express = require("express");
+var http    = require("http");
 var fs      = require("fs");
 var logger  = require("morgan");
 var _       = require("underscore");
@@ -79,15 +80,17 @@ var Kern = function( callback, kernOpts ) {
         app.worker = worker;
         app.status = status;
 
-        /* websocket support */
-        require( "express-ws" )( app );
+        /* native server to allow websocket support */
+        var server = http.createServer( app );
 
         /* load modules */
         var k = {
             app: app,
+            server: server,
             kernOpts: kernOpts
         };
         loadModule( k, "err"        );
+        loadModule( k, "ws"         );
         loadModule( k, "hooks"      );
         loadModule( k, "hierarchy"  );
         loadModule( k, "rdb"        );
@@ -141,7 +144,7 @@ var Kern = function( callback, kernOpts ) {
 
 
         /* configure websites (async) */
-        var serverInstance = null;
+        var serverIsOpen = false;
         k.siteConfig.loadAll(function() {
 
             /** handle errors **/
@@ -153,16 +156,17 @@ var Kern = function( callback, kernOpts ) {
 
             /* start listener */
             console.log("All Sites loaded".bold.magenta);
-            serverInstance = app.listen( kernOpts.port );
+            server.listen( kernOpts.port );
+            serverIsOpen = true;
         });
 
         /* process hooks */
         return {
             exit: function _onExit(){
                 k.hooks.execute( "exit" );
-                if( serverInstance ) {
+                if( serverIsOpen ) {
                     console.log( "Stop listening".bold.red );
-                    serverInstance.close();
+                    server.close();
                 }
             }
         }
