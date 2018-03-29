@@ -50,9 +50,10 @@ module.exports = function _jade( k, opts ) {
 	if( path.parse )
             locals._filename = path.parse(filepath).name;
 
-        if( filepath in jadeCache ) {
+        var cachePath = req.kern.website + "--" + filepath;
+        if( cachePath in jadeCache ) {
             console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-            return res.send( jadeCache[ filepath ]( locals ) );
+            return res.send( jadeCache[ cachePath ]( locals ) );
         }
 
 
@@ -91,7 +92,7 @@ module.exports = function _jade( k, opts ) {
 
             /* store in cache */
             if( k.kernOpts.cacheJade ) {
-                jadeCache[ filepath ] = compiledJade;
+                jadeCache[ cachePath ] = compiledJade;
 
                 dependencies = _.uniq( dependencies );
 
@@ -100,7 +101,7 @@ module.exports = function _jade( k, opts ) {
                 dependencies.forEach( function( filename ) {
                     var watcher = fs.watch( filename, function() {
                         console.log( "Jade Changed".grey, filepath.yellow, website.grey );
-                        delete jadeCache[ filepath ];
+                        delete jadeCache[ cachePath ];
 
                         /* close all watchers for root file */
                         watchers.forEach( function( watcher ) { watcher.close() } );
