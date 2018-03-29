@@ -783,6 +783,7 @@ module.exports = function _crud( k ) {
 
         function renderAll( req, res, next, values, fullData ) {
             var renderCrud = r.getCrud( req );
+            var hiddenForeignKeyData = {};
 
 	    var listOpts = {};
             if( opts.selectEditListQuery && _.isObject( values ) ) {
@@ -799,9 +800,9 @@ module.exports = function _crud( k ) {
 
                 async.map( _.keys( renderCrud.foreignKeys ), function( fkey, done ) {
 
-                    if( !_.has( fields, fkey ) )
+                    if( !_.has( fields, fkey ) && ( opts.hiddenForeignKeys || [] ).indexOf( fkey ) < 0 )
                     {
-                        console.log( "ForeignKey not registered: ".bold.red, fkey )
+                        console.log( "ForeignKey not registered: ".bold.yellow, fkey )
                         return done( new Error( "ForeignKey not registered: " + fkey ) );
                     }
 
@@ -815,7 +816,10 @@ module.exports = function _crud( k ) {
                         if( err )
                             return done( err );
 
-                        fields[ fkey ].items = data;
+                        if( !_.has( fields, fkey ) )
+                            hiddenForeignKeyData[ fkey ] = data;
+                        else
+                            fields[ fkey ].items = data;
                         done();
                     }, renderCrud.foreignKeys[ fkey ] );
 
@@ -887,6 +891,7 @@ module.exports = function _crud( k ) {
                             scripts: opts.scripts || [],
                             values: r.getValues( req, fields, values ),
                             fullData: fullData,
+                            hiddenForeignKeyData: hiddenForeignKeyData,
                             formAction: req.baseUrl,
                             showList: getOptional( k, opts.showList, req ),
                             showAdd: opts.showAdd,

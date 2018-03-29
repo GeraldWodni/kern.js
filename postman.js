@@ -68,8 +68,10 @@ module.exports = function _postman( k ) {
                 body += data;
 
                 /* beware of multipart filesize */
-                if( body.length > 1e6 )
+                if( body.length > 2e6 ) {
                     req.connection.destroy();
+                    console.log( "Postman-body-too-big".bold.red );
+                }
             });
 
             req.on( "end", function() {

@@ -308,5 +308,21 @@
     "emergency-measures": "Notmaßnahme",
     "estimate": "Aufmaß",
     "Close": "Schließen",
-    "Download": "Download"
+    "Download": "Download",
+    "Copy Pre- and Suffix": "Vor- und Nachtext kopieren",
+    "Suppliers": "Lieferanten",
+    "Supplier Invoices": "Lieferantenrechnungen",
+    "Supplier": "Lieferant",
+    "Subcontractor Invoices": "Subfirmenrechnungen",
+    "Subcontractors": "Subfirmen",
+    "Subcontractor": "Subfirma",
+    "subcontractor": "Subfirma",
+    "Total": "Gesamt",
+    "Cash retention": "Skonto",
+    "Paid amount": "Bezahlter Betrag",
+    "Paid date": "Bezahldatum",
+    "Contractor liability": "Unternehmerhaftung (AGH)",
+    "Further discounts": "Weitere Abzüge",
+    "Damages": "Entschädigungen",
+    "Assignments": "Zuweisungen"
 }

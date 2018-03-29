@@ -315,5 +315,21 @@
     "emergency-measures": "emergency-measures",
     "estimate": "estimate",
     "Close": "Close",
-    "Download": "Download"
+    "Download": "Download",
+    "Copy Pre- and Suffix": "Copy Pre- and Suffix",
+    "Suppliers": "Suppliers",
+    "Supplier Invoices": "Supplier Invoices",
+    "Supplier": "Supplier",
+    "Subcontractor Invoices": "Subcontractor Invoices",
+    "Subcontractors": "Subcontractors",
+    "Subcontractor": "Subcontractor",
+    "subcontractor": "Subcontractor",
+    "Total": "Total",
+    "Cash retention": "Cash retention",
+    "Paid amount": "Paid amount",
+    "Paid date": "Paid date",
+    "Contractor liability": "Contractor liability",
+    "Further discounts": "Further discounts",
+    "Damages": "Damages",
+    "Assignments": "Assignments"
 }
