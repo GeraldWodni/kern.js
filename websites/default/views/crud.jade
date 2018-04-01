@@ -71,7 +71,7 @@ mixin crudFields( opts )
 
 //- edit form
 mixin crudEdit( opts )
-    form.crud-edit(method="post",role="form")
+    form.crud-edit(method="post",role="form",enctype=opts.enctype)
         h2
             = " " + __("Change")
             +glyph("pencil", "pull-right")

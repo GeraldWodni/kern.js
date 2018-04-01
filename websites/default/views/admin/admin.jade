@@ -46,7 +46,8 @@ html(lang=__('current-locale'))
             ul
                 block navItems
                     each menuItem in menu || []
-                        +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
+                        block navItem
+                            +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
         block main-content
             div.container.main-content

@@ -377,6 +377,7 @@ module.exports = function _crud( k ) {
                 password:   "passwords",
                 folder:     "filepath",
                 file:       "filepath",
+                upload:     "filepath",
                 image:      "filepath",
                 h3:         "drop",
                 h4:         "drop"
@@ -394,6 +395,7 @@ module.exports = function _crud( k ) {
                 password:   "password-field",
                 folder:     "enum-field",
                 file:       "enum-field",
+                upload:     "file-field",
                 image:      "enum-field",
                 h3:         "h3",
                 h4:         "h4"
@@ -520,7 +522,26 @@ module.exports = function _crud( k ) {
 
         function handlePost( req, res, next )  {
 
-            k.postman( req, res, function() {
+            var postOpts = {};
+            var files = [];
+            if( opts.fileUpload ) {
+                postOpts.onFile = function( fieldname, file, filename, encoding, mimetype ) {
+                    var f = {
+                        fieldname: fieldname,
+                        filename: filename,
+                        encoding: encoding,
+                        mimetype: mimetype,
+                        content: Buffer.alloc(0),
+                        complete: false
+                    };
+                    files.push( f );
+
+                    file.on("data", (chunk) => f.content = Buffer.concat([ f.content, chunk ]) );
+                    file.on("end", () => f.complete = true );
+                }
+            }
+
+            k.postman( req, res, postOpts, function() {
 
                 try {
                     if( req.postman.exists( "add" ) ) {
@@ -534,7 +555,14 @@ module.exports = function _crud( k ) {
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added"),
                                 attributes: { "data-insert-id": insertId }
                             } );
-                            opts.success( req, res, next );
+
+                            /* on successfull insert: handle files */
+                            if( opts.fileUpload )
+                                opts.fileUpload( req, res, next, files, function() {
+                                    opts.success( req, res, next );
+                                });
+                            else
+                                opts.success( req, res, next );
                         };
                         
                         opts.preCreateTrigger( req, obj, function( obj ) {
@@ -550,7 +578,14 @@ module.exports = function _crud( k ) {
                                 return opts.__error( err, req, res, next );
 
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item updated") } );
-                            opts.success( req, res, next );
+
+                            /* on successfull update: handle files */
+                            if( opts.fileUpload )
+                                opts.fileUpload( req, res, next, files, function() {
+                                    opts.success( req, res, next );
+                                });
+                            else
+                                opts.success( req, res, next );
                         };
 
                         opts.getCrud(req).update( id, obj, handleUpdate );
@@ -895,6 +930,7 @@ module.exports = function _crud( k ) {
                             formAction: req.baseUrl,
                             showList: getOptional( k, opts.showList, req ),
                             showAdd: opts.showAdd,
+                            enctype: opts.fileUpload ? "multipart/form-data" : false,
                             startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
                         };
 

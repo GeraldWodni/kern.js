@@ -91,7 +91,7 @@ module.exports = {
 
             subRouter.use( "/" + link, target );
             if( link != "" && glyph != "" )
-                subMenu.push( { link: link, glyph: glyph, english: name } );
+                subMenu.push( { link: link, glyph: glyph, english: name, opts: opts } );
         };
 
         /* main admin modules */
