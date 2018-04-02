@@ -85,7 +85,7 @@ mixin crudEdit( opts )
 
 //- add form
 mixin crudAdd( opts )
-    form.crud-add(method='post',role='form',action=opts.formAction)
+    form.crud-add(method='post',role='form',enctype=opts.enctype,action=opts.formAction)
         h2#crud-add-header
             +glyph("plus", "pull-right")
             = " " + __("Add")

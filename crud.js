@@ -5,7 +5,9 @@
 var _       = require("underscore");
 var async   = require("async");
 var moment  = require("moment");
-var path    = require("path");
+var fs      = require("fs");
+var mkdirp  = require("mkdirp");
+var fsPath  = require("path");
 var express = require("express");
 
 module.exports = function _crud( k ) {
@@ -526,19 +528,50 @@ module.exports = function _crud( k ) {
             var files = [];
             if( opts.fileUpload ) {
                 postOpts.onFile = function( fieldname, file, filename, encoding, mimetype ) {
+                    if( !opts.fields[fieldname] || opts.fields[fieldname].type !== "upload" ) {
+                        req.messages.push( { type: "danger", title: req.locales.__("Error"), text: "Non-upload-field file-upload" } );
+                        console.log( "Non-upload-field file-upload:".bold.red, fieldname );
+                        return file.resume();
+                    }
                     var f = {
                         fieldname: fieldname,
-                        filename: filename,
+                        originalFilename: filename,
+                        filename: k.filters.filename( filename.replace( /\s+/g, "_" ) ),
                         encoding: encoding,
                         mimetype: mimetype,
                         content: Buffer.alloc(0),
                         complete: false
                     };
                     files.push( f );
-
                     file.on("data", (chunk) => f.content = Buffer.concat([ f.content, chunk ]) );
                     file.on("end", () => f.complete = true );
                 }
+            }
+
+            function storeFiles( store ) {
+                if( store.length == 0 )
+                    return opts.success( req, res, next );
+
+                var obj = {};
+                async.each( store, (file, done) => {
+                    /*  update-obj */
+                    obj[ file.name ] = file.value;
+                    /* save file */
+                    mkdirp( fsPath.dirname( file.filename ), (err) => {
+                        if( err ) return done( err );
+                        fs.writeFile( file.filename, file.content, done );
+                    });
+                }, (err) => {
+                    if( err )
+                        return opts.__error( err, req, res, next );
+
+                    /* update crud's file pointer */
+                    opts.getCrud( req ).update( req.kern.crudId, obj, (err) => {
+                        if( err )
+                            return opts.__error( err, req, res, next );
+                        opts.success( req, res, next );
+                    });
+                });
             }
 
             k.postman( req, res, postOpts, function() {
@@ -552,15 +585,14 @@ module.exports = function _crud( k ) {
                                 return opts.__error( err, req, res, next );
 
                             var insertId = ( data || {} ).insertId;
+                            req.kern.crudId = insertId;
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added"),
                                 attributes: { "data-insert-id": insertId }
                             } );
 
                             /* on successfull insert: handle files */
                             if( opts.fileUpload )
-                                opts.fileUpload( req, res, next, files, function() {
-                                    opts.success( req, res, next );
-                                });
+                                opts.fileUpload( req, res, next, files, storeFiles )
                             else
                                 opts.success( req, res, next );
                         };
@@ -572,6 +604,7 @@ module.exports = function _crud( k ) {
                     else if( req.postman.exists( "update" ) ) {
                         var id = opts.getRequestId( req );
                         var obj = opts.readFields( req );
+                        req.kern.crudId = id;
 
                         var handleUpdate = function _handleUpdate( err ) {
                             if( err )
@@ -581,9 +614,7 @@ module.exports = function _crud( k ) {
 
                             /* on successfull update: handle files */
                             if( opts.fileUpload )
-                                opts.fileUpload( req, res, next, files, function() {
-                                    opts.success( req, res, next );
-                                });
+                                opts.fileUpload( req, res, next, files, storeFiles )
                             else
                                 opts.success( req, res, next );
                         };
@@ -689,13 +720,13 @@ module.exports = function _crud( k ) {
         }, opts);
 
         opts = _.extend( {
-            readPath:       path.join( opts.path, "read/:id?"   ),
+            readPath:       fsPath.join( opts.path, "read/:id?"   ),
             idField:        "id",
-            readAllPath:    path.join( opts.path, "read-all"    ),
-            readListPath:   path.join( opts.path, "read-list"   ),
-            createPath:     path.join( opts.path, "create"      ),
-            updatePath:     path.join( opts.path, "update/:id?" ),
-            deletePath:     path.join( opts.path, "delete/:id?" )
+            readAllPath:    fsPath.join( opts.path, "read-all"    ),
+            readListPath:   fsPath.join( opts.path, "read-list"   ),
+            createPath:     fsPath.join( opts.path, "create"      ),
+            updatePath:     fsPath.join( opts.path, "update/:id?" ),
+            deletePath:     fsPath.join( opts.path, "delete/:id?" )
         }, opts);
 
         //var r = router( k, [ opts.createPath, opts.readPath, opts.updatePath, opts.deletePath ], crud, opts );
@@ -731,9 +762,9 @@ module.exports = function _crud( k ) {
         /* wheres, currently only supported for sql, if needed can be extended by handling readWhere in unPrefixedCrud */
         _.each( crud.wheres, function( where, name ) {
 
-            var url = path.join( opts.path, "where", name );
+            var url = fsPath.join( opts.path, "where", name );
             where.parameters.forEach( function( parameter ) {
-                url = path.join( url, ":" + parameter.name );
+                url = fsPath.join( url, ":" + parameter.name );
             });
 
             r.get( url, function( req, res, next ) {
