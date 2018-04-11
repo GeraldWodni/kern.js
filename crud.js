@@ -379,7 +379,7 @@ module.exports = function _crud( k ) {
                 password:   "passwords",
                 folder:     "filepath",
                 file:       "filepath",
-                upload:     "filepath",
+                upload:     "drop",
                 image:      "filepath",
                 h3:         "drop",
                 h4:         "drop"
@@ -554,6 +554,10 @@ module.exports = function _crud( k ) {
 
                 var obj = {};
                 async.each( store, (file, done) => {
+                    /* ignore empty uploads */
+                    if( file.content.length == 0 )
+                        return done();
+
                     /*  update-obj */
                     obj[ file.name ] = file.value;
                     /* save file */
@@ -566,6 +570,9 @@ module.exports = function _crud( k ) {
                         return opts.__error( err, req, res, next );
 
                     /* update crud's file pointer */
+                    if( _.keys(obj).length == 0 )
+                        return opts.success( req, res, next );
+
                     opts.getCrud( req ).update( req.kern.crudId, obj, (err) => {
                         if( err )
                             return opts.__error( err, req, res, next );
