@@ -329,5 +329,8 @@
     "Transaction units": "Transaktionseinheiten",
     "PDF": "PDF",
     "Expenses": "Ausgaben",
-    "Due": "Fällig"
+    "Due": "Fällig",
+    "Files": "Dateien",
+    "Choose a file": "Datei wählen",
+    "or drag it here": "oder hier ablegen"
 }

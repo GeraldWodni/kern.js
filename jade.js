@@ -15,7 +15,7 @@ module.exports = function _jade( k, opts ) {
     var jadeCache = {};
 
     /* TODO: make cache Website-aware! (login.jade:flink vs. login.jade:echo) */
-    function renderJade( req, res, filename, locals, opts ) {
+    function renderJade( req, res, filename, locals, opts, callback ) {
 
         opts = opts || {};
         /* allow website override */
@@ -53,7 +53,7 @@ module.exports = function _jade( k, opts ) {
         var cachePath = req.kern.website + "--" + filepath;
         if( cachePath in jadeCache ) {
             console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-            return res.send( jadeCache[ cachePath ]( locals ) );
+            return callback( null, jadeCache[ cachePath ]( locals ) );
         }
 
 
@@ -66,8 +66,7 @@ module.exports = function _jade( k, opts ) {
         fs.readFile( filepath, 'utf8', function( err, data ) {
             if( err ) {
                 console.log( err );
-                res.send("ERROR: " + err );
-                return;
+                return callback( err );
             }
 
             /* store dependencies */
@@ -112,11 +111,21 @@ module.exports = function _jade( k, opts ) {
 
             var html = compiledJade( locals );
             console.log( "Jade Rendered ".grey, filename.green, website.grey );
-            res.send( html );
+            callback( null, html );
         });
     };
 
+    function renderAndSend( req, res, filename, locals, opts ) {
+        renderJade( req, res, filename, locals, opts, function( err, html ) {
+            if( err )
+                res.send( "ERROR: " + err );
+            else
+                res.send( html );
+        });
+    }
+
     return {
-        render: renderJade
+        render: renderAndSend,
+        renderToString: renderJade
     }
 }

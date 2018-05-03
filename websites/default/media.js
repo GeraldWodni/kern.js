@@ -46,6 +46,7 @@ module.exports = {
         k.router.post("/*", function( req, res, next ) {
             console.log( "POST" );
             var filename = req.params[0];
+            req.kern.uploadedFiles = [];
 
             k.postman( req, res, { onFile: (field, file, name ) => {
                 var name = k.filters.filename( name );
@@ -55,8 +56,14 @@ module.exports = {
                     return console.log( "Ignoring empty file" );
                 }
                 var filepath = path.join( "/", filename, k.filters.filename( name ) );
-                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters ) != null )
+                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters ) != null ) {
                     file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
+                    req.kern.uploadedFiles.push( {
+                        name: path.basename( filepath ),
+                        extension: path.extname( filepath ),
+                        link: filepath
+                    });
+                }
             }}, () => {
                 var name     = req.postman.text("name");
                 var filepath = path.join( "/", filename, k.filters.filename( name ) );
@@ -89,7 +96,11 @@ module.exports = {
                 else if( req.postman.exists( "upload-file" ) ) {
                     console.log("UPLOAD!".bold.yellow);
                     if( req.postman.exists( "ajax-upload" ) )
-                        res.status(200).json( { "success": true } );
+                        k.jade.renderToString( req, res, "fileUploads", { files: req.kern.uploadedFiles }, {}, function( err, html ) {
+                            if( err )
+                                return res.status(500).json( { error: true, message: err.toString() } );
+                            res.status(200).json( { "success": true, uploadedFiles: req.kern.uploadedFiles, html: html } );
+                        });
                     else
                         renderAll( req, res, next );
                 }

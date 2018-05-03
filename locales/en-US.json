@@ -336,5 +336,8 @@
     "Transaction units": "Transaction units",
     "PDF": "PDF",
     "Expenses": "Expenses",
-    "Due": "Due"
+    "Due": "Due",
+    "Files": "Files",
+    "Choose a file": "Choose a file",
+    "or drag it here": "or drag it here"
 }
