@@ -972,7 +972,15 @@ module.exports = function _crud( k ) {
                             startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
                         };
 
-                        k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                        var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
+                        if( opts.renderExtender )
+                            opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
+                                if( err )
+                                    return next( err );
+                                k.jade.render( req, res, opts.jadeFile, extendedValues );
+                            });
+                        else
+                            k.jade.render( req, res, opts.jadeFile, jadeValues );
                     });
                 });
             }, listOpts );

@@ -104,7 +104,7 @@ $(function(){
             }
 
             $.ajax({
-                url: window.location,
+                url: $fileUpload.attr("action") || window.location,
                 type: "POST",
                 data: ajaxData,
                 dataType: 'json',

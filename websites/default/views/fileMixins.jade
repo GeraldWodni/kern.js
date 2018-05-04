@@ -31,10 +31,11 @@ mixin dirTreeWalker(tree)
     each subTree, dirName in tree.dirs
         +directory(subTree, dirName)
 
-mixin file(file)
+mixin file(file, opts)
+        - opts = opts || {}
         a(href=file.link).file
-            form.form-inline(method="post")
-                button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete folder"))
+            form.form-inline(method="post",action=opts.deleteAction || null)
+                button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete file"))
                     +glyph("trash")
             - var style = "";
             - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
@@ -57,7 +58,7 @@ mixin file(file)
                 = file.name
 
 mixin fileUpload()
-    form(method="post",enctype="multipart/form-data").file-upload
+    form(method="post",enctype="multipart/form-data").file-upload&attributes(attributes)
         .file-input
             +fa("download").fa-3x
             input(type="file",name="files[]", id="file", data-multiple-caption="{count} files selected",multiple).box-file
