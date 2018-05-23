@@ -14,53 +14,10 @@ module.exports = {
 
         /* protection filters, TODO: allow overwrite per user-permission */
         var hierarchyFilters = {
-            dirShowFilters:  [ /.*/g ],
+            dirShowFilters:  [ /^\/images$/g, /^\/images\/.*/g, /^\/media$/g, /^\/media\/.*/g, /^\/files$/g, /^\/files\/.*/g ],
             fileShowFilters: [ /.*/g ],
             lockWebsite: true
         };
-
-        function readTree( opts, callback ) {
-            var tree = { dirs: {}, files: [] };
-
-            /* queue worker */
-            var treeQueue = async.queue( function( task, next ) {
-
-                /* directory contents */
-                fs.readdir( task.dirpath, function( err, filenames ) {
-                    if( err )
-                        return next( err );
-
-                    /* run stat for content */
-                    async.mapSeries( filenames, function( filename, d ) {
-                        var filepath = path.join( task.dirpath, filename );
-                        fs.stat( filepath, function( err, stat ) {
-                            if( err )
-                                return d( err );
-
-                            /* spawn new worker for every directory */
-                            if( stat.isDirectory() ) {
-                                var prefix = path.join( task.prefix, filename ); 
-                                var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
-                                task.tree.dirs[ filename ] = newTree;
-                                treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
-                            }
-                            /* just add file */
-                            else {
-                                var link = path.join( task.prefix, filename );
-                                task.tree.files.push( { name: filename, link: link } );
-                            }
-                            d();
-                        });
-                    }, next );
-                });
-            });
-
-            /* all done, callback */
-            treeQueue.drain = function( err ) {
-                callback( err, tree );
-            };
-            treeQueue.push( { dirpath: opts.dirpath, tree: tree, prefix: opts.prefix } );
-        }
 
         function sanitizePath( req, res, directoryPrefix ) {
             /* get link or compose of prefix and name */
@@ -86,56 +43,71 @@ module.exports = {
             return filepath;
         }
 
-        /* create new folder */
-        k.router.post( "/new-folder", function( req, res, next ) {
-            k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
+        k.router.post("/*", function( req, res, next ) {
+            console.log( "POST" );
+            var filename = req.params[0];
+            req.kern.uploadedFiles = [];
 
-                /* create directory */
-                fs.mkdir( filepath, function( err ) {
-                    if( err )
-                        return next( err );
-                    console.log( "NEW-folder".bold.yellow, filepath );
-                    res.send({success: true});
-                });
+            k.postman( req, res, { onFile: (field, file, name ) => {
+                var name = k.filters.filename( name );
+                if( name == "" ) {
+                    file.on("data", ()=>{});
+                    file.on("end", ()=>{});
+                    return console.log( "Ignoring empty file" );
+                }
+                var filepath = path.join( "/", filename, k.filters.filename( name ) );
+                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters ) != null ) {
+                    file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
+                    req.kern.uploadedFiles.push( {
+                        name: path.basename( filepath ),
+                        extension: path.extname( filepath ),
+                        link: filepath
+                    });
+                }
+            }}, () => {
+                var name     = req.postman.text("name");
+                var filepath = path.join( "/", filename, k.filters.filename( name ) );
+                console.log( "FILEPATH:", filepath.bold.red );
 
-            });
-        });
-
-        /* delete folder */
-        k.router.post( "/delete-folder", function( req, res, next ) {
-            k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
-
-                /* create directory */
-                rmrf( filepath );
-                console.log( "Delete-folder".bold.yellow, filepath );
-                res.send({success: true});
-            });
-        });
-
-        /* delete folder */
-        k.router.post( "/delete-file", function( req, res, next ) {
-            k.postman( req, res, function() {
-                /* sanitize input */
-                var filepath = sanitizePath( req, res, "files" );
-                if( filepath == null )
-                    return;
-
-                /* create directory */
-                fs.unlink( filepath, function( err ) {
-                    if( err )
-                        return next( err );
-
-                    console.log( "Delete-file".bold.yellow, filepath );
-                    res.send({success: true});
-                });
+                if( req.postman.exists( "create-dir" ) ) {
+                    console.log( "CD-FILEPATH:", filepath.bold.red, req.kern.website, hierarchyFilters );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    if( filepath == null )
+                        return k.httpStatus( req, res, 403 );
+                    console.log( "CREATE-DIR", filepath );
+                    fs.mkdir( filepath, function( err ) {
+                        if( err ) return next( err );
+                        renderAll( req, res, next );
+                    });
+                }
+                else if( req.postman.exists( "delete-dir" ) ) {
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    rmrf( filepath );
+                    res.redirect( 301, path.dirname( path.join( "/admin/media", req.path ) ) );
+                }
+                else if( req.postman.exists( "delete-file" ) ) {
+                    filepath = path.join( filepath, req.postman.filename( "delete-file" ) );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    fs.unlink( filepath, ( err ) => {
+                        if( err ) return next( err );
+                        renderAll( req, res, next );
+                    });
+                }
+                else if( req.postman.exists( "upload-file" ) ) {
+                    console.log("UPLOAD!".bold.yellow);
+                    if( req.postman.exists( "ajax-upload" ) )
+                        k.jade.renderToString( req, res, "fileUploads", { files: req.kern.uploadedFiles }, {}, function( err, html ) {
+                            if( err )
+                                return res.status(500).json( { error: true, message: err.toString() } );
+                            res.status(200).json( { "success": true, uploadedFiles: req.kern.uploadedFiles, html: html } );
+                        });
+                    else
+                        renderAll( req, res, next );
+                }
+                else {
+                    console.log("Unknown POST-Action".bold.red);
+                    return next( new Error( "Unknown POST-action" ) );
+                }
             });
         });
 
@@ -159,7 +131,7 @@ module.exports = {
 
         /* render directory tree & files */
         function renderAll( req, res, next, values ) {
-            k.hierarchy.readHierarchyTree( req.kern.website, "media", _.extend( {}, hierarchyFilters, {
+            k.hierarchy.readHierarchyTree( req.kern.website, "/", _.extend( {}, hierarchyFilters, {
                 prefix: "/"
             }),
             function( err, tree ) {
@@ -168,16 +140,26 @@ module.exports = {
 
                 var currentPath = req.path;
                 var node = tree;
+
                 /* get files in current folder */
                 if( currentPath != "/" ) {
-                    //req.path.substr(1).split("/").forEach( ( part ) => {
-                    //    node = node.dirs[ part ];
-                    //});
+                    try {
+                        req.path.substr(1).split("/").forEach( ( part ) => {
+                            if( !node || !node.dirs || !node.dirs[ part ] )
+                                throw new Error( "Unknown Path" );
+                            node = node.dirs[ part ];
+                        });
+                    } catch( err ) {
+                        return next( err );
+                    }
                 }
 
-                var currentFiles = node.files;
-                currentFiles.forEach( function( file ) {
+                var currentFiles = [];
+                node.files.forEach( function( file ) {
+                    console.log( file );
                     file.extension = path.extname( file.name );
+                    //file.link = path.join( "/media", file.link );
+                    currentFiles.push( file );
                 });
 
                 k.jade.render( req, res, "admin/media", k.reg("admin").values( req, _.extend( {

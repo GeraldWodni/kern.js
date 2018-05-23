@@ -13,7 +13,7 @@ module.exports = function _site( k, opts ) {
 
     var websites = {};
     function load( website, next ) {
-        console.log("LoadWebsite".bold.magenta, website, websites );
+        console.log("LoadWebsite".bold.magenta, website );
 
         /* load website-data */
         k.data.load( website );
@@ -23,7 +23,7 @@ module.exports = function _site( k, opts ) {
             try {
                 var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
                 websites[ website ] = target;
-                console.log("LoadWebsite".bold.green, website, websites );
+                console.log("LoadWebsite".bold.green, website );
                 next( null, target );
             } catch( err ) {
                 console.log("LoadWebsite-Error:".bold.red, err );
@@ -152,7 +152,7 @@ module.exports = function _site( k, opts ) {
             newRouter: newRouter,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
-                k.app.ws.apply( this, arguments );
+                k.ws.apply( this, arguments );
             },
             siteRequire: function _siteRequire( website, filename ) {
 

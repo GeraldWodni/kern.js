@@ -46,7 +46,8 @@ html(lang=__('current-locale'))
             ul
                 block navItems
                     each menuItem in menu || []
-                        +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
+                        block navItem
+                            +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
         block main-content
             div.container.main-content
@@ -68,7 +69,7 @@ html(lang=__('current-locale'))
                         block copyright
                             | ©copyright 
                             span.hidden-xs
-                                | 2014-2016 by 
+                                | 2014-2018 by 
                             a(href='http://wodni.at') Gerald Wodni
 
         +script('/js/admin.js')

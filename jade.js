@@ -15,7 +15,7 @@ module.exports = function _jade( k, opts ) {
     var jadeCache = {};
 
     /* TODO: make cache Website-aware! (login.jade:flink vs. login.jade:echo) */
-    function renderJade( req, res, filename, locals, opts ) {
+    function renderJade( req, res, filename, locals, opts, callback ) {
 
         opts = opts || {};
         /* allow website override */
@@ -50,9 +50,10 @@ module.exports = function _jade( k, opts ) {
 	if( path.parse )
             locals._filename = path.parse(filepath).name;
 
-        if( filepath in jadeCache ) {
+        var cachePath = req.kern.website + "--" + filepath;
+        if( cachePath in jadeCache ) {
             console.log( "Jade Cachehit ".grey, filename.cyan, website.grey );
-            return res.send( jadeCache[ filepath ]( locals ) );
+            return callback( null, jadeCache[ cachePath ]( locals ) );
         }
 
 
@@ -65,8 +66,7 @@ module.exports = function _jade( k, opts ) {
         fs.readFile( filepath, 'utf8', function( err, data ) {
             if( err ) {
                 console.log( err );
-                res.send("ERROR: " + err );
-                return;
+                return callback( err );
             }
 
             /* store dependencies */
@@ -91,7 +91,7 @@ module.exports = function _jade( k, opts ) {
 
             /* store in cache */
             if( k.kernOpts.cacheJade ) {
-                jadeCache[ filepath ] = compiledJade;
+                jadeCache[ cachePath ] = compiledJade;
 
                 dependencies = _.uniq( dependencies );
 
@@ -100,7 +100,7 @@ module.exports = function _jade( k, opts ) {
                 dependencies.forEach( function( filename ) {
                     var watcher = fs.watch( filename, function() {
                         console.log( "Jade Changed".grey, filepath.yellow, website.grey );
-                        delete jadeCache[ filepath ];
+                        delete jadeCache[ cachePath ];
 
                         /* close all watchers for root file */
                         watchers.forEach( function( watcher ) { watcher.close() } );
@@ -111,11 +111,21 @@ module.exports = function _jade( k, opts ) {
 
             var html = compiledJade( locals );
             console.log( "Jade Rendered ".grey, filename.green, website.grey );
-            res.send( html );
+            callback( null, html );
         });
     };
 
+    function renderAndSend( req, res, filename, locals, opts ) {
+        renderJade( req, res, filename, locals, opts, function( err, html ) {
+            if( err )
+                res.send( "ERROR: " + err );
+            else
+                res.send( html );
+        });
+    }
+
     return {
-        render: renderJade
+        render: renderAndSend,
+        renderToString: renderJade
     }
 }

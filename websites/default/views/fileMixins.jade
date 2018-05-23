@@ -1,0 +1,75 @@
+
+mixin directory(subTree, dirName)
+    li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
+        -var dirUrl = "/admin/media" + subTree.prefix + ( subTree.prefix == "/" ? "" : "/" ) + dirName;
+        a(href=dirUrl)
+            +glyph("folder-open")
+            = " " + dirName
+        form.form-inline(method="post",action=dirUrl)
+            span.input-group
+                input.form-control.input-xs(type="text",name="name",placeholder=__("New name"))
+                span.input-group-btn
+                    button.btn.btn-primary.btn-xs(type="submit",name="create-dir",title=__("New Folder"))
+                        +glyph("plus")
+                        |  
+                        +glyph("folder-close")
+            button.btn.btn-default.btn-xs(type="submit",name="delete-dir",title=__("Delete folder"))
+                +glyph("trash")
+        ul
+            +dirTreeWalker( subTree )
+
+mixin dirTree(tree)
+    ul.filetree&attributes(attributes)
+        li.directory
+            a(href="/admin/media")
+                +glyph("folder-open")
+                |  /
+            ul
+                +dirTreeWalker(tree)
+
+mixin dirTreeWalker(tree)
+    each subTree, dirName in tree.dirs
+        +directory(subTree, dirName)
+
+mixin file(file, opts)
+        - opts = opts || {}
+        a(href=file.link).file
+            form.form-inline(method="post",action=opts.deleteAction || null)
+                button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete file"))
+                    +glyph("trash")
+            - var style = "";
+            - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
+            if isImage && file.link.indexOf("/images") == 0
+                - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
+
+            span.file-type(style=style)
+                if file.extension == ".pdf"
+                    +fa("file-pdf-o")
+                else if file.extension == ".txt"
+                    +fa("file-text-o")
+                else if isImage
+                    if style !== ""
+                        |  
+                    else
+                        +fa("file-image-o")
+                else
+                    +fa("file-o")
+            span.file-label
+                = file.name
+
+mixin fileUpload()
+    form(method="post",enctype="multipart/form-data").file-upload&attributes(attributes)
+        .file-input
+            +fa("download").fa-3x
+            input(type="file",name="files[]", id="file", data-multiple-caption="{count} files selected",multiple).box-file
+            label(for="file")
+                strong.choose= __( "Choose a file" )
+                    |  
+                span.drag-n-drop= __( "or drag it here" )
+                | .
+            button(type="submit",name="upload-file",value="yepp").box-button Upload
+        .status.uploading Uploading &hellip;
+        .status.success.text-success __( "Done" )
+        .status.error.text-danger __( "Error" )
+            span
+            | .

@@ -1,46 +1,6 @@
 extends admin-site
 
-mixin directory(subTree, dirName)
-    li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
-        a(href="/admin/media" + subTree.prefix + "/" + dirName)
-            +glyph("folder-open")
-            = " " + dirName
-        //- button.btn.btn-primary.btn-xs(type="button",data-action="new-folder",title=__("New folder"))
-        //-     +glyph("folder-close")
-        //- button.btn.btn-primary.btn-xs(type="button",data-action="upload",title=__("Upload file"))
-        //-     +glyph("upload")
-        //- button.btn.btn-default.btn-xs(type="button",data-action="delete-folder",title=__("Delete folder"))
-        //-     +glyph("trash")
-        ul
-            +dirTreeWalker( subTree )
-
-mixin dirTree(tree)
-    ul.filetree&attributes(attributes)
-        li.directory
-            a(href="/admin/media")
-                +glyph("folder-open")
-                |  /
-            ul
-                +dirTreeWalker(tree)
-
-mixin dirTreeWalker(tree)
-    each subTree, dirName in tree.dirs
-        +directory(subTree, dirName)
-
-mixin file(file)
-        a(href=file.link).file
-            span.file-type
-                if file.extension == ".pdf"
-                    +fa("file-pdf-o")
-                else if file.extension == ".txt"
-                    +fa("file-text-o")
-                else if _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension )
-                    +fa("file-image-o")
-                else
-                    +fa("file-o")
-            span.file-label
-                = file.name
-
+include ../fileMixins
 
 block main-content
     div.container-fluid.main-content#media-wrapper
@@ -56,6 +16,7 @@ block main-content
                         h2= __("Content of")
                             |  
                             = currentPath
+                        +fileUpload
                         .file-container
                             each file in currentFiles
                                 +file( file )
@@ -69,9 +30,5 @@ block main-content
     div.hidden#directoryTemplate
         +directory({dirs:[],files:[],prefix:"{prefix}"},"{name}")
         
-append styles
-    +style-tag("/css/fileinput.min.css")
-
 append scripts
-    +script-tag("/js/fileinput.min.js")
     +script-tag("/js/media.js")

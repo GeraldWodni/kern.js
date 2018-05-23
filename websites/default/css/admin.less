@@ -136,7 +136,11 @@ ul.filetree {
     border-radius: 3px;
 }
 
-.media .file {
+.file-container {
+    .clearfix();
+}
+
+.file-container .file {
     float: left;
     display: block;
     min-height: 128px;
@@ -154,7 +158,7 @@ ul.filetree {
         border-radius: 3px;
         background-color: #EEE;
 
-        min-height: 128px;
+        min-height: 140px;
 
         text-align: center;
         vertical-align: center;
@@ -163,6 +167,10 @@ ul.filetree {
 
         padding: 5px;
         border: 1px solid #CCC;
+
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
     }
 
     .file-label {
@@ -170,6 +178,76 @@ ul.filetree {
         display: block;
         text-align: center;
         min-height: 3em;
+    }
+
+    form {
+        float: right;
+        margin: 5px;
+        display: none;
+        position: relative;
+        width: 23px;
+        margin-left: -23px;
+    }
+
+    &:hover form {
+        display: block;
+    }
+}
+
+.file-upload {
+    background-color: lighten(@brand-primary, 40%);
+    outline: 2px dashed #888;
+    outline-offset: -10px;
+
+    border-radius: 3px;
+
+    padding: 50px 20px;
+
+    text-align: center;
+
+    display: block;
+    input {
+        margin: 0 auto;
+    }
+
+    .status {
+        display: none;
+    }
+
+    .fa {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .choose {
+        cursor: pointer;
+    }
+
+    .drag-n-drop {
+        display: none;
+        font-weight: normal;
+    }
+
+    &.drag-n-drop {
+        .drag-n-drop {
+            display: inline;
+        }
+
+        &.is-dragover {
+            background-color: lighten(@brand-primary, 50%);
+        }
+        input, button {
+            display: none;
+        }
+    }
+
+    &.is-uploading {
+        div.file-input {
+            visibility: none;
+        }
+        .status.uploading {
+            display: block;
+        }
     }
 }
 

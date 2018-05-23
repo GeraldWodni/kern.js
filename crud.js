@@ -5,7 +5,9 @@
 var _       = require("underscore");
 var async   = require("async");
 var moment  = require("moment");
-var path    = require("path");
+var fs      = require("fs");
+var mkdirp  = require("mkdirp");
+var fsPath  = require("path");
 var express = require("express");
 
 module.exports = function _crud( k ) {
@@ -368,13 +370,17 @@ module.exports = function _crud( k ) {
                 date:       "dateTime",
                 email:      "email",
                 number:     "decimal",
-                enum:       "alnum",
+                enum:       "id",
                 tel:        "telephone",
                 text:       "text",
                 foreign:    "uint",
                 textarea:   "text",
                 checkbox:   "exists",
                 password:   "passwords",
+                folder:     "filepath",
+                file:       "filepath",
+                upload:     "drop",
+                image:      "filepath",
                 h3:         "drop",
                 h4:         "drop"
             },
@@ -389,6 +395,10 @@ module.exports = function _crud( k ) {
                 textarea:   "textarea-field",
                 checkbox:   "checkbox-field",
                 password:   "password-field",
+                folder:     "enum-field",
+                file:       "enum-field",
+                upload:     "file-field",
+                image:      "enum-field",
                 h3:         "h3",
                 h4:         "h4"
             },
@@ -514,7 +524,64 @@ module.exports = function _crud( k ) {
 
         function handlePost( req, res, next )  {
 
-            k.postman( req, res, function() {
+            var postOpts = {};
+            var files = [];
+            if( opts.fileUpload ) {
+                postOpts.onFile = function( fieldname, file, filename, encoding, mimetype ) {
+                    if( !opts.fields[fieldname] || opts.fields[fieldname].type !== "upload" ) {
+                        req.messages.push( { type: "danger", title: req.locales.__("Error"), text: "Non-upload-field file-upload" } );
+                        console.log( "Non-upload-field file-upload:".bold.red, fieldname );
+                        return file.resume();
+                    }
+                    var f = {
+                        fieldname: fieldname,
+                        originalFilename: filename,
+                        filename: k.filters.filename( filename.replace( /\s+/g, "_" ) ),
+                        encoding: encoding,
+                        mimetype: mimetype,
+                        content: Buffer.alloc(0),
+                        complete: false
+                    };
+                    files.push( f );
+                    file.on("data", (chunk) => f.content = Buffer.concat([ f.content, chunk ]) );
+                    file.on("end", () => f.complete = true );
+                }
+            }
+
+            function storeFiles( store ) {
+                if( store.length == 0 )
+                    return opts.success( req, res, next );
+
+                var obj = {};
+                async.each( store, (file, done) => {
+                    /* ignore empty uploads */
+                    if( file.content.length == 0 )
+                        return done();
+
+                    /*  update-obj */
+                    obj[ file.name ] = file.value;
+                    /* save file */
+                    mkdirp( fsPath.dirname( file.filename ), (err) => {
+                        if( err ) return done( err );
+                        fs.writeFile( file.filename, file.content, done );
+                    });
+                }, (err) => {
+                    if( err )
+                        return opts.__error( err, req, res, next );
+
+                    /* update crud's file pointer */
+                    if( _.keys(obj).length == 0 )
+                        return opts.success( req, res, next );
+
+                    opts.getCrud( req ).update( req.kern.crudId, obj, (err) => {
+                        if( err )
+                            return opts.__error( err, req, res, next );
+                        opts.success( req, res, next );
+                    });
+                });
+            }
+
+            k.postman( req, res, postOpts, function() {
 
                 try {
                     if( req.postman.exists( "add" ) ) {
@@ -525,10 +592,16 @@ module.exports = function _crud( k ) {
                                 return opts.__error( err, req, res, next );
 
                             var insertId = ( data || {} ).insertId;
+                            req.kern.crudId = insertId;
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added"),
                                 attributes: { "data-insert-id": insertId }
                             } );
-                            opts.success( req, res, next );
+
+                            /* on successfull insert: handle files */
+                            if( opts.fileUpload )
+                                opts.fileUpload( req, res, next, files, storeFiles )
+                            else
+                                opts.success( req, res, next );
                         };
                         
                         opts.preCreateTrigger( req, obj, function( obj ) {
@@ -538,13 +611,19 @@ module.exports = function _crud( k ) {
                     else if( req.postman.exists( "update" ) ) {
                         var id = opts.getRequestId( req );
                         var obj = opts.readFields( req );
+                        req.kern.crudId = id;
 
                         var handleUpdate = function _handleUpdate( err ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item updated") } );
-                            opts.success( req, res, next );
+
+                            /* on successfull update: handle files */
+                            if( opts.fileUpload )
+                                opts.fileUpload( req, res, next, files, storeFiles )
+                            else
+                                opts.success( req, res, next );
                         };
 
                         opts.getCrud(req).update( id, obj, handleUpdate );
@@ -648,13 +727,13 @@ module.exports = function _crud( k ) {
         }, opts);
 
         opts = _.extend( {
-            readPath:       path.join( opts.path, "read/:id?"   ),
+            readPath:       fsPath.join( opts.path, "read/:id?"   ),
             idField:        "id",
-            readAllPath:    path.join( opts.path, "read-all"    ),
-            readListPath:   path.join( opts.path, "read-list"   ),
-            createPath:     path.join( opts.path, "create"      ),
-            updatePath:     path.join( opts.path, "update/:id?" ),
-            deletePath:     path.join( opts.path, "delete/:id?" )
+            readAllPath:    fsPath.join( opts.path, "read-all"    ),
+            readListPath:   fsPath.join( opts.path, "read-list"   ),
+            createPath:     fsPath.join( opts.path, "create"      ),
+            updatePath:     fsPath.join( opts.path, "update/:id?" ),
+            deletePath:     fsPath.join( opts.path, "delete/:id?" )
         }, opts);
 
         //var r = router( k, [ opts.createPath, opts.readPath, opts.updatePath, opts.deletePath ], crud, opts );
@@ -690,9 +769,9 @@ module.exports = function _crud( k ) {
         /* wheres, currently only supported for sql, if needed can be extended by handling readWhere in unPrefixedCrud */
         _.each( crud.wheres, function( where, name ) {
 
-            var url = path.join( opts.path, "where", name );
+            var url = fsPath.join( opts.path, "where", name );
             where.parameters.forEach( function( parameter ) {
-                url = path.join( url, ":" + parameter.name );
+                url = fsPath.join( url, ":" + parameter.name );
             });
 
             r.get( url, function( req, res, next ) {
@@ -777,6 +856,7 @@ module.exports = function _crud( k ) {
 
         function renderAll( req, res, next, values, fullData ) {
             var renderCrud = r.getCrud( req );
+            var hiddenForeignKeyData = {};
 
 	    var listOpts = {};
             if( opts.selectEditListQuery && _.isObject( values ) ) {
@@ -793,9 +873,9 @@ module.exports = function _crud( k ) {
 
                 async.map( _.keys( renderCrud.foreignKeys ), function( fkey, done ) {
 
-                    if( !_.has( fields, fkey ) )
+                    if( !_.has( fields, fkey ) && ( opts.hiddenForeignKeys || [] ).indexOf( fkey ) < 0 )
                     {
-                        console.log( "ForeignKey not registered: ".bold.red, fkey )
+                        console.log( "ForeignKey not registered: ".bold.yellow, fkey )
                         return done( new Error( "ForeignKey not registered: " + fkey ) );
                     }
 
@@ -809,7 +889,10 @@ module.exports = function _crud( k ) {
                         if( err )
                             return done( err );
 
-                        fields[ fkey ].items = data;
+                        if( !_.has( fields, fkey ) )
+                            hiddenForeignKeyData[ fkey ] = data;
+                        else
+                            fields[ fkey ].items = data;
                         done();
                     }, renderCrud.foreignKeys[ fkey ] );
 
@@ -817,23 +900,88 @@ module.exports = function _crud( k ) {
                     if( err )
                         return next( err );
 
-                    var jadeCrudOpts = {
-                        items: items,
-                        idField: opts.id,
-                        display: renderCrud.foreignName,
-                        boldDisplay: renderCrud.foreignBoldName,
-                        link: opts.path,
-                        fields: fields,
-                        scripts: opts.scripts || [],
-                        values: r.getValues( req, fields, values ),
-                        fullData: fullData,
-                        formAction: req.baseUrl,
-                        showList: getOptional( k, opts.showList, req ),
-                        showAdd: opts.showAdd,
-                        startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
-                    };
+                    /* extra asyncronous queries like folder-listings */
+                    async.map( _.keys( fields ), function( fieldName, done ) {
 
-                    k.jade.render( req, res, opts.jadeFile, k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } ) );
+                        function treeReader( treeOpts, defaults ) {
+                            _.defaults( treeOpts, defaults );
+
+                            k.hierarchy.readFlatHierarchyTree( req.kern.website, treeOpts.root, treeOpts, function( err, tree ) {
+                                if( err ) return next( err );
+                                var keyValues = {};
+                                if( treeOpts.addNone )
+                                    keyValues[ "" ] = "<" + req.locales.__("None") + ">";
+                                _.each( tree, function( item ) {
+                                    var value = item;
+                                    if( treeOpts.hidePrefix )
+                                        value = value.substring( treeOpts.prefix.length );
+
+                                    keyValues[ item ] = value;
+                                });
+                                fields[ fieldName ].keyValues = keyValues;
+                                done();
+                            });
+                        }
+
+                        switch( fields[ fieldName ].type ) {
+                            case 'file':
+                                treeReader( fields[ fieldName ].fileOpts || {}, {
+                                    root: "/",
+                                    filesOnly: true,
+                                    addNone: true
+                                });
+                                break;
+                            case 'image':
+                                treeReader( fields[ fieldName ].fileOpts || {}, {
+                                    root: "/images",
+                                    prefix: "/images",
+                                    hidePrefix: true,
+                                    addNone: true
+                                });
+                                break;
+                            case 'folder':
+                                treeReader( fields[ fieldName ].folderOpts || {}, {
+                                    root: "/",
+                                    foldersOnly: true,
+                                    addNone: true
+                                });
+                                break;
+                            default:
+                                done();
+                        }
+                    }, function( err ) {
+
+                        if( err )
+                            return next( err );
+
+                        var jadeCrudOpts = {
+                            items: items,
+                            idField: opts.id,
+                            display: renderCrud.foreignName,
+                            boldDisplay: renderCrud.foreignBoldName,
+                            link: opts.path,
+                            fields: fields,
+                            scripts: opts.scripts || [],
+                            values: r.getValues( req, fields, values ),
+                            fullData: fullData,
+                            hiddenForeignKeyData: hiddenForeignKeyData,
+                            formAction: req.baseUrl,
+                            showList: getOptional( k, opts.showList, req ),
+                            showAdd: opts.showAdd,
+                            enctype: opts.fileUpload ? "multipart/form-data" : false,
+                            startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
+                        };
+
+                        var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
+                        if( opts.renderExtender )
+                            opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
+                                if( err )
+                                    return next( err );
+                                k.jade.render( req, res, opts.jadeFile, extendedValues );
+                            });
+                        else
+                            k.jade.render( req, res, opts.jadeFile, jadeValues );
+                    });
                 });
             }, listOpts );
         }

@@ -477,6 +477,7 @@ module.exports = function _users( k ) {
                                     emailTransport.sendMail({
                                         from: userRegistration.smtp.email,
                                         to: results.email,
+                                        bcc: userRegistration.smtp.email,
                                         subject: userRegistration.email.subject,
                                         text: text
                                     }, callback );

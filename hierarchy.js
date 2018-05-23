@@ -216,7 +216,7 @@ module.exports = function _hierarchy( k ) {
                         if( err )
                             return d( err );
 
-                        console.log( stat.isDirectory(), task.prefix );
+                        //console.log( stat.isDirectory(), task.prefix );
                         /* spawn new worker for every directory */
                         if( stat.isDirectory() ) {
                             var prefix = path.join( task.prefix, filename ); 
@@ -258,6 +258,29 @@ module.exports = function _hierarchy( k ) {
         readTree( opts, callback );
     }
 
+    function flattenTree( tree, opts ) {
+        var items = [];
+        /* add files */
+        if( !opts.foldersOnly )
+            _.each( tree.files, function( file, name ) {
+                items.push( file.link );
+            });
+        /* add dirs and recurse */
+        _.each( tree.dirs, function( dir, name ) {
+            if( !opts.filesOnly )
+                items.push( dir.path );
+            items = items.concat( flattenTree( dir, opts ) );
+        });
+        return items;
+    }
+
+    function readFlatHierarchyTree( website, dirpath, opts, callback ) {
+        readHierarchyTree( website, dirpath, opts, function( err, tree ) {
+            if( err ) return callback( err );
+            return callback( null, flattenTree( tree, opts ) );
+        });
+    }
+
 
     return {
         addRoute:           addRoute,
@@ -268,6 +291,7 @@ module.exports = function _hierarchy( k ) {
         createWriteStream:  createWriteStream,
         lookupFile:         lookupFile,
         lookupFileThrow:    lookupFileThrow,
+        readFlatHierarchyTree:  readFlatHierarchyTree,
         readTree:           readTree,
         readHierarchyTree:  readHierarchyTree,
         up:                 up,

@@ -56,26 +56,85 @@ $(function(){
     });
 
     /* upload */
-    var $file = $("#uploadModal input[name='file']");
-    var uploadDirectory = "";
-    $file.fileinput({
-        showUpload: false,
-        showRemove: false,
-        uploadUrl: "/admin/media/upload/"
-    });
-    $("button[data-action='upload']").click(function(){
-        /* update upload directory */
-        var $li = $(this).closest("li");
-        $file.fileinput("clear");
-        uploadDirectory = $li.attr("data-prefix") + "/" + $li.attr("data-dirname");
-        $file.fileinput("refresh", { uploadUrl: "/admin/media/upload" + uploadDirectory });
+    var hasDragNDrop = function() {
+        var div = document.createElement('div');
+        return (('draggable' in div)
+            || ('ondragstart' in div && 'ondrop' in div))
+            && 'FormData' in window
+            && 'FileReader' in window;
+    }();
 
-        /* execute upload */
-        $("#uploadModal .modal-footer .btn-primary").unbind().click(function(){
-            $file.fileinput("upload");
+    var $fileUpload = $("form.file-upload");
+    if( hasDragNDrop ) {
+        $fileUpload.addClass("drag-n-drop");
+
+        var $input = $fileUpload.find("input[type='file']");
+        var $label = $fileUpload.find("label");
+
+        var droppedFiles = false;
+
+        $fileUpload.on("drag dragstart dragend dragover dragenter dragleave drop", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        })
+        .on("dragover dragenter", function() {
+            $fileUpload.addClass("is-dragover");
+        })
+        .on("dragleave dragend drop", function() {
+            $fileUpload.removeClass("is-dragover");
+        })
+        .on("drop", function(e) {
+            droppedFiles = e.originalEvent.dataTransfer.files;
+            $fileUpload.trigger("submit");
+        })
+        .on("submit", function(e) {
+            if( $fileUpload.hasClass("is-uploading")) return false;
+
+            e.preventDefault();
+            var ajaxData = new FormData($fileUpload.get(0));
+            $fileUpload.addClass("is-uploading").removeClass("is-error");
+
+            ajaxData.append( "ajax-upload", "true" );
+            ajaxData.append( "upload-file", "true" );
+            if( droppedFiles ) {
+                $.each( droppedFiles, function( index, file ) {
+                    console.log( "DROPPED:", file );
+                    ajaxData.append( $input.attr("name"), file );
+                });
+            }
+
+            $.ajax({
+                url: $fileUpload.attr("action") || window.location,
+                type: "POST",
+                data: ajaxData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                complete: function() {
+                    $fileUpload.removeClass( "is-uploading" );
+                    droppedFiles = false;
+                },
+                success: function( data ) {
+                    /* TODO: return HTML on success and prepend it to file-container */
+                    $fileUpload.addClass( data.success == true ? 'is-success' : 'is-error' );
+                    if( data.success )
+                        $(".file-container").prepend( data.html );
+                    else
+                        $fileUpload.find(".status.error span").text( data.error );
+                },
+                error: function( err ) {
+                    console.error( "error uploading file:", err );
+                }
+            });
         });
-        $("#uploadModal").modal("show");
-    });
+        $input.on("click", function() {
+            this.value = null;
+        });
+        $input.on("change", function(e) {
+            console.log("CHANGE!");
+            $fileUpload.trigger("submit");
+        });
 
-    //$("ul.filetree > li.directory:last()").after( $("#directoryTemplate").loadTemplate({ name: "hallo name ;)" }) );
+    }
 });

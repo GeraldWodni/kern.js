@@ -43,13 +43,17 @@ mixin field(name,type,label,value,opts)
     - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {});
     div.form-group
         label= label
-        if opts && opts.inputGroup
+        if opts && opts.inputGroup && ( opts.inputGroup.type != "href" || value )
             div.input-group
                 +_field(name,type,value)&attributes(attrs)
                 - var groupType = opts.inputGroup.type || "button"
                 if groupType == "button"
                     span.input-group-btn
                         button.btn.btn-default(type="button",title=__(opts.inputGroup.title))
+                            +glyph(opts.inputGroup.glyph)
+                else if groupType == "href" && value
+                    span.input-group-btn
+                        a.btn.btn-default(href=value,target="_blank",title=__(opts.inputGroup.title))
                             +glyph(opts.inputGroup.glyph)
         else
             +_field(name,type,value)&attributes(attrs)
@@ -69,8 +73,8 @@ mixin tel-field(name, label, value)
 mixin url-field(name, label, value)
     +field(name, 'url', label, value)&attributes(attributes)
 
-mixin file-field(name, label)
-    +field(name, 'file', label)&attributes(attributes)
+mixin file-field(name, label, value, opts)
+    +field(name, 'file', label, value, opts)&attributes(attributes)
 
 mixin checkbox-field(name, label, value)
     div.form-group
