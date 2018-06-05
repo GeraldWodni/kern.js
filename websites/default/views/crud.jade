@@ -25,7 +25,7 @@ mixin crud( opts )
 //- item selection list
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
-    ul.list-group.crud-list
+    ul.list-group.crud-list(data-crud-ajax=opts.ajaxList?opts.ajaxList:null)
         li.list-group-item.crud-search
             div.input-group
                 input.form-control(type="text",name="search",placeholder=__( "Search" ))
@@ -35,21 +35,25 @@ mixin crudList( opts )
                     button.btn.btn-default.crud-expand(type="button",title=__( "Expand" ))
                         +glyph("chevron-right")
                         +glyph("chevron-left")
+            if opts.ajaxList
+                div.crud-loading
+                    | Loading...
         if opts.showAdd
             li.list-group-item.crud-new
                 = __("New")
                 a.btn.btn-primary(href=opts.link).btn-xs.pull-right
                     +glyph("plus")
-        each item in opts.items || []
-            li.list-group-item.crud-item.clearfix
-                a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
-                    +glyph("pencil")
-                block crudListItem
-                    if opts.boldDisplay
-                        b= getField( item, opts.boldDisplay )
-                        |  
-                    if opts.display
-                        = getField( item, opts.display )
+        if !opts.ajaxList
+            each item in opts.items || []
+                li.list-group-item.crud-item.clearfix
+                    a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
+                        +glyph("pencil")
+                    block crudListItem
+                        if opts.boldDisplay
+                            b= getField( item, opts.boldDisplay )
+                            |  
+                        if opts.display
+                            = getField( item, opts.display )
 
 
 //- standard fields

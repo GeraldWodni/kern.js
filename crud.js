@@ -969,7 +969,8 @@ module.exports = function _crud( k ) {
                             showList: getOptional( k, opts.showList, req ),
                             showAdd: opts.showAdd,
                             enctype: opts.fileUpload ? "multipart/form-data" : false,
-                            startExpanded: values ? false : (opts.startExpanded || false) /* do not start expanded in edit-mode */
+                            startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
+                            ajaxList: opts.ajaxList
                         };
 
                         var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
