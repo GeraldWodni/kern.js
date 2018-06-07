@@ -90,6 +90,18 @@ div.separator {
     }
 }
 
+/* crud */
+.crud-loading {
+    padding-top: @grid-gutter-width/4;
+    span {  display: none;   }
+
+    &.loading {
+        span    { display: inline-block;    }
+        button  { display: none;            }
+    }
+}
+
+/* files */
 ul.filetree {
     padding-left: 0;
     list-style: none;

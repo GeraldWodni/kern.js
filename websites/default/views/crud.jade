@@ -20,6 +20,7 @@ mixin crud( opts )
             else
                 div.col-sm-12
                     h3= __("Adding of new items disabled")
+            block crudPostItem
 
 
 //- item selection list
@@ -36,8 +37,11 @@ mixin crudList( opts )
                         +glyph("chevron-right")
                         +glyph("chevron-left")
             if opts.ajaxList
-                div.crud-loading
-                    | Loading...
+                div.crud-loading.loading
+                    span.badge
+                        = __("Loading, please wait!")
+                    button.btn.btn-default(type="button")
+                        = __("Show All")
         if opts.showAdd
             li.list-group-item.crud-new
                 = __("New")

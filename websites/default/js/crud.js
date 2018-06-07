@@ -62,13 +62,18 @@ $(function(){
         var $ul = $(ul);
         var item = { name: "hallo" };
         var template = $("#listTemplate").html();
+        var editUin = $(".deleteWrapper button[name='delete']");
+
         $.get( $ul.attr("data-crud-ajax"), function( data ) {
+            console.log("Crud-Ajax:", editUin, data.length );
             var i = 0;
 
             function addItem() {
                 var html = template.replace( /\$\{([a-zA-Z0-9]+)\}/g, function( match, key ) {
                     return data[i][key];
                 });
+                if( editUin )
+                        html = html.replace( /class="/, 'class="hidden ' );
                 ul.insertAdjacentHTML( "beforeend", html );
                 return ++i < data.length;
             }
@@ -76,8 +81,18 @@ $(function(){
             function addItems() {
                 for( var j = 0; j < 42; j++ )
                     if( !addItem() ) {
-                        $ul.find(".crud-search input").trigger("keyup");
-                        $ul.find(".crud-loading").remove();
+                        function showAll() {
+                            $ul.find(".crud-loading").remove();
+                            $ul.find(".list-group-item.hidden").removeClass("hidden");
+                            $ul.find(".crud-search input").trigger("keyup");
+                        }
+
+                        /* not expanded, just show */
+                        if($(".crud-items").hasClass("col-sm-4"))
+                            showAll();
+                        /* expanded, bind button */
+                        else
+                            $ul.find(".crud-loading").removeClass("loading").find("button").click( showAll );
                         return;
                     }
                 window.requestAnimationFrame( function() {

@@ -25,6 +25,25 @@ function end() {
 
 /* module specification */
 var sections = {
+    cache: {
+        list: function() {
+            rdb.keys( "cache:websites*", function( err, items ) {
+                if( err ) return showErr( err );
+                console.log( items.join( "\n" ) );
+                end();
+            });
+        },
+        del: function() {
+            rdb.keys( "cache:websites*", function( err, items ) {
+                if( err ) return showErr( err );
+                rdb.del( items, function( err, count ) {
+                    if( err ) return showErr( err );
+                    console.log( count + " items deleted" );
+                    end();
+                });
+            });
+        }
+    },
     user: {
         list_websites: function() {
             rdb.keys( "*:users", function( err, websites ) {
