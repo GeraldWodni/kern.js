@@ -39,6 +39,7 @@ module.exports = function _jade( k, opts ) {
 
         locals = _.extend( locals || {}, {
             __: req.locales.__,
+            _n: req.locales._n,
             __locale: req.locales,
             _: _,
             moment: moment,

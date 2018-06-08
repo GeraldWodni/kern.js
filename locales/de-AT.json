@@ -334,5 +334,9 @@
     "Choose a file": "Datei wählen",
     "or drag it here": "oder hier ablegen",
     "Attachments": "Anhänge",
-    "New page": "Neue Seite"
+    "New page": "Neue Seite",
+    "PWA": "PWA",
+    "Help": "Hilfe",
+    "numThousandsSeparator": " ",
+    "numDecimalSeparator": ","
 }

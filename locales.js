@@ -120,7 +120,29 @@ module.exports = function _locales( k, opts ) {
                 currentRoot:current.split("-")[0],
                 available:  localeNames,
                 reload: reload,
-                __:         function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); }
+                __: function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
+                _n: function( num, decimals ) {
+                    let thousandsSeparator =__( current, "numThousandsSeparator" );
+                    let decimalSeparator =  __( current, "numDecimalSeparator"   );
+
+                    if( typeof decimals === 'undefined' )
+                        decimals = 2;
+
+                    let numText = num.toFixed(decimals) + '';
+                    let commaPos = numText.indexOf( '.' );
+                    console.log( "_NCP:", numText, commaPos );
+
+                    let text = decimalSeparator + numText.substring( commaPos + 1 );
+                    numText = numText.substring( 0, commaPos );
+                    console.log( "_N:", num, text, numText );
+                    for( var i = 0; i < numText.length; i++ ) {
+                        if( i%3 == 0 && i > 0 )
+                            text = thousandsSeparator + text;
+                        text = numText[ numText.length - i - 1 ] + text;
+                    }
+
+                    return text;
+                }
             };
 
             next();
