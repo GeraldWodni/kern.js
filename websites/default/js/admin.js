@@ -16,6 +16,31 @@ $(function(){
         else
             this.setCustomValidity("");
     }).trigger("change");
+
+    /* permissions */
+    /* missing: info, b1300-admin-all, roof-services-all */
+    $("input[data-csv-multi]").each(function() {
+        var $this = $(this);
+        var prefix = $this.attr("name") + "-csv-multi-";
+        var items = $this.attr("data-csv-multi");// + "," + $this.val();
+        var selected = $this.val().split(",");
+        items.split( "," ).sort().reverse().forEach( function( item ) {
+            if( item.trim().length == 0 )
+                return;
+            $(`<div class="checkbox">
+                <label><input type="checkbox" data-item="${item}" name="${prefix}${item}" ${selected.indexOf(item) >= 0 ? 'checked="checked"' : ''}/>
+                    ${item}
+                </label>
+            </div>`).insertAfter( $this.closest(".form-group") ).change(function() {
+                var current = [];
+                $(`input[type=checkbox][name^='${prefix}']`).each(function() {
+                    if( $(this).prop("checked") )
+                        current.push( $(this).attr("data-item") );
+                });
+                $this.val( current.join(",") );
+            });
+        });
+    });
 });
 
 /* template helper */

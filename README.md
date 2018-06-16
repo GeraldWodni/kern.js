@@ -91,7 +91,63 @@ Overall the hierarchy allows you to eliminate lots of redundancy for your websit
 *TODO*
 
 ## Administration Modules
-*TODO*
+Administration modules are site-modules who are protected and confined into to administrative section of a site.
+They will only be accessible and shown in the navigation when a user's permission contain the module's link.
+
+### Custom Administration module
+You are advised to look at the default administration modules as they are employing a simpler API.
+However if you want to maintain control of rendering and only use a basic crud-router, here is how the old user module did it:
+
+```javascript
+k.rdb.crud.router( k, ["/", "/edit/:id"], k.rdb.users, {
+    readFields: function ( req ) {
+        var fields = {
+            name: req.postman.username("name"),
+            permissions: req.postman.linkList("permissions")
+        };
+
+        var password = req.postman.password();
+        if( password && password.length > 0 )
+        {
+            if( !req.postman.fieldsMatch( "password", "password2" ) )
+                throw req.locales.__( "Passwords do not match" );
+
+            if( password.length < k.rdb.users.minPasswordLength )
+                throw req.locales.__( "Password to short, minimum: {0}" ).format( k.rdb.users.minPasswordLength );
+
+            fields.password = password;
+        }
+
+        return fields;
+    }
+});
+
+function renderAll( req, res, values ) {
+    k.rdb.users.readAll( req.kern.website, function( err, items ) {
+        if( err )
+            return next( err );
+
+        items.forEach( function( item ) {
+            item.escapedLink = encodeURIComponent( item.link );
+        });
+
+        k.renderJade( req, res, "admin/users", k.reg("admin").values( req, { messages: req.messages, items: items, values: values } ) );
+    });
+}
+
+k.router.get( "/edit/:link?", function( req, res ) {
+    k.rdb.users.read(req.kern.website, req.requestData.escapedLink( 'link' ), function( err, data ) {
+        if( err )
+            return next( err );
+
+        renderAll( req, res, data );
+    });
+});
+
+k.router.get( "/", function( req, res ) {
+    renderAll( req, res );
+});
+```
 
 ## Data
 *TODO*

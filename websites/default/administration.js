@@ -9,6 +9,7 @@ var _         = require("underscore");
 
 /* methods */
 var addSiteModule;
+var addPermissionType;
 var menu;
 
 var allowed = function( req, link ) {
@@ -33,7 +34,8 @@ module.exports = {
                 main:   { router: k.newRouter(), menu: [] },
                 admin:  { router: k.newRouter(), menu: [] },
                 late:   { router: k.newRouter(), menu: [] },
-                final:  { router: k.newRouter(), menu: [] }
+                final:  { router: k.newRouter(), menu: [] },
+                permissionTypes: []
             };
             subModules[ website ] = routers;
         };
@@ -74,11 +76,30 @@ module.exports = {
         };
 
         /* add site modules */
+        addPermissionType = function( link, website ) {
+            if( Array.isArray( link ) )
+                link.forEach( (link) => subModules[website].permissionTypes.push );
+            else
+                subModules[website].permissionTypes.push( link );
+        }
+
+        function getPermissionTypes( website ) {
+            /* top of hierarchy reached */
+            if( website == null )
+                return [];
+            /* framework in-between website */
+            if( !subModules[website] )
+                return getPermissionTypes( k.hierarchy.up( website ) );
+            /* found, concat and move up further */
+            return subModules[website].permissionTypes.concat( getPermissionTypes( k.hierarchy.up( website ) ) );
+        }
+
         addSiteModule = function( link, website, filename, name, glyph, opts ) {
             opts = opts || {};
-
             if( !_.has( subModules, website ) )
                 websiteSubmodules( website );
+
+            addPermissionType( link, website );
 
             var subRouter = subModules[ website ][ opts.router || "main" ].router;
             var subMenu = subModules[ website ][ opts.menu || opts.router || "main" ].menu;
@@ -99,7 +120,10 @@ module.exports = {
         //addSiteModule( "navigation","default", "navigation.js",     "Navigation",   "list",     { router: "admin" } );
         addSiteModule( "media",     "default", "media.js",          "Media",        "picture",  { router: "admin" } );
         addSiteModule( "editor",    "default", "editor.js",         "Editor",       "edit",     { router: "admin" } );
-        addSiteModule( "users",     "default", "users.js",          "Users",        "user",     { router: "admin" } );
+        addSiteModule( "users",     "default", "users.js",          "Users",        "user",     { router: "admin", setup: {
+                getPermissionTypes: getPermissionTypes
+            }
+        });
         addSiteModule( "locales",   "default", "missingLocales.js", "",             "comment",  { router: "admin" } );
 
         /* TODO: write media upload & explore-tool */
@@ -171,6 +195,9 @@ module.exports = {
     },
     values: viewValues,
     allowed: allowed,
+    addPermissionType: function() {
+        addPermissionType.apply( this, arguments );
+    },
     addSiteModule: function() {
         addSiteModule.apply( this, arguments );
     }

@@ -10,7 +10,6 @@ var _           = require("underscore");
 
 module.exports = {
     setup: function( k ) {
-
         var websiteFields = {};
         k.crud.presenter( k, k.users, {
             
@@ -26,7 +25,7 @@ module.exports = {
                         name:       { text: "Name",             type: "text", filter: "username", attributes: { required: true } },
                         password:   { text: "Password",         type: "password" },
                         password2:  { text: "Confirm password", type: "password", filter: "drop" },
-                        permissions:{ text: "Permissions",      type: "text", attributes: { required: true } }
+                        permissions:{ text: "Permissions",      type: "text", attributes: { required: true, "data-csv-multi": k.setupOpts.getPermissionTypes( req.kern.website ).join(",") } }
                     }, req.kern.getWebsiteConfig( "additionalAdminUserFields", {} ));
 
                 return websiteFields[ req.kern.website ]
