@@ -338,5 +338,7 @@
     "PWA": "PWA",
     "Help": "Hilfe",
     "numThousandsSeparator": " ",
-    "numDecimalSeparator": ","
+    "numDecimalSeparator": ",",
+    "Work Orders": "Aufträge",
+    "Estimated Duration": "Voraussichtliche Dauer"
 }

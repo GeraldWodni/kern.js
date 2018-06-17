@@ -345,5 +345,7 @@
     "PWA": "PWA",
     "Help": "Help",
     "numThousandsSeparator": " ",
-    "numDecimalSeparator": "."
+    "numDecimalSeparator": ".",
+    "Work Orders": "Work Orders",
+    "Estimated Duration": "Estimated Duration"
 }
