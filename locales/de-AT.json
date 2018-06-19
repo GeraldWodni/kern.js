@@ -340,5 +340,6 @@
     "numThousandsSeparator": " ",
     "numDecimalSeparator": ",",
     "Work Orders": "Aufträge",
-    "Estimated Duration": "Voraussichtliche Dauer"
+    "Estimated Duration": "Voraussichtliche Dauer",
+    "WorkOrder": "Auftrag"
 }

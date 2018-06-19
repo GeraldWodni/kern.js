@@ -347,5 +347,6 @@
     "numThousandsSeparator": " ",
     "numDecimalSeparator": ".",
     "Work Orders": "Work Orders",
-    "Estimated Duration": "Estimated Duration"
+    "Estimated Duration": "Estimated Duration",
+    "WorkOrder": "WorkOrder"
 }
