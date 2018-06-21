@@ -348,5 +348,14 @@
     "numDecimalSeparator": ".",
     "Work Orders": "Work Orders",
     "Estimated Duration": "Estimated Duration",
-    "WorkOrder": "WorkOrder"
+    "WorkOrder": "WorkOrder",
+    "Bank": "Bank",
+    "Cash": "Cash",
+    "Credit": "Credit",
+    "Cancel": "Cancel",
+    "Bad dept": "Bad dept",
+    "Payments": "Payments",
+    "bank": "Bank",
+    "cash": "Bar",
+    "cancel": "Cancel"
 }

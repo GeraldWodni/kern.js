@@ -105,7 +105,7 @@ mixin datetime-field(name, label, value, opts)
 mixin enum-field(name, label, keyValues, value)
     div.form-group
         label= label
-        select.form-control(name=name)
+        select.form-control(name=name)&attributes(attributes)
             each val, key in keyValues
                 if(key == value)
                     option(value=key,selected='selected')= val

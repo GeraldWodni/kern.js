@@ -341,5 +341,14 @@
     "numDecimalSeparator": ",",
     "Work Orders": "Aufträge",
     "Estimated Duration": "Voraussichtliche Dauer",
-    "WorkOrder": "Auftrag"
+    "WorkOrder": "Auftrag",
+    "Bank": "Bank",
+    "Cash": "Bar",
+    "Credit": "Gutschrift",
+    "Cancel": "Storno",
+    "Bad dept": "Uneinbringliche Forderung",
+    "Payments": "Zahlungen",
+    "bank": "Bank",
+    "cash": "Bar",
+    "cancel": "Storno"
 }
