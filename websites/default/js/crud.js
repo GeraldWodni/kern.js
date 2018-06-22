@@ -73,7 +73,7 @@ $(function(){
                     return data[i][key];
                 });
                 if( editUin )
-                        html = html.replace( /class="/, 'class="hidden ' );
+                    html = html.replace( /class="/, 'class="hidden ' );
                 ul.insertAdjacentHTML( "beforeend", html );
                 return ++i < data.length;
             }
@@ -93,6 +93,8 @@ $(function(){
                         /* expanded, bind button */
                         else
                             $ul.find(".crud-loading").removeClass("loading").find("button").click( showAll );
+
+                        $ul.trigger( "crudAjaxDone" );
                         return;
                     }
                 window.requestAnimationFrame( function() {
