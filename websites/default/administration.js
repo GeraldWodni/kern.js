@@ -78,7 +78,7 @@ module.exports = {
         /* add site modules */
         addPermissionType = function( link, website ) {
             if( Array.isArray( link ) )
-                link.forEach( (link) => subModules[website].permissionTypes.push );
+                link.forEach( (link) => subModules[website].permissionTypes.push(link) );
             else
                 subModules[website].permissionTypes.push( link );
         }
