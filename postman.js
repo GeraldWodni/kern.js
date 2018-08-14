@@ -41,7 +41,7 @@ module.exports = function _postman( k ) {
             }) );
         }
 
-        if( contentType.toLowerCase().indexOf( "multipart/form-data" ) == 0 ) {
+        if( typeof contentType !== "undefined" && contentType.toLowerCase().indexOf( "multipart/form-data" ) == 0 ) {
             let fields = {};
             /* connect handlers */
             var busboy = new Busboy( _.extend( { headers: req.headers }, opts.busboy ) );
@@ -78,6 +78,9 @@ module.exports = function _postman( k ) {
                 switch( contentType ) {
                     case 'application/json':
                         req.body = JSON.parse( body );
+                        break;
+                    case 'text/plain':
+                        req.body = body;
                         break;
                     /* assume post-data */
                     default:
