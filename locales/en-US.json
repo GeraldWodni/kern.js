@@ -357,5 +357,6 @@
     "Payments": "Payments",
     "bank": "Bank",
     "cash": "Bar",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "badDept": "badDept"
 }

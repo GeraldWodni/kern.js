@@ -350,5 +350,6 @@
     "Payments": "Zahlungen",
     "bank": "Bank",
     "cash": "Bar",
-    "cancel": "Storno"
+    "cancel": "Storno",
+    "badDept": "Uneinbringliche Forderung"
 }
