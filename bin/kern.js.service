@@ -1,0 +1,19 @@
+[Unit]
+Description=kern.js screen-server
+After=network.target
+
+[Service]
+Type=forking
+WorkingDirectory=/var/www/kern.js
+
+User=www-data
+Group=www-data
+
+#Restart=never
+
+ExecStart=/var/www/kern.js/bin/run-screen
+
+ExecStop=/var/www/kern.js/bin/stop-screen
+
+[Install]
+WantedBy=multi-user.target

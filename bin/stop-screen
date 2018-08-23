@@ -1,0 +1,3 @@
+#!/bin/bash
+
+screen -S kern.js -p 0 -X quit
