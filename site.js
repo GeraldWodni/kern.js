@@ -147,6 +147,7 @@ module.exports = function _site( k, opts ) {
             getman:  k.getman,
             postman: k.postman,
             requestman: k.requestman,
+            static: k.static,
             proxyCache: k.proxyCache,
             website: website,
             newRouter: newRouter,
@@ -178,6 +179,9 @@ module.exports = function _site( k, opts ) {
             serverConfig: k.kernOpts,
             prefixServeStatic: function( prefix ) {
                 k.static.prefixServeStatic( router, prefix );
+            },
+            singleStatic: function( path, filename, mimeType ) {
+                router.get( path, k.static.single( filename, mimeType ) );
             },
             serveStaticFile: function _serveStatic( filename ) {
                 return function( req, res ) {

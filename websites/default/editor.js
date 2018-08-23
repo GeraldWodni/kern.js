@@ -3,7 +3,6 @@
 
 var fs          = require("fs");
 var path        = require("path");
-var pathparse	= require("path-parse");
 var rmrf        = require("rmrf");
 var _           = require("underscore");
 
@@ -96,7 +95,7 @@ module.exports = {
         k.router.get("/edit/*", function( req, res, next ) {
             guardFile( req, res, function( filename, filepath ) {
                 fs.readFile( filepath, function( err, content ) {
-                    var contentType = pathparse(filename).ext.replace( /^\./, "" );
+                    var contentType = path.parse(filename).ext.replace( /^\./, "" );
                     renderAll( req, res, next, { showEditor: true, filename: filename, contentType: contentType, content: content.toString() } );
                 });
             });

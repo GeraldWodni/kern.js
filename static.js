@@ -84,6 +84,14 @@ module.exports = function _static( k, opts ) {
         });
     }
 
+    function single(filename, mimeType) {
+        return function( req, res, next ) {
+            var file = k.hierarchy.createReadStream( req.kern.website, filename );
+            res.header('Content-Type', mimeType);
+            file.pipe( res );
+        }
+    }
+
     function route() {
         prefixCache( "/images-preview/", "/images/", function( filepath, cachepath, next ) {
             imageMagick( filepath )
@@ -191,6 +199,7 @@ module.exports = function _static( k, opts ) {
 
     return {
         prefixServeStatic: prefixServeStatic,
+        single: single,
         route: route
     }
 }
