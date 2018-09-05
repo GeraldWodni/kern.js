@@ -358,5 +358,6 @@
     "bank": "Bank",
     "cash": "Bar",
     "cancel": "Cancel",
-    "badDept": "badDept"
+    "badDept": "badDept",
+    "Page selection": "Page selection"
 }

@@ -7,7 +7,7 @@ $(function(){
         if( search.indexOf( "id:" ) == 0 ) {
             /* search for id */
             searchId = search.substring( 3 );
-            search = "\/edit\/" + searchId + "$";
+            search = "\/edit\/" + searchId + "($|\\?)";
         }
         else {
             /* merge into non-consuming regex, (?=.*<expr>) */

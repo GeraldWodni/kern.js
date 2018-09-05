@@ -24,6 +24,14 @@ mixin crud( opts )
 
 
 //- item selection list
+mixin crudListPages( opts )
+    li.list-group-item.crud-pages
+        +glyph("book").pull-right(title=__("Page selection"))
+        each page in _.range( opts.pageCount )
+            a(href=opts.link+"?page=#{page}")(class=(page==opts.currentPage?"active":null))
+                = page+1
+            |  
+
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
     ul.list-group.crud-list(data-crud-ajax=opts.ajaxList?opts.ajaxList:null)
@@ -47,10 +55,13 @@ mixin crudList( opts )
                 = __("New")
                 a.btn.btn-primary(href=opts.link).btn-xs.pull-right
                     +glyph("plus")
+        if opts.showPages
+            +crudListPages( opts )
         if !opts.ajaxList
+            - var urlParameter = (opts.showPages ? "?page="+opts.currentPage : "")
             each item in opts.items || []
                 li.list-group-item.crud-item.clearfix
-                    a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}").btn-xs.pull-right
+                    a.btn.btn-default(href=opts.link + "/edit/#{item[opts.idField]}#{urlParameter}").btn-xs.pull-right
                         +glyph("pencil")
                     block crudListItem
                         if opts.boldDisplay
@@ -58,6 +69,8 @@ mixin crudList( opts )
                             |  
                         if opts.display
                             = getField( item, opts.display )
+        if opts.showPages
+            +crudListPages( opts )
 
 
 //- standard fields

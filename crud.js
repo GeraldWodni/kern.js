@@ -82,6 +82,10 @@ module.exports = function _crud( k ) {
             db.query( opts.selectAllQuery, [ opts.table, opts.orderBy ], callback );
         }
 
+        function countItems( callback, listOpts ) {
+            db.query( "SELECT COUNT(*) AS count FROM ??", [ opts.table ], callback );
+        }
+
         /* TODO: difference to readForeignKey? function really needed to justify enum foreignBoldName? */
         function readList( callback, listOpts ) {
             listOpts = listOpts || {};
@@ -185,6 +189,7 @@ module.exports = function _crud( k ) {
                 createOrUpdate: createOrUpdate,
                 read:   read,
                 readAll:readAll,
+                countItems: countItems,
                 readList: readList,
                 readDisplayList: readDisplayList,
                 readForeignKey: readForeignKey,
@@ -913,6 +918,7 @@ module.exports = function _crud( k ) {
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
         function renderAll( req, res, next, values, fullData ) {
+            k.getman( req );
             var renderCrud = r.getCrud( req );
             var hiddenForeignKeyData = {};
 
@@ -920,6 +926,16 @@ module.exports = function _crud( k ) {
             if( opts.selectEditListQuery && _.isObject( values ) ) {
                 listOpts.query = opts.selectEditListQuery;
                 listOpts.parameters = values;
+            }
+
+            var currentPage = 0;
+            var pageCount = 0;
+            if( opts.pageSize ) {
+                console.log( "PAGE SIZE:", opts.pageSize );
+                currentPage = req.getman.uint("page") || 0;
+                listOpts.query = (listOpts.query || crud.selectListQuery.sql) + " LIMIT ?, ?";
+                listOpts.parameters = (listOpts.parameters || [ crud.table, crud.orderBy]).concat([ currentPage * opts.pageSize, opts.pageSize ]);
+                console.log( "listOpts:", listOpts );
             }
 
             renderCrud.readList( function( err, items ) {
@@ -1012,34 +1028,52 @@ module.exports = function _crud( k ) {
                         if( err )
                             return next( err );
 
-                        var jadeCrudOpts = {
-                            items: items,
-                            idField: opts.id,
-                            display: renderCrud.foreignName,
-                            boldDisplay: renderCrud.foreignBoldName,
-                            link: opts.path,
-                            fields: fields,
-                            scripts: opts.scripts || [],
-                            values: r.getValues( req, fields, values ),
-                            fullData: fullData,
-                            hiddenForeignKeyData: hiddenForeignKeyData,
-                            formAction: req.baseUrl,
-                            showList: getOptional( k, opts.showList, req ),
-                            showAdd: opts.showAdd,
-                            enctype: opts.fileUpload ? "multipart/form-data" : false,
-                            startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
-                            ajaxList: opts.ajaxList
-                        };
+                        var promise = Promise.resolve();
+                        if( opts.pageSize ) {
+                            promise = new Promise( (fulfill, reject) =>
+                                crud.countItems( (err, items) => {
+                                    if( err ) return reject( err );
+                                    pageCount = Math.ceil( items[0].count / opts.pageSize );
+                                    fulfill();
+                                })
+                            );
+                        }
 
-                        var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
-                        if( opts.renderExtender )
-                            opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
-                                if( err )
-                                    return next( err );
-                                k.jade.render( req, res, opts.jadeFile, extendedValues );
-                            });
-                        else
-                            k.jade.render( req, res, opts.jadeFile, jadeValues );
+                        promise.then( () => {
+                            var jadeCrudOpts = {
+                                items: items,
+                                idField: opts.id,
+                                display: renderCrud.foreignName,
+                                boldDisplay: renderCrud.foreignBoldName,
+                                link: opts.path,
+                                fields: fields,
+                                currentPage: currentPage || 0,
+                                pageCount: pageCount || 0,
+                                pageSize: opts.pageSize,
+                                scripts: opts.scripts || [],
+                                values: r.getValues( req, fields, values ),
+                                fullData: fullData,
+                                hiddenForeignKeyData: hiddenForeignKeyData,
+                                formAction: req.baseUrl,
+                                showList: getOptional( k, opts.showList, req ),
+                                showAdd: opts.showAdd,
+                                showPages: opts.pageSize > 0 && pageCount > 1,
+                                enctype: opts.fileUpload ? "multipart/form-data" : false,
+                                startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
+                                ajaxList: opts.ajaxList
+                            };
+
+                            var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
+                            if( opts.renderExtender )
+                                opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
+                                    if( err )
+                                        return next( err );
+                                    k.jade.render( req, res, opts.jadeFile, extendedValues );
+                                });
+                            else
+                                k.jade.render( req, res, opts.jadeFile, jadeValues );
+                        })
+                        .catch( next );
                     });
                 });
             }, listOpts );

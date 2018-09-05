@@ -351,5 +351,6 @@
     "bank": "Bank",
     "cash": "Bar",
     "cancel": "Storno",
-    "badDept": "Uneinbringliche Forderung"
+    "badDept": "Uneinbringliche Forderung",
+    "Page selection": "Seitenauswahl"
 }
