@@ -58,10 +58,11 @@ module.exports = function _jade( k, opts ) {
             return callback( null, jadeCache[ cachePath ]( locals ) );
         }
 
-
         _.extend( opts, {
             filename: filepath,
             kernWebsite: website,
+        } );
+        _.defaults( opts, {
             pretty: k.siteConfig.get( website, "jadePrettyPrint", true )
         } );
 
