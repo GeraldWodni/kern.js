@@ -930,13 +930,26 @@ module.exports = function _crud( k ) {
 
             var currentPage = 0;
             var pageCount = 0;
-            if( opts.pageSize ) {
-                console.log( "PAGE SIZE:", opts.pageSize );
+            var showMode = 'all';
+
+            if( opts.mostRecent && !req.getman.isset("page") ) {
+                var sql = (listOpts.query || crud.selectListQuery.sql);
+                var orderBy = sql.substring( sql.indexOf( "ORDER BY" ) );
+                sql = "SELECT * FROM(" + sql.replace( /ORDER BY.*$/, '');
+                sql+= "ORDER BY ??.modified DESC LIMIT ?) AS list ";
+                sql+= orderBy;
+
+                listOpts.query = sql;
+                listOpts.parameters = listOpts.parameters || [crud.table, crud.table, opts.mostRecent, crud.orderBy];
+                showMode = 'recent';
+            }
+            else if( opts.pageSize ) {
                 currentPage = req.getman.uint("page") || 0;
                 listOpts.query = (listOpts.query || crud.selectListQuery.sql) + " LIMIT ?, ?";
                 listOpts.parameters = (listOpts.parameters || [ crud.table, crud.orderBy]).concat([ currentPage * opts.pageSize, opts.pageSize ]);
-                console.log( "listOpts:", listOpts );
+                showMode = 'page';
             }
+
 
             renderCrud.readList( function( err, items ) {
                 if( err ) {
@@ -1058,6 +1071,8 @@ module.exports = function _crud( k ) {
                                 showList: getOptional( k, opts.showList, req ),
                                 showAdd: opts.showAdd,
                                 showPages: opts.pageSize > 0 && pageCount > 1,
+                                showRecent: opts.mostRecent > 0,
+                                showMode: showMode,
                                 enctype: opts.fileUpload ? "multipart/form-data" : false,
                                 startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
                                 ajaxList: opts.ajaxList

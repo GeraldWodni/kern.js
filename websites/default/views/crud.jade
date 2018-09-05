@@ -25,12 +25,17 @@ mixin crud( opts )
 
 //- item selection list
 mixin crudListPages( opts )
-    li.list-group-item.crud-pages
-        +glyph("book").pull-right(title=__("Page selection"))
-        each page in _.range( opts.pageCount )
-            a(href=opts.link+"?page=#{page}")(class=(page==opts.currentPage?"active":null))
-                = page+1
-            |  
+    if opts.showPages || opts.showRecent
+        li.list-group-item.crud-pages
+            +glyph("book").pull-right(title=__("Page selection"))
+            if opts.showRecent
+                a(href=opts.link, title=__("Recently edited items"), class=(opts.showMode=="recent"?"active":null))
+                    +glyph("time")
+                |  
+            each page in _.range( opts.pageCount )
+                a(href=opts.link+"?page=#{page}", title=__("Page") + " " + (page+1), class=(opts.showMode!="recent"&&page==opts.currentPage?"active":null))
+                    = page+1
+                |  
 
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
@@ -55,8 +60,7 @@ mixin crudList( opts )
                 = __("New")
                 a.btn.btn-primary(href=opts.link).btn-xs.pull-right
                     +glyph("plus")
-        if opts.showPages
-            +crudListPages( opts )
+        +crudListPages( opts )
         if !opts.ajaxList
             - var urlParameter = (opts.showPages ? "?page="+opts.currentPage : "")
             each item in opts.items || []
@@ -69,8 +73,7 @@ mixin crudList( opts )
                             |  
                         if opts.display
                             = getField( item, opts.display )
-        if opts.showPages
-            +crudListPages( opts )
+        +crudListPages( opts )
 
 
 //- standard fields

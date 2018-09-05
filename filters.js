@@ -33,6 +33,7 @@ module.exports = function _filters( k ) {
         hex:        function( t ) { return f( t, /[^-0-9a-f]/g                  ); },
         id:         function( t ) { return f( t, /[^-_.:a-zA-Z0-9]/g            ); },
         int:        function( t ) { return f( t, /[^-0-9]/g                     ); },
+        isset:      function( t ) { return typeof t !== "undefined";               },
         link:       function( t ) { return f( t, /[^-_.a-zA-Z0-9\/]/g            ); },
         linkItem:   function( t ) { return f( t, /[^-_.a-zA-Z0-9]/g              ); },
         linkList:   function( t ) { return f( t, /[^-,_.a-zA-Z0-9]/g             ); },

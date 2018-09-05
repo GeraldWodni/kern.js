@@ -352,5 +352,7 @@
     "cash": "Bar",
     "cancel": "Storno",
     "badDept": "Uneinbringliche Forderung",
-    "Page selection": "Seitenauswahl"
+    "Page selection": "Seitenauswahl",
+    "Page": "Seite",
+    "Recently edited items": "Kürzlich bearbeitete Einträge"
 }
