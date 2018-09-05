@@ -946,7 +946,16 @@ module.exports = function _crud( k ) {
             else if( opts.pageSize ) {
                 currentPage = req.getman.uint("page") || 0;
                 listOpts.query = (listOpts.query || crud.selectListQuery.sql) + " LIMIT ?, ?";
-                listOpts.parameters = (listOpts.parameters || [ crud.table, crud.orderBy]).concat([ currentPage * opts.pageSize, opts.pageSize ]);
+
+                /* ensure edited object is included */
+                if( _.isObject( values ) ) {
+                    listOpts.query = listOpts.query.replace( /ORDER BY/, 'ORDER BY ??.??=? DESC,');
+                    listOpts.parameters = (listOpts.parameters || [ crud.table, crud.table, crud.key, values[crud.key], crud.orderBy])
+                        .concat([ currentPage * opts.pageSize, opts.pageSize ]);
+                }
+                else
+                    listOpts.parameters = (listOpts.parameters || [ crud.table, crud.orderBy]).concat([ currentPage * opts.pageSize, opts.pageSize ]);
+
                 showMode = 'page';
             }
 
