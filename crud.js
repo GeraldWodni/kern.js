@@ -948,7 +948,7 @@ module.exports = function _crud( k ) {
                 listOpts.query = (listOpts.query || crud.selectListQuery.sql) + " LIMIT ?, ?";
 
                 /* ensure edited object is included */
-                if( _.isObject( values ) ) {
+                if( _.isObject( values ) && currentPage == 0 ) {
                     listOpts.query = listOpts.query.replace( /ORDER BY/, 'ORDER BY ??.??=? DESC,');
                     listOpts.parameters = (listOpts.parameters || [ crud.table, crud.table, crud.key, values[crud.key], crud.orderBy])
                         .concat([ currentPage * opts.pageSize, opts.pageSize ]);
