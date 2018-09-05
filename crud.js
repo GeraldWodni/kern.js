@@ -88,6 +88,56 @@ module.exports = function _crud( k ) {
             db.query( listOpts.query || opts.selectListQuery, listOpts.parameters || [ opts.table, opts.orderBy ], callback );
         }
 
+        function readDisplayList( lastSync, callback, listOpts ) {
+            listOpts = listOpts || {};
+            var query = listOpts.query || opts.selectListQuery;
+            var sql = "SELECT REPLACE(NOW(), ' ', '_') AS now; ";
+                sql+= "SELECT ?? FROM ??; ";
+                sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified>=? ORDER BY' );
+            db.query( { sql: sql, nestTables: query.nestTables || false }, listOpts.parameters || [ opts.key, opts.table, /* <ids | query> */ opts.table, opts.table, lastSync, opts.orderBy ], function( err, data ) {
+                if( err ) return callback( err );
+                var displayRows = [];
+                data[2].forEach( row => {
+                    var displayRow = {
+                        id: k.rdb.getField( row, opts.key ),
+                        prefixes: {}
+                    };
+
+                    var prefixes = opts.displayPrefixes || [];
+
+                    /* base info */
+                    if( opts.foreignName )
+                        displayRow.display = k.rdb.getField( row, opts.foreignName );
+                    if( opts.foreignBoldName && prefixes.length == 0 )
+                        displayRow.boldDisplay = k.rdb.getField( row, opts.foreignBoldName );
+
+                    /* prefixes */
+                    prefixes.forEach( displayPrefix => {
+                        displayRow.prefixes[ displayPrefix.id ]     = k.rdb.getField( row, displayPrefix.id );
+                        displayRow.prefixes[ displayPrefix.name ]   = k.rdb.getField( row, displayPrefix.name );
+                    });
+
+                    displayRows.push( displayRow );
+                });
+
+                /* delete ids */
+                var deleteIds = [];
+                var lastId = 1;
+
+                data[1].forEach( row => {
+                    while( lastId++ < row.uin )
+                        deleteIds.push( lastId - 1 );
+                });
+
+                callback( null, {
+                    now: data[0][0].now,
+                    //ids: _.map( data[1], row => row.uin ),
+                    deleteIds: deleteIds,
+                    displayRows: displayRows
+                });
+            });
+        }
+
         function readForeignKey( callback, foreignOpts ) {
 
             readList( function( err, data ) {
@@ -136,6 +186,7 @@ module.exports = function _crud( k ) {
                 read:   read,
                 readAll:readAll,
                 readList: readList,
+                readDisplayList: readDisplayList,
                 readForeignKey: readForeignKey,
                 readWhere: readWhere,
                 update: update,
@@ -731,6 +782,7 @@ module.exports = function _crud( k ) {
             idField:        "id",
             readAllPath:    fsPath.join( opts.path, "read-all"    ),
             readListPath:   fsPath.join( opts.path, "read-list"   ),
+            readDisplayListPath:    fsPath.join( opts.path, "read-display-list/:lastSync" ),
             createPath:     fsPath.join( opts.path, "create"      ),
             updatePath:     fsPath.join( opts.path, "update/:id?" ),
             deletePath:     fsPath.join( opts.path, "delete/:id?" )
@@ -756,6 +808,12 @@ module.exports = function _crud( k ) {
 
         r.get( opts.readListPath, function( req, res, next ) {
             opts.getCrud(req).readList( function( err, data ) {
+                if( err ) next( err ); else res.json( data );
+            });
+        });
+
+        r.get( opts.readDisplayListPath, function( req, res, next ) {
+            opts.getCrud(req).readDisplayList( req.requestman.dateTime( "lastSync" ), function( err, data ) {
                 if( err ) next( err ); else res.json( data );
             });
         });
