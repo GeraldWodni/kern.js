@@ -39,7 +39,7 @@ mixin crudListPages( opts )
 
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
-    ul.list-group.crud-list(data-crud-ajax=opts.ajaxList?opts.ajaxList:null)
+    ul.list-group.crud-list(data-crud-ajax=opts.ajaxList?opts.ajaxList:null,data-crud-table=opts.table)
         li.list-group-item.crud-search
             div.input-group
                 input.form-control(type="text",name="search",placeholder=__( "Search" ))

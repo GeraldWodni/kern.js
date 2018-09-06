@@ -43,6 +43,7 @@ module.exports = function _static( k, opts ) {
         var filename = req.requestman.filename( 'file' );
         var filepath = k.hierarchy.lookupFileThrow( req.kern.website, path.join( directory, filename ) );
 
+        res.header("Cache-Control", "max-age=" + 12*60*60);
         res.sendfile( filepath );
     };
 

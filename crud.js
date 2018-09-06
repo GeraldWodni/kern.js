@@ -1082,6 +1082,7 @@ module.exports = function _crud( k ) {
                                 showPages: opts.pageSize > 0 && pageCount > 1,
                                 showRecent: opts.mostRecent > 0,
                                 showMode: showMode,
+                                table: crud.table,
                                 enctype: opts.fileUpload ? "multipart/form-data" : false,
                                 startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
                                 ajaxList: opts.ajaxList
