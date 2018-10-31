@@ -107,6 +107,7 @@ module.exports = function _crud( k ) {
                         prefixes: {}
                     };
 
+                    var extraFields = opts.displayExtraFields || [];
                     var prefixes = opts.displayPrefixes || [];
 
                     /* base info */
@@ -115,6 +116,10 @@ module.exports = function _crud( k ) {
                     if( opts.foreignBoldName && prefixes.length == 0 )
                         displayRow.boldDisplay = k.rdb.getField( row, opts.foreignBoldName );
 
+                    /* fields */
+                    extraFields.forEach( field => {
+                        displayRow[ field ] = k.rdb.getField( row, field );
+                    });
                     /* prefixes */
                     prefixes.forEach( displayPrefix => {
                         displayRow.prefixes[ displayPrefix.id ]     = k.rdb.getField( row, displayPrefix.id );
