@@ -69,7 +69,7 @@ html(lang=__('current-locale'))
                         block copyright
                             | ©copyright 
                             span.hidden-xs
-                                | 2014-2018 by 
+                                | 2014-#{moment().format("YYYY")} by 
                             a(href='http://wodni.at') Gerald Wodni
 
         +script('/js/admin.js')
