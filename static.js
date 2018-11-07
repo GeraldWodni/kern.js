@@ -167,27 +167,22 @@ module.exports = function _static( k, opts ) {
                         return next( err );
 
                     /* parse less & convert to css */
-                    var parser = new less.Parser({
+                    less.render( data.toString(), {
                         filename: filepath,
                         paths: k.hierarchy.paths( req.kern.website, 'css' )
-                    });
-
-                    console.log( filepath );
-
-                    parser.parse( data, function( err, tree ) {
-                        if( err )
-                            return next( err );
-
-                        try {
-                            var css = tree.toCSS();
-                            res.set( 'Content-Type', 'text/css' );
-                            res.send( css );
-                            lessCache.set( filepath, css );
-                        }
-                        catch( e ) {
-                            console.log( "LESS-Error".bold.red, e.toString() );
-                            next( e );
-                        }
+                    })
+                    .then( output => {
+                        res.set( 'Content-Type', 'text/css' );
+                        res.send( output.css );
+                        console.log( "LESS-OK:".bold.green, filepath, output.imports );
+                        lessCache.set( {
+                            filename: filepath,
+                            dependencies: output.imports
+                        }, output.css );
+                    })
+                    .catch( err => {
+                        console.log( "LESS-Error".bold.red, e.toString() );
+                        next( err );
                     });
                 });
 

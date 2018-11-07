@@ -71,7 +71,7 @@ module.exports = function _site( k, opts ) {
         k.app.use(function (req, res, next) {
 
             /* get website from host, use kern if no config is set */
-            var website = k.hierarchy.website( req.host ) || "default";
+            var website = k.hierarchy.website( req.hostname ) || "default";
             if( !( k.kernOpts.active || false ) )
                 website = "kern";
 
