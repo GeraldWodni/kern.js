@@ -181,7 +181,7 @@ module.exports = function _static( k, opts ) {
                         }, output.css );
                     })
                     .catch( err => {
-                        console.log( "LESS-Error".bold.red, e.toString() );
+                        console.log( "LESS-Error".bold.red, err.toString() );
                         next( err );
                     });
                 });
