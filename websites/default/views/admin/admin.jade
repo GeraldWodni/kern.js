@@ -27,51 +27,52 @@ html(lang=__('current-locale'))
             meta(name="author",content="Gerald Wodni")
         block favicon
             +favicon("/images/favicon.gif")
-        link(rel="stylesheet", type="text/css" href="/css/admin.css")
-        +style("/css/jquery-ui-smoothness.min.css")
-        +style('/css/jquery-ui-timepicker-addon.css')
-        +style('/css/font-awesome.min.css')
-        +style("/css/fullcalendar.css")
-        +style("/css/admin.css")
-        +style("/css/admin-site.css")
+        block admin-styles
+            +style("/css/jquery-ui-smoothness.min.css")
+            +style('/css/jquery-ui-timepicker-addon.css')
+            +style('/css/font-awesome.min.css')
+            +style("/css/fullcalendar.css")
+            +style("/css/admin.css")
+            +style("/css/admin-site.css")
         block styles
             +styles()
     body
-        div.navbar.navbar-fixed-top(role='navigation')
-            div.navbar-header
-                block brand-link
-                    a.navbar-brand(href="/")
-                        block brand-name
-                            | kern.js
-            ul
-                block navItems
-                    each menuItem in menu || []
-                        block navItem
-                            +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
-
-        block main-content
-            div.container.main-content
-                block content
-
-        footer
-            div.container
-                div.row
-                    div.col-xs-4
-                        a(href='https://github.com/GeraldWodni/kern.js')
-                            span.visible-xs
-                                = hostname
-                            span.hidden-xs
+        block body
+            div.navbar.navbar-fixed-top(role='navigation')
+                div.navbar-header
+                    block brand-link
+                        a.navbar-brand(href="/")
+                            block brand-name
                                 | kern.js
-                        span.hidden-xs
-                            |  on 
-                            = hostname
-                    div.col-xs-8.text-right
-                        block copyright
-                            | ©copyright 
-                            span.hidden-xs
-                                | 2014-#{moment().format("YYYY")} by 
-                            a(href='http://wodni.at') Gerald Wodni
+                ul
+                    block navItems
+                        each menuItem in menu || []
+                            block navItem
+                                +menuItem( menuItem.link, menuItem.glyph, menuItem.name )
 
-        +script('/js/admin.js')
-        +scripts
-        block scripts
+            block main-content
+                div.container.main-content
+                    block content
+
+            footer
+                div.container
+                    div.row
+                        div.col-xs-4
+                            a(href='https://github.com/GeraldWodni/kern.js')
+                                span.visible-xs
+                                    = hostname
+                                span.hidden-xs
+                                    | kern.js
+                            span.hidden-xs
+                                |  on 
+                                = hostname
+                        div.col-xs-8.text-right
+                            block copyright
+                                | ©copyright 
+                                span.hidden-xs
+                                    | 2014-#{moment().format("YYYY")} by 
+                                a(href='http://wodni.at') Gerald Wodni
+
+            +script('/js/admin.js')
+            +scripts
+            block scripts
