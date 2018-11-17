@@ -37,20 +37,20 @@ module.exports = function _jade( k, opts ) {
             return this.format( "YYYY-MM-DD HH:mm:ss" );
         }
 
+        var _filename = path.parse(filepath).name;
         locals = _.extend( locals || {}, {
             __: req.locales.__,
             _n: req.locales._n,
             _date: function( d ) { return moment( d ).format( req.locales.__( "date-format-moment" ) ); },
             __locale: req.locales,
             _: _,
+            _filename: _filename,
+            _bodyClass: _filename == "crud" ? req.baseUrl.replace( /^.*\//, '' ) : _filename,
+            _baseUrlPath: req.baseUrl,
             moment: moment,
             marked: marked,
             hostname: os.hostname()
         });
-
-	/* TODO: make this a permanent member of above locals */
-	if( path.parse )
-            locals._filename = path.parse(filepath).name;
 
         var cachePath = req.kern.website + "--" + filepath;
         if( cachePath in jadeCache ) {
