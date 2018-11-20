@@ -8,6 +8,7 @@ var path        = require("path");
 var mkdirp      = require("mkdirp");
 var less        = require("less");
 var imageMagick = require("gm").subClass({imageMagick: true});
+var _           = require("underscore");
 
 module.exports = function _static( k, opts ) {
 
@@ -137,39 +138,51 @@ module.exports = function _static( k, opts ) {
 
         /* less, circumvent path-processing */
         var lessCache = k.cache( "less" );
-        k.app.get("/css/*", function _static_less( req, res, next ) {
+        function lessRequest( prefix, preloader, plugins = ( req => [] ) ) {
+            return function _lessRequest( req, res, next ) {
+                var filename = req.path.substring( prefix.length );
+                var filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename ) );
 
-            var filename = req.path.substring( 5 );
-            var filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename ) );
+                /* static css found, serve it */
+                if( filepath != null )
+                    return res.sendfile( filepath );
 
-            /* static css found, serve it */
-            if( filepath != null )
-                return res.sendfile( filepath );
+                /* dynamic less */
+                filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
+                if( filepath == null )
+                    return next();
 
-            /* dynamic less */
-            filepath = k.hierarchy.lookupFile( req.kern.website, path.join( 'css', filename.replace( /\.css$/g, '.less' ) ) );
-            if( filepath == null )
-                return next();
+                lessCache.get( filepath, function( err, data ) {
 
-            lessCache.get( filepath, function( err, data ) {
-
-                if( err )
-                    return next( err );
-
-                if( data ) {
-                    res.set( 'Content-Type', 'text/css' );
-                    res.send( data );
-                    return;
-                }
-
-                fs.readFile( filepath, 'utf8', function( err, data ) {
-                    if( err ) 
+                    if( err )
                         return next( err );
 
-                    /* parse less & convert to css */
-                    less.render( data.toString(), {
-                        filename: filepath,
-                        paths: k.hierarchy.paths( req.kern.website, 'css' )
+                    if( data ) {
+                        res.set( 'Content-Type', 'text/css' );
+                        res.send( data );
+                        return;
+                    }
+
+                    new Promise( (fulfill, reject) => {
+                        fs.readFile( filepath, 'utf8', ( err, data ) => {
+                            if( err )
+                                reject( err );
+                            else
+                                fulfill( data );
+                        });
+                    })
+                    .then( data => {
+                        if( preloader )
+                            return preloader( req, data );
+                        return Promise.resolve( data );
+                    })
+                    .then( (data) => {
+                        /* parse less & convert to css */
+                        return less.render( data.toString(), {
+                            filename: filepath,
+                            paths: k.hierarchy.paths( req.kern.website, 'css' ),
+                            plugins: plugins( req )
+                        });
                     })
                     .then( output => {
                         res.set( 'Content-Type', 'text/css' );
@@ -185,9 +198,35 @@ module.exports = function _static( k, opts ) {
                         next( err );
                     });
                 });
+            };
+        }
 
-            });
-        });
+        k.app.get("/css/dynamic/*", lessRequest( "/css/dynamic/",
+            function _preloader( req, data ) {
+                return new Promise( (fulfill, reject) => {
+                    k.site.getTarget( req, (err, _website) => {
+                        req.kern.adminMenu = req.kern.site.registeredSiteModules["admin"].getMenu( req, { showAll: true } );
+                        if( err ) return reject( err );
+                        fulfill( data );
+                    })
+                });
+            },
+            function _plugins( req ) {
+                return [{
+                    install: ( l, pM, f ) => {
+                        f.add( "kernAdminMenu", () => new l.tree.Value( _.pluck( req.kern.adminMenu, "link" ) ) );
+                        f.add( "kernAdminMenuPropery", ( link, key ) => {
+                            link = link.value; key = key.value.split(".");
+                            var item = _.find( req.kern.adminMenu, item => item.link == link );
+                            var value = item;
+                            key.forEach( key => value = value[ key ] );
+                            return value;
+                        });
+                    }
+                }]
+            }
+        ));
+        k.app.get("/css/*", lessRequest( "/css/" ) );
         k.app.get("/css/:directory/:file", function _static_css_dir( req, res, next ) {
             serveStatic( "css/" + req.requestman.filename( 'directory' ), req, res );
         });

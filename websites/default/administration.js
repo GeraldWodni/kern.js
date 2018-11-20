@@ -50,7 +50,9 @@ module.exports = {
         } );
 
         /* assemble and translate menu */
-        menu = function( req ) {
+        menu = function( req, opts ) {
+            opts = opts || {};
+
             var modules = { early: [], main: [], admin: [], late: [], final: [] };
             _.each( k.hierarchy.upParts( req.kern.website ), function( website ) {
                 if( !_.has( subModules, website ) )
@@ -69,6 +71,9 @@ module.exports = {
                     name: module.english != "" ? req.locales.__( module.english ) : ""
                 });
             });
+
+            if( opts.showAll )
+                return menuItems;
 
             return _.filter( menuItems, function( item ) {
                 return allowed( req, item.link );
@@ -200,5 +205,8 @@ module.exports = {
     },
     addSiteModule: function() {
         addSiteModule.apply( this, arguments );
+    },
+    getMenu: function() {
+        return menu.apply( this, arguments );
     }
 };

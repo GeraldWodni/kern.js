@@ -35,13 +35,20 @@ module.exports = function _site( k, opts ) {
     }
 
     function getTarget(req, callback) {
-        var target;
+        function gotTarget( err, website ) {
+            if( err ) return callback( err );
+            req.kern.site = {
+                registeredSiteModules:  website.registeredSiteModules
+            };
+            callback( null, website );
+        }
+
         /* website already loaded, return it */
         if( req.kern.website in websites )
-            callback( null, websites[ req.kern.website ] );
+            gotTarget( null, websites[ req.kern.website ] );
         /* get site specific script and execute it */
         else
-            load( req.kern.website, callback );
+            load( req.kern.website, gotTarget );
     }
 
     function getOrLoad(req, res, next) {
@@ -230,6 +237,8 @@ module.exports = function _site( k, opts ) {
             setupOpts: opts.setup
         });
 
+        target.registeredSiteModules = registeredSiteModules;
+
         /* app requires cleanup */
         if( target.exit )
             k.hooks.add( "exit", target.exit );
@@ -264,6 +273,7 @@ module.exports = function _site( k, opts ) {
 
     return {
         load: load,
+        getTarget: getTarget,
         getOrLoad: getOrLoad,
         routeRequestStart: routeRequestStart,
         module: siteModule
