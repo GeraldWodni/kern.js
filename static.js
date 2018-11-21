@@ -215,11 +215,18 @@ module.exports = function _static( k, opts ) {
                 return [{
                     install: ( l, pM, f ) => {
                         f.add( "kernAdminMenu", () => new l.tree.Value( _.pluck( req.kern.adminMenu, "link" ) ) );
-                        f.add( "kernAdminMenuPropery", ( link, key ) => {
-                            link = link.value; key = key.value.split(".");
+                        f.add( "kernAdminMenuPropery", ( link, keys, defaultValue ) => {
+                            link = link.value; keys = keys.value.split(".");
                             var item = _.find( req.kern.adminMenu, item => item.link == link );
                             var value = item;
-                            key.forEach( key => value = value[ key ] );
+                            while( keys.length ) {
+                                var key = keys.shift();
+                                if( _.has( value, key ) )
+                                    value = value[key];
+                                else
+                                    return defaultValue;
+                            }
+
                             return value;
                         });
                     }
