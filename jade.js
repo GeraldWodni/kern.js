@@ -38,6 +38,10 @@ module.exports = function _jade( k, opts ) {
         }
 
         var _filename = path.parse(filepath).name;
+        var _bodyClass = req.baseUrl.replace( /^.*\//, '' );
+        if( _filename == "login" || req.baseUrl == "/admin" )
+            _bodyClass = _filename;
+
         locals = _.extend( locals || {}, {
             __: req.locales.__,
             _n: req.locales._n,
@@ -45,7 +49,7 @@ module.exports = function _jade( k, opts ) {
             __locale: req.locales,
             _: _,
             _filename: _filename,
-            _bodyClass: _filename == "crud" ? req.baseUrl.replace( /^.*\//, '' ) : _filename,
+            _bodyClass: _bodyClass,
             _baseUrlPath: req.baseUrl,
             moment: moment,
             marked: marked,
