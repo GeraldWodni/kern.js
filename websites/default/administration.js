@@ -19,7 +19,7 @@ var allowed = function( req, link ) {
 
 var getField;
 function viewValues( req, values ) {
-    return _.extend( { menu: menu( req ), getField: getField }, values || {} );
+    return _.extend( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof( req.user ) !== "undefined" }, values || {} );
 };
 
 module.exports = {

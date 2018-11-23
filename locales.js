@@ -8,26 +8,66 @@ var _       = require("underscore");
 
 module.exports = function _locales( k, opts ) {
 
-    var locales = {};
     var localeNames = [];
     var languages = [];
-    var folder = "locales";
+    const folderName  = "locales";
     var defaultLocale = ( opts ? opts.defaultLocale : null ) || 'en-US';
 
+    var locales = {};
+
+    /* cache website parts */
+    var websiteUpParts;
+
     function reload() {
-        locales = {};
         localeNames = [];
+        languages = [];
+
+        websiteUpParts = _.memoize( function( website ) {
+            var parts = k.hierarchy.upParts( website );
+            parts.push( "" );
+            return parts;
+        });
+
+        var dirs = fs.readdirSync( k.kernOpts.websitesRoot );
+
+        /* load master locale */
+        loadWebsite( "", folderName );
+
+        /* load directories */
+        dirs.forEach( dir => {
+            var folder = path.join( k.kernOpts.websitesRoot, dir, folderName );
+            if( fs.existsSync( folder ) )
+                loadWebsite( dir, folder );
+        });
+    };
+
+    function loadWebsite( website, folder ) {
+        var loc = {
+            locales: {},
+            names:   [],
+            languages: []
+        };
+
+        locales[ website ] = loc;
 
         _.each( fs.readdirSync( folder ), function( filename ) {
             var name = filename.replace( /\.json$/, '' );
             if( /^[a-z]{2}-[A-Z]{2}\.json$/.test( filename ) ) {
-                localeNames.push( name );
-                languages.push( name.substring( 0, 2 ) );
-                locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
-                console.log( "Found Locale", name );
+                loc.names.push( name );
+                var language = name.substring( 0, 2 );
+                loc.languages.push( language );
+                loc.locales[ name ] = JSON.parse( fs.readFileSync( path.join( folder, filename ) ) );
+
+                /* add to global */
+                if( localeNames.indexOf( name ) < 0 )
+                    localeNames.push( name );
+                if( languages.indexOf( language ) < 0 )
+                    languages.push( language );
             }
         });
-    };
+
+        console.log( ("Website locales >" + website + "<:").magenta, loc.names );
+    }
 
     /* get the closest locale */
     function getClosest( locale ) {
@@ -94,16 +134,23 @@ module.exports = function _locales( k, opts ) {
 
     
     /* TODO: finish this function, always yields notFound */
-    function __( locale, text ) {
+    function __( website, locale, text ) {
         if( text.length > 0 && text.charAt(0) === "=" )
             return text.substring(1);
-    
-        var resolved = locales[ locale ][ text ];
-        if( resolved == undefined )
-            return notFound( text );
 
-        return resolved;
+        var parts = websiteUpParts( website );
+        for( var i = 0; i< parts.length; i++ ) {
+            var part = parts[i];
+            if( locales[ part ] && locales[ part ].locales[ locale ] ) {
+                var resolved = locales[ part ].locales[ locale ][ text ];
+                if( resolved !== undefined )
+                    return resolved;
+            }
+        }
+
+        return notFound( text );
     };
+
 
     reload();
 
@@ -120,10 +167,10 @@ module.exports = function _locales( k, opts ) {
                 currentRoot:current.split("-")[0],
                 available:  localeNames,
                 reload: reload,
-                __: function() { return __( current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
+                __: function() { return __( req.kern.website, current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
                 _n: function( num, decimals ) {
-                    let thousandsSeparator =__( current, "numThousandsSeparator" );
-                    let decimalSeparator =  __( current, "numDecimalSeparator"   );
+                    let thousandsSeparator =__( req.kern.website, current, "numThousandsSeparator" );
+                    let decimalSeparator =  __( req.kern.website, current, "numDecimalSeparator"   );
 
                     if( typeof decimals === 'undefined' )
                         decimals = 2;
