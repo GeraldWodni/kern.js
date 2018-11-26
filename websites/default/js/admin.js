@@ -6,7 +6,7 @@ $(function(){
         yearRange: "-100:+10",
         changeMonth: true,
         showButtonPanel: true
-    });
+    }).attr("autocomplete", "off");
 
 
     /* select validation */
