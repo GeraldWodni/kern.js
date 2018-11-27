@@ -9,7 +9,7 @@ var url     = require("url");
 var express = require("express");
 var http    = require("http");
 var fs      = require("fs");
-var logger  = require("morgan");
+var morgan  = require("./misc/morgan-greydev");
 var _       = require("underscore");
 var bcrypt  = require("bcrypt-nodejs");
 var colors  = require("colors");
@@ -116,7 +116,7 @@ var Kern = function( callback, kernOpts ) {
         /* add kern subsystems */
         app.use( cookieParser() );
         k.session.route();
-        app.use( logger('dev') );
+        app.use( morgan('greydev') );
         //app.use( config() );
 
         /* load locales now to support locale error messages (also required for static-404s) */
