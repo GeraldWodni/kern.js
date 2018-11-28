@@ -1,7 +1,8 @@
 
-mixin directory(subTree, dirName)
+mixin directory(subTree, dirName, opts)
     li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
-        -var dirUrl = "/admin/media" + subTree.prefix + ( subTree.prefix == "/" ? "" : "/" ) + dirName;
+        -var dirUrl = (opts || {}).rootPrefix || "/admin/media";
+        -dirUrl += subTree.prefix + ( subTree.prefix == "/" ? "" : "/" ) + dirName;
         a(href=dirUrl)
             +glyph("folder-open")
             = " " + dirName
@@ -16,20 +17,20 @@ mixin directory(subTree, dirName)
             button.btn.btn-default.btn-xs(type="submit",name="delete-dir",title=__("Delete folder"))
                 +glyph("trash")
         ul
-            +dirTreeWalker( subTree )
+            +dirTreeWalker( subTree, opts )
 
-mixin dirTree(tree)
+mixin dirTree(tree, opts)
     ul.filetree&attributes(attributes)
         li.directory
-            a(href="/admin/media")
+            a(href=(opts||{}).rootPrefix || "/admin/media")
                 +glyph("folder-open")
                 |  /
             ul
-                +dirTreeWalker(tree)
+                +dirTreeWalker(tree, opts)
 
-mixin dirTreeWalker(tree)
+mixin dirTreeWalker(tree, opts)
     each subTree, dirName in tree.dirs
-        +directory(subTree, dirName)
+        +directory(subTree, dirName, opts)
 
 mixin file(file, opts)
         - opts = opts || {}

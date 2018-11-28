@@ -12,6 +12,10 @@ var _       = require("underscore");
 module.exports = {
     setup: function( k ) {
 
+        /* options */
+        const setupOpts = k.setupOpts || {};
+        const view      = setupOpts.view || "admin/media";
+
         /* protection filters, TODO: allow overwrite per user-permission */
         var hierarchyFilters = {
             dirShowFilters:  [ /^\/images$/g, /^\/images\/.*/g, /^\/media$/g, /^\/media\/.*/g, /^\/files$/g, /^\/files\/.*/g ],
@@ -162,8 +166,11 @@ module.exports = {
                     currentFiles.push( file );
                 });
 
-                k.jade.render( req, res, "admin/media", k.reg("admin").values( req, _.extend( {
+                const reqValues = setupOpts.reqValues || k.reg("admin").values;
+
+                k.jade.render( req, res, view, reqValues( req, _.extend( {
                     tree: tree,
+                    dirOptions: setupOpts.dirOptions,
                     currentPath: currentPath,
                     currentFiles: currentFiles
                 }, values ) ) );
