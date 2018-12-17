@@ -50,7 +50,10 @@ mixin field(name,type,label,value,opts)
                 if groupType == "button"
                     span.input-group-btn
                         button.btn.btn-default(type="button",title=__(opts.inputGroup.title))
-                            +glyph(opts.inputGroup.glyph)
+                            if( opts.inputGroup.fa )
+                                +fa(opts.inputGroup.fa)
+                            else
+                                +glyph(opts.inputGroup.glyph)
                 else if groupType == "href" && value
                     span.input-group-btn
                         a.btn.btn-default(href=value,target="_blank",title=__(opts.inputGroup.title))
