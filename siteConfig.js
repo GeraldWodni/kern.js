@@ -12,9 +12,12 @@ module.exports = function _siteConfig( k, opts ) {
 
     var websiteConfigs = {};
     function getField( item, field, defaultValue ) {
+        if( typeof item === "undefined" )
+            return defaultValue;
+
         var index = field.indexOf( "." );
         if( index > 0 )
-            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ) );
+            return getField( item[ field.substring( 0, index ) ], field.substring( index + 1 ), defaultValue );
         else if( _.has( item, field ) )
             return item[ field ];
         else

@@ -70,7 +70,7 @@ mixin fileUpload()
                 | .
             button(type="submit",name="upload-file",value="yepp").box-button Upload
         .status.uploading Uploading &hellip;
-        .status.success.text-success __( "Done" )
-        .status.error.text-danger __( "Error" )
+        .status.success.text-success= __( "Upload finished" )
+        .status.error.text-danger= __( "Error" ) + ": "
             span
             | .

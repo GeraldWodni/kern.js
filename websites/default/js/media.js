@@ -116,12 +116,11 @@ $(function(){
                     droppedFiles = false;
                 },
                 success: function( data ) {
-                    /* TODO: return HTML on success and prepend it to file-container */
                     $fileUpload.addClass( data.success == true ? 'is-success' : 'is-error' );
                     if( data.success )
                         $(".file-container").prepend( data.html );
                     else
-                        $fileUpload.find(".status.error span").text( data.error );
+                        $fileUpload.find(".status.error span").text( data.message );
                 },
                 error: function( err ) {
                     console.error( "error uploading file:", err );
