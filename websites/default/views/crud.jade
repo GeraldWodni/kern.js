@@ -89,6 +89,8 @@ mixin crudFields( opts )
             h3= label
         else if field.mixinType == "h4"
             h4= label
+        else if field.mixinType == "p"
+            p= label
         else
             +#{field.mixinType}( name, label, opts.values[ name ], field )
 

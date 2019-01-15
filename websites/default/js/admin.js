@@ -6,7 +6,8 @@ $(function(){
         yearRange: "-100:+10",
         changeMonth: true,
         showButtonPanel: true
-    }).attr("autocomplete", "off");
+    }).attr("autocomplete", "nope");
+    /* set to random string, see: https://stackoverflow.com/questions/12374442/chrome-ignores-autocomplete-off/38961567#38961567 */
 
 
     /* select validation */

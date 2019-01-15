@@ -443,7 +443,8 @@ module.exports = function _crud( k ) {
                 upload:     "drop",
                 image:      "filepath",
                 h3:         "drop",
-                h4:         "drop"
+                h4:         "drop",
+                p:          "drop"
             },
             elements: {
                 date:       "date-field",
@@ -461,7 +462,8 @@ module.exports = function _crud( k ) {
                 upload:     "file-field",
                 image:      "enum-field",
                 h3:         "h3",
-                h4:         "h4"
+                h4:         "h4",
+                p:          "p"
             },
             fields: {
                 id:     { type: "id" },
