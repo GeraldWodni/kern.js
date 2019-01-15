@@ -119,6 +119,21 @@ module.exports = function _static( k, opts ) {
         });
 
         prefixServeStatic( k.app, "/images/" );
+
+
+        prefixCache( "/files-preview/", "/files/", function( filepath, cachepath, next ) {
+            var extension = path.extname( filepath );
+            if( [".jpg", ".jpeg", "*.png", "*.gif"].indexOf( extension ) < 0 )
+                return next( new Error( `Unsupported file type '${extension}'` ) );
+
+            imageMagick( filepath )
+                .autoOrient()
+                .resize( 200, 200 + "^" )
+                .gravity( "Center" )
+                .extent( 200, 200 )
+                .write( cachepath, next );
+        });
+
         prefixServeStatic( k.app, "/media/" );
 
         //app.get("/images/:file", function( req, res, next ) {

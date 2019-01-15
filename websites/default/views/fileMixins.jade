@@ -40,8 +40,11 @@ mixin file(file, opts)
                     +glyph("trash")
             - var style = "";
             - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
-            if isImage && file.link.indexOf("/images") == 0
-                - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
+            if isImage
+                if file.link.indexOf("/images/") == 0
+                    - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
+                if file.link.indexOf("/files/") == 0
+                    - style = "background-image:url(" + file.link.replace("/files/", "/files-preview/") + ")";
 
             span.file-type(style=style)
                 if file.extension == ".pdf"
