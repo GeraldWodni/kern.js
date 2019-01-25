@@ -176,25 +176,38 @@ var sections = {
         },
         del: function( website, params ) {
             var username = params[0];
-            getUserId( website, username, function( id ) {
-                rdb.multi()
-                    .del( website + ":user:" + id )
-                    .hdel( website + ":usernames", username )
-                    .exec( function( err ) {
-                        if( err ) return showErr( err );
-                        end();
-                    });
+            delUser( website, username, err => {
+                if( err ) return showErr( err );
+                end();
             });
         },
         /* TODO: delete all users before deleting the website itself */
         del_website: function( website, params ) {
-            rdb.multi()
-                .del( website + ":users" )
-                .del( website + ":usernames" )
-                .exec( function( err ) {
-                    if( err ) return showErr( err );
-                    end();
+            rdb.hgetall( website + ":usernames", function( err, usernames ) {
+                if( err ) return showErr( err );
+
+                var promise = Promise.resolve();
+                _.keys(usernames).forEach( username =>
+                    promise = promise.then( () => {
+                        return new Promise( (fulfill, reject) =>
+                            delUser( website, username, err => {
+                                if( err ) return reject( err );
+                                fulfill();
+                            })
+                        );
+                    })
+                );
+
+                promise.then( () => {
+                    rdb.multi()
+                        .del( website + ":users" )
+                        .del( website + ":usernames" )
+                        .exec( function( err ) {
+                            if( err ) return showErr( err );
+                            end();
+                        });
                 });
+            });
         },
         del_key: function( website, params ) {
             var username = params[0];
@@ -255,6 +268,16 @@ function getUserId( website, username, callback ) {
         if( id == null ) return showErr( new Error( "Unknown username: " + username ) );
 
         callback( id );
+    });
+}
+function delUser( website, username, callback ) {
+    getUserId( website, username, function( id ) {
+        rdb.multi()
+            .del( website + ":user:" + id )
+            .hdel( website + ":usernames", username )
+            .exec( function( err ) {
+                callback( err );
+            });
     });
 }
 /* query and set new password */
