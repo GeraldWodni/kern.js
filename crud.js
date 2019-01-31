@@ -984,7 +984,7 @@ module.exports = function _crud( k ) {
 
                     /* check for unPrefix */
                     var foreignKey = renderCrud.foreignKeys[ fkey ];
-                    var foreignCrud = foreignKey.crud;
+                    var foreignCrud = foreignKey.crud == "this" ? crud : foreignKey.crud;
                     if( foreignKey.unPrefix )
                         foreignCrud = unPrefixBase( foreignCrud )( req );
 
