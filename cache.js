@@ -10,8 +10,9 @@ module.exports = function _cache( k ) {
 
         opts = _.extend({
             timeout: 6 * 60 * 60,
-            prefix: "cache:",
-            prefixDependencies: "cache-dependencies:"
+            /* TODO: rename to cache: after migration period */
+            prefix: "cache2:",
+            prefixDependencies: "cache2-dependencies:"
         }, opts || {} );
 
         /* cache disabled, return dummy functions */
@@ -26,12 +27,14 @@ module.exports = function _cache( k ) {
             keys.forEach( function( key ) {
                 k.rdb.ttl( key, function( err, ttl ) {
                     var filename = key.substring( opts.prefix.length );
+                    var website = filename.split(":")[1];
+                    filename = website.substring( 0, filename.length - website.length - 1 );
                     /* watch dependencies */
                     var dKey = dependenciesKey( filename );
                     k.rdb.smembers( dKey, function( err, dependencies ) {
                         /* create watch for file */
                         try {
-                            watchFile( filename, dependencies, ttl );
+                            watchFile( { filename: filename, website: website }, dependencies, ttl );
                         } catch( e ) {
                             /* check why watch has failed */
                             if( e.code != "ENOENT" )
@@ -46,19 +49,19 @@ module.exports = function _cache( k ) {
         });
 
         /* generate key */
-        function key( filename ) {
-            return opts.prefix + filename;
+        function key( obj ) {
+            return opts.prefix + obj.filename + ":" + obj.website;
         }
-        function dependenciesKey( filename ) {
-            return opts.prefixDependencies + filename;
+        function dependenciesKey( obj ) {
+            return opts.prefixDependencies + obj.filename  + ":" + obj.website;
         }
 
         /* watch for changes to file */
-        function watchFile( filename, dependencies, timeout ) {
+        function watchFile( filenameObj, dependencies, timeout ) {
 
             /* start filewatch */
-            console.log( "Cache-Watch:", filename, dependencies )
-            var watcher = fs.watch( filename, fileChanged );
+            console.log( "Cache-Watch:", filenameObj.filename + " : " + filenameObj.website, dependencies )
+            var watcher = fs.watch( filenameObj.filename, fileChanged );
             var dependencyWatchers = [];
 
             function stopWatchers() {
@@ -72,9 +75,9 @@ module.exports = function _cache( k ) {
             }
 
             function fileChanged( event, fname ) {
-                console.log( "Cache Changed".grey, filename.yellow, "origin:".grey, fname.yellow );
+                console.log( "Cache Changed".grey, (filenameObj.filename + " : " + filenameObj.website).yellow, "origin:".grey, fname.yellow );
                 /* if a change occured, clear cache */
-                k.rdb.del( [key( filename ), dependenciesKey( filename )], stopWatchers );
+                k.rdb.del( [key( filenameObj ), dependenciesKey( filenameObj )], stopWatchers );
             }
 
             dependencies.forEach( dependency => {
@@ -86,21 +89,16 @@ module.exports = function _cache( k ) {
         }
 
         /* load value */
-        function get( filename, callback ) {
-            k.rdb.get( key( filename ), callback );
+        function get( filenameObj, callback ) {
+            k.rdb.get( key( filenameObj ), callback );
         }
 
         /* store value and place TTL */
         function set( filenameObj, content, callback ) {
-            var filename = filenameObj;
-            var dependencies = []
-            if( _.isObject( filenameObj ) ) {
-                filename = filenameObj.filename;
-                dependencies = filenameObj.dependencies || [];
-            }
+            var dependencies = filenameObj.dependencies || [];
 
-            var fileKey = key( filename );
-            var fileDependenciesKey = dependenciesKey( filename );
+            var fileKey = key( filenameObj );
+            var fileDependenciesKey = dependenciesKey( filenameObj );
             if( dependencies.length )
                 k.rdb.multi()
                     .set( fileKey, content )
@@ -113,7 +111,7 @@ module.exports = function _cache( k ) {
                     .set( fileKey, content )
                     .expire( fileKey, opts.timeout )
                     .exec( callback );
-            watchFile( filename, dependencies );
+            watchFile( filenameObj, dependencies );
         }
 
         return {

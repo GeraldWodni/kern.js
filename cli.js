@@ -42,6 +42,23 @@ var sections = {
                     end();
                 });
             });
+        },
+        list2: function() {
+            rdb.keys( "cache2:websites*", function( err, items ) {
+                if( err ) return showErr( err );
+                console.log( items.join( "\n" ) );
+                end();
+            });
+        },
+        del2: function() {
+            rdb.keys( "cache2:websites*", function( err, items ) {
+                if( err ) return showErr( err );
+                rdb.del( items, function( err, count ) {
+                    if( err ) return showErr( err );
+                    console.log( count + " items deleted" );
+                    end();
+                });
+            });
         }
     },
     user: {

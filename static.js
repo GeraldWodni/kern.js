@@ -167,7 +167,7 @@ module.exports = function _static( k, opts ) {
                 if( filepath == null )
                     return next();
 
-                lessCache.get( filepath, function( err, data ) {
+                lessCache.get( { filename: filepath, website: req.kern.website }, function( err, data ) {
 
                     if( err )
                         return next( err );
@@ -205,6 +205,7 @@ module.exports = function _static( k, opts ) {
                         console.log( "LESS-OK:".bold.green, filepath, output.imports );
                         lessCache.set( {
                             filename: filepath,
+                            website: req.kern.website,
                             dependencies: output.imports
                         }, output.css );
                     })
