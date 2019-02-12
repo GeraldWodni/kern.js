@@ -647,8 +647,11 @@ module.exports = function _crud( k ) {
             k.postman( req, res, postOpts, function() {
 
                 try {
-                    if( req.postman.exists( "add" ) ) {
+                    if( req.postman.exists( "add" ) || req.postman.exists( "addRetain" ) ) {
                         var obj = opts.readFields( req );
+
+                        if( req.postman.exists( "addRetain" ) )
+                            req.retainValues = obj;
 
                         var handleCreate = function _handleCreate( err, data ) {
                             if( err )
@@ -924,8 +927,9 @@ module.exports = function _crud( k ) {
 
         var r = router( k, [ opts.addPath, opts.editPath ], crud, opts );
 
-        function renderAll( req, res, next, values, fullData ) {
+        function renderAll( req, res, next, values, fullData, renderOpts ) {
             k.getman( req );
+            renderOpts = renderOpts || {};
             var renderCrud = r.getCrud( req );
             var hiddenForeignKeyData = {};
 
@@ -1081,6 +1085,7 @@ module.exports = function _crud( k ) {
                                 pageSize: opts.pageSize,
                                 scripts: opts.scripts || [],
                                 values: r.getValues( req, fields, values ),
+                                retain: renderOpts.retain,
                                 fullData: fullData,
                                 hiddenForeignKeyData: hiddenForeignKeyData,
                                 formAction: req.baseUrl,
@@ -1092,6 +1097,7 @@ module.exports = function _crud( k ) {
                                 table: crud.table,
                                 enctype: opts.fileUpload ? "multipart/form-data" : false,
                                 startExpanded: values ? false : (opts.startExpanded || false), /* do not start expanded in edit-mode */
+                                showRetain: opts.showRetain,
                                 ajaxList: opts.ajaxList
                             };
 
@@ -1162,7 +1168,11 @@ module.exports = function _crud( k ) {
                 });
 
         k.router.get( opts.addPath, function( req, res, next ) {
-            renderAll( req, res, next );
+            var renderOpts = {};
+            if( req.retainValues )
+                renderOpts.retain = true;
+
+            renderAll( req, res, next, req.retainValues, null, renderOpts );
         });
     };
 

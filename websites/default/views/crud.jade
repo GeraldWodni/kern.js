@@ -11,7 +11,7 @@ mixin crud( opts )
                 block crudList
                     +crudList( opts )
         div.crud-fields(class=(opts.startExpanded || !opts.showList)?"":"col-sm-8")
-            if opts.values
+            if opts.values && !opts.retain
                 block crudPreEditItem
                 block crudEditItem
                     +crudEdit( opts )
@@ -105,6 +105,8 @@ mixin crudEdit( opts )
         +crudFields( opts )
 
         button.btn.btn-primary(type='submit',name='update',value='yes')= __("Change")
+        if opts.showRetain
+            button.btn.btn-default(type='submit',name='addRetain',value='yes',formaction=opts.formAction)= __("Add & Retain values")
     form(method="post",action=opts.link,class="deleteWrapper")
         button.btn.btn-danger.pull-right(type='submit',name='delete',value='#{opts.values[opts.idField]}')= __("Delete")
 
@@ -117,3 +119,5 @@ mixin crudAdd( opts )
             = " " + __("Add")
         +crudFields( opts )
         button.btn.btn-primary(type='submit',name='add',value='yes')= __("Add")
+        if opts.showRetain
+            button.btn.btn-default(type='submit',name='addRetain',value='yes')= __("Add & Retain values")
