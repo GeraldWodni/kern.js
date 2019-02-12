@@ -51,6 +51,7 @@ module.exports = function _jade( k, opts ) {
             _filename: _filename,
             _bodyClass: _bodyClass,
             _baseUrlPath: req.baseUrl,
+            _originalUrl: req.originalUrl.replace(/\?.*$/, ''),
             moment: moment,
             marked: marked,
             hostname: os.hostname()
