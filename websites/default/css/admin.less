@@ -207,16 +207,25 @@ ul.filetree {
         min-height: 3em;
     }
 
-    form {
-        float: right;
+    form, .download {
         margin: 5px;
         display: none;
         position: relative;
         width: 23px;
+    }
+
+    form {
+        float: right;
         margin-left: -23px;
     }
 
-    &:hover form {
+    .download {
+        float: left;
+        margin-right: -23px;
+    }
+
+    &:hover form,
+    &:hover .download {
         display: block;
     }
 }

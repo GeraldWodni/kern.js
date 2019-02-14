@@ -134,6 +134,12 @@ module.exports = function _static( k, opts ) {
                 .write( cachepath, next );
         });
 
+        k.app.get("/files-download/*", function( req, res, next ) {
+            req.url = req.url.replace( /^\/files\-download\//, "/files/" );
+            res.header("Content-Disposition", path.basename( req.url ));
+            next();
+        });
+
         prefixServeStatic( k.app, "/media/" );
 
         //app.get("/images/:file", function( req, res, next ) {

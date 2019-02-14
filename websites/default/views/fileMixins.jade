@@ -34,32 +34,36 @@ mixin dirTreeWalker(tree, opts)
 
 mixin file(file, opts)
         - opts = opts || {}
-        a(href=file.link).file
+        .file
+            - var downloadLink = file.link.replace("/images/", "images-download/").replace("/files/", "/files-download/");
+            a.btn.btn-default.btn-xs.download(href=downloadLink,value=file.name,title=__("Download file"))
+                +glyph("download")
             form.form-inline(method="post",action=opts.deleteAction || null)
                 button.btn.btn-default.btn-xs(type="submit",name="delete-file",value=file.name,title=__("Delete file"))
                     +glyph("trash")
-            - var style = "";
-            - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
-            if isImage
-                if file.link.indexOf("/images/") == 0
-                    - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
-                if file.link.indexOf("/files/") == 0
-                    - style = "background-image:url(" + file.link.replace("/files/", "/files-preview/") + ")";
+            a(href=file.link)
+                - var style = "";
+                - var isImage = _.contains( [ ".png", ".jpg", ".jpeg", ".gif", ".bmp" ], file.extension.toLowerCase() );
+                if isImage
+                    if file.link.indexOf("/images/") == 0
+                        - style = "background-image:url(" + file.link.replace("/images/", "/images-preview/") + ")";
+                    if file.link.indexOf("/files/") == 0
+                        - style = "background-image:url(" + file.link.replace("/files/", "/files-preview/") + ")";
 
-            span.file-type(style=style)
-                if file.extension == ".pdf"
-                    +fa("file-pdf-o")
-                else if file.extension == ".txt"
-                    +fa("file-text-o")
-                else if isImage
-                    if style !== ""
-                        |  
+                span.file-type(style=style)
+                    if file.extension == ".pdf"
+                        +fa("file-pdf-o")
+                    else if file.extension == ".txt"
+                        +fa("file-text-o")
+                    else if isImage
+                        if style !== ""
+                            |  
+                        else
+                            +fa("file-image-o")
                     else
-                        +fa("file-image-o")
-                else
-                    +fa("file-o")
-            span.file-label
-                = file.name
+                        +fa("file-o")
+                span.file-label
+                    = file.name
 
 mixin fileUpload()
     form(method="post",enctype="multipart/form-data").file-upload&attributes(attributes)
