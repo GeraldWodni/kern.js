@@ -48,8 +48,9 @@ module.exports = function _static( k, opts ) {
         res.sendfile( filepath );
     };
 
-    function prefixCache( prefix, originPrefix, generator ) {
-        k.app.get( prefix + "*", function( req, res, next ) {
+    function prefixCache( prefix, originPrefix, generator, opts ) {
+        opts = opts || {};
+        (opts.router || k.app).get( prefix + "*", function( req, res, next ) {
             /* capture esacape attempts */
             guard( prefix, req, res, function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
@@ -263,6 +264,7 @@ module.exports = function _static( k, opts ) {
 
     return {
         prefixServeStatic: prefixServeStatic,
+        prefixCache: prefixCache,
         single: single,
         route: route
     }
