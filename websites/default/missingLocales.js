@@ -8,9 +8,12 @@ var _       = require("underscore");
 module.exports = {
     setup: function( k ) {
 
-        function addText( locale, key, text, next ) {
-            var filename = path.join( "locales", locale + ".json" );
+        function addText( website, locale, key, text, next ) {
+            var prefix = "";
+            if( website != "" )
+                prefix = k.hierarchyRoot( website ) + "/";
 
+            var filename = path.join( prefix + "locales", locale + ".json" );
             fs.readFile( filename, function( err, content ) {
                 if( err )
                     return next( err );
@@ -39,9 +42,10 @@ module.exports = {
                 var fields = req.postman.fields.text;
                 var remaining = _.keys( fields ).length;
 
-                /* write all fields */
+                website = req.postman.id("targetWebsite");
+
                 _.each( fields, function( value, key ) {
-                    addText( key, name, value, function( err ) {
+                    addText( website, key, name, value, function( err ) {
                         if( err )
                             next( err );
 
@@ -64,7 +68,15 @@ module.exports = {
                 if( err )
                     return next( err );
 
-                k.jade.render( req, res, "admin/missingLocales", k.reg("admin").values( req, { members: members, locales: req.locales.available } ) );
+
+                var websites = req.locales.getWebsites();
+                websites = _.object( _.map( websites, website => [ website, website ? website : '<root>' ] ) );
+
+                k.jade.render( req, res, "admin/missingLocales", k.reg("admin").values( req, {
+                    members: members,
+                    locales: req.locales.available,
+                    websites: websites
+                }));
             });
         });
     }

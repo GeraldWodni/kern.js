@@ -151,6 +151,15 @@ module.exports = function _locales( k, opts ) {
         return notFound( text );
     };
 
+    /* get websites containing locales */
+    function getWebsites( reqWebsite ) {
+        var websites = [];
+        websiteUpParts( reqWebsite ).forEach( website => {
+            if( _.has( locales, website ) )
+                websites.push( website );
+        });
+        return websites;
+    }
 
     reload();
 
@@ -167,6 +176,7 @@ module.exports = function _locales( k, opts ) {
                 currentRoot:current.split("-")[0],
                 available:  localeNames,
                 reload: reload,
+                getWebsites: function() { return getWebsites( req.kern.website ) },
                 __: function() { return __( req.kern.website, current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
                 _n: function( num, decimals ) {
                     let thousandsSeparator =__( req.kern.website, current, "numThousandsSeparator" );

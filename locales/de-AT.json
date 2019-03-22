@@ -357,5 +357,7 @@
     "Recently edited items": "Kürzlich bearbeitete Einträge",
     "Accounting": "Buchhaltung",
     "Upload finished": "Upload abgeschlossen",
-    "Add & Retain values": "Hinzufügen & Werte kopieren"
+    "Add & Retain values": "Hinzufügen & Werte kopieren",
+    "Target website": "Zielwebsite",
+    "default": "standard"
 }

@@ -15,6 +15,7 @@ block content
                     +text-field( "text[" + locale + "]", "[" + locale + "] " + text, text )
                 else
                     +text-field( "text[" + locale + "]", "[" + locale + "] " + text)
+            +enum-field( "targetWebsite", __("Target website"), websites )
 
             button.btn.btn-primary(type='submit',name='next',value='next')= __('Next')
             button.btn.btn-danger.pull-right(type="submit",name="reset",value="reset")=__("Delete pending items")
