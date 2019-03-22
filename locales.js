@@ -177,11 +177,11 @@ module.exports = function _locales( k, opts ) {
 
                     let numText = num.toFixed(decimals) + '';
                     let commaPos = numText.indexOf( '.' );
-                    console.log( "_NCP:", numText, commaPos );
+                    //console.log( "_NCP:", numText, commaPos );
 
                     let text = decimalSeparator + numText.substring( commaPos + 1 );
                     numText = numText.substring( 0, commaPos );
-                    console.log( "_N:", num, text, numText );
+                    //console.log( "_N:", num, text, numText );
                     for( var i = 0; i < numText.length; i++ ) {
                         if( i%3 == 0 && i > 0 )
                             text = thousandsSeparator + text;
