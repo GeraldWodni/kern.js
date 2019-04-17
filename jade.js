@@ -52,6 +52,7 @@ module.exports = function _jade( k, opts ) {
             _bodyClass: _bodyClass,
             _baseUrlPath: req.baseUrl,
             _originalUrl: req.originalUrl.replace(/\?.*$/, ''),
+            _loggedInUsername: req.session ? req.session.loggedInUsername : null,
             moment: moment,
             marked: marked,
             hostname: os.hostname()
