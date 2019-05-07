@@ -54,16 +54,41 @@ module.exports = function _static( k, opts ) {
             /* capture esacape attempts */
             guard( prefix, req, res, function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
+                    /* rename source */
+                    var targetExtension = path.extname( pathname );
+                    if( opts.sourceExtension )
+                        pathname = pathname.slice( 0, -targetExtension.length ) + opts.sourceExtension;
+
                     /* get original and cache-filename */
                     pathname = pathname.replace( new RegExp( "^" + prefix ), originPrefix );
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-                    var cachepath = filepath.replace( /^websites\//, "cache" + prefix );
+                    var cachepath = filepath.replace( /^websites\//, "cache" + prefix )
+
+                    /* rename target (from hierarchy path to be safe) */
+                    if( opts.sourceExtension )
+                        cachepath = cachepath.slice( 0, -opts.sourceExtension.length ) + targetExtension;
 
                     /* file cached? */
-                    fs.exists( cachepath, function( cacheExists ) {
-                        /* send cached image */
-                        if( cacheExists )
-                            return res.sendfile( cachepath );
+                    fs.stat( cachepath, function( err, cacheStat ) {
+                        /* exists -> check age */
+                        if( err == null )
+                            return fs.stat( filepath, function( err, fileStat ) {
+                                /* send cached file */
+                                if( err || fileStat.mtimeMs <= cacheStat.mtimeMs )
+                                    return res.sendfile( cachepath );
+
+                                /* generate */
+                                console.log( "Refresh prefixCache: " + filepath );
+                                generator( filepath, cachepath, function( err ) {
+                                    if( err ) {
+                                        console.log( "GeneratorRefresh-ERROR: ", err );
+                                        return next( err );
+                                    }
+
+                                    res.sendfile( cachepath );
+                                });
+
+                            });
 
                         /* create cache directory */
                         mkdirp( path.dirname( cachepath ), function( err ) {
@@ -71,9 +96,10 @@ module.exports = function _static( k, opts ) {
                                 return next( err );
 
                             generator( filepath, cachepath, function( err ) {
-                                console.log( "Generator-ERROR: ", err );
-                                if( err )
+                                if( err ) {
+                                    console.log( "Generator-ERROR: ", err );
                                     return next( err );
+                                }
 
                                 res.sendfile( cachepath );
                             });
