@@ -6,8 +6,9 @@ $(function(){
         yearRange: "-100:+10",
         changeMonth: true,
         showButtonPanel: true
-    }).attr("autocomplete", "nope");
+    }).attr("autocomplete", "off");
     /* set to random string, see: https://stackoverflow.com/questions/12374442/chrome-ignores-autocomplete-off/38961567#38961567 */
+    /* set to off, see: https://github.com/downshift-js/downshift/issues/527 */
 
 
     /* select validation */
