@@ -242,6 +242,9 @@ module.exports = function _users( k ) {
     /* loginRenderer: function( req, res ) or jade-filename */
     function loginRequired( loginRenderer, opts ) {
         var opts = opts || {};
+        _.defaults( opts, {
+            login: login
+        });
 
         return function( req, res, next ) {
 
@@ -307,7 +310,7 @@ module.exports = function _users( k ) {
                         if( req.postman.exists( ["login", "username", "password"] ) ) {
                             var username = req.postman.username();
                             console.log( "Login: ", username );
-                            login( req.kern.website, username, req.postman.password(), function( err, data ) {
+                            opts.login( req.kern.website, username, req.postman.password(), function( err, data ) {
                                 if( err )
                                     return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
 

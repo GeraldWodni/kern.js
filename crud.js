@@ -4,6 +4,7 @@
 
 var _       = require("underscore");
 var async   = require("async");
+var bcrypt  = require("bcrypt-nodejs");
 var moment  = require("moment");
 var fs      = require("fs");
 var mkdirp  = require("mkdirp");
@@ -515,7 +516,7 @@ module.exports = function _crud( k ) {
                             if( password.length < k.users.minPasswordLength ) 
                                 throw req.locales.__( "Password to short, minimum: {0}" ).format( k.users.minPasswordLength );
 
-                            values[ field ] = password;
+                            values[ field + "Hash" ] = bcrypt.hashSync( password );
                         }
                     }
                     else
