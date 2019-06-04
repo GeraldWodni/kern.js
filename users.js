@@ -215,7 +215,7 @@ module.exports = function _users( k ) {
     }
 
     function login( prefix, name, password, opts, next ) {
-        if( _.isFunction( opts ) ) {
+        if( typeof opts === "function" ) {
             next = opts;
             opts = {};
         }
