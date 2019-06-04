@@ -214,8 +214,15 @@ module.exports = function _users( k ) {
         });
     }
 
-    function login( prefix, name, password, next ) {
-        loadByName( prefix, name, function( err, data ) {
+    function login( prefix, name, password, opts, next ) {
+        if( _.isFunction( opts ) ) {
+            next = opts;
+            opts = {};
+        }
+        _.defaults( opts, {
+            loadByName: loadByName
+        });
+        opts.loadByName( prefix, name, function( err, data ) {
             if( err )
                 return next( err, null );
 
@@ -243,7 +250,7 @@ module.exports = function _users( k ) {
     function loginRequired( loginRenderer, opts ) {
         var opts = opts || {};
         _.defaults( opts, {
-            login: login
+            loadByName: loadByName
         });
 
         return function( req, res, next ) {
@@ -284,11 +291,11 @@ module.exports = function _users( k ) {
 
                 /* already logged in, load user and resume */
                 if( req.session && req.session.loggedInUsername ) {
-                    loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
+                    opts.loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
                         if( err ) {
                             /* Login invalid, no matching user found. ( logged in user most likely changed his own name ) -> destroy session */
                             if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
-                                console.log( "Login invalid, destroy session".red.bold );
+                                console.log( "Login invalid, destroy session".red.bold, req.kern.website, req.session.loggedInUsername );
                                 return req.sessionInterface.destroy( req, res, function() {
                                     executeOrRender( req, res, next, loginRenderer, vals );
                                 });
@@ -310,7 +317,7 @@ module.exports = function _users( k ) {
                         if( req.postman.exists( ["login", "username", "password"] ) ) {
                             var username = req.postman.username();
                             console.log( "Login: ", username );
-                            opts.login( req.kern.website, username, req.postman.password(), function( err, data ) {
+                            login( req.kern.website, username, req.postman.password(), { loadByName: opts.loadByName }, function( err, data ) {
                                 if( err )
                                     return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
 
