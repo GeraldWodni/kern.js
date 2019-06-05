@@ -39,7 +39,7 @@ module.exports = function _session( k, opts ) {
 
     function start( req, res, next ) {
         if( typeof req.session !== "undefined" )
-            throw "Session already started";
+            return next( new Error( "Session already started" ) );
 
         console.log( "START session" );
 
