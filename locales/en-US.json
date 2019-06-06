@@ -366,5 +366,6 @@
     "Upload finished": "Upload finished",
     "Add & Retain values": "Add & Retain values",
     "Target website": "Target website",
-    "default": "default"
+    "default": "default",
+    "Captcha not correct": "Captcha not correct"
 }

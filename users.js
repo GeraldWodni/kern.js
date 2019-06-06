@@ -126,15 +126,29 @@ module.exports = function _users( k ) {
         });
     };
 
-    function confirmCreate( prefix, hash, next ) {
-        var queueKey = getQueueKey( prefix, hash );
-
+    function getConfirmValues( prefix, hash, next ) {
         /* fetch queued user */
+        var queueKey = getQueueKey( prefix, hash );
         k.rdb.hgetall( queueKey, function( err, obj ) {
             if( err )
                 return next( err );
             if( !obj )
                 return next( new Error( "Unknown hash" ) );
+            next( null, obj );
+        });
+    }
+
+    function deleteConfirmValues( prefix, hash, next ) {
+        var queueKey = getQueueKey( prefix, hash );
+        k.rdb.del( queueKey, function( err ){
+            next( err );
+        });
+    }
+
+    function confirmCreate( prefix, hash, next ) {
+        getConfirmValues( prefix, hash, ( err, obj ) => {
+            if( err )
+                return next( err );
 
             /* create new user */
             create( prefix, obj, function( err, userId ) {
@@ -142,7 +156,7 @@ module.exports = function _users( k ) {
                     return next( err );
 
                 /* delete queued item */
-                k.rdb.del( queueKey, function( err ){
+                deleteConfirmValues( prefix, hash, ( err ) => {
                     obj.id = userId;
                     next( err, obj );
                 });
@@ -354,13 +368,16 @@ module.exports = function _users( k ) {
                                     });
                                 },
                                 function _username( callback ) {
+                                    if( userRegistration.emailAsUsername )
+                                        return callback();
+
                                     console.log( "AUTO", "username" );
                                     /* attempt to load user to check for existance */
                                     var username = req.postman[ userRegistration.nameFilter ]( "username" );
                                     if( username.length < userRegistration.minimumNameLength )
                                         return callback( req.locales.__("Username too short, minimum length: {0}").format( userRegistration.minimumNameLength ) );
 
-                                    loadByName( req.kern.website, username, function( err, data ) {
+                                    opts.loadByName( req.kern.website, username, function( err, data ) {
 
                                         /* new user */
                                         if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
@@ -403,6 +420,9 @@ module.exports = function _users( k ) {
                                     });
                                 },
                                 function _usernameKey( callback ) {
+                                    if( userRegistration.emailAsUsername )
+                                        return callback();
+
                                     console.log( "AUTO", "usernameKey" );
                                     /* check registere-queue usersnames */
                                     var usernameKey = getQueueNameKey( req.kern.website, results.username );
@@ -454,12 +474,22 @@ module.exports = function _users( k ) {
                                     /* save new user */
                                     var queueKey = getQueueKey( req.kern.website, results.hash );
 
-                                    k.rdb.hmset( queueKey, {
+                                    var queueObj = {
                                         name:           results.username,
                                         email:          results.email,
                                         passwordHash:   results.passwordHash,
                                         permissions:    userRegistration.permissions
-                                    }, function( err ) {
+                                    };
+                                    /* TODO: get filters from config or alike */
+
+                                    if( userRegistration.extraFields ) {
+                                        userRegistration.extraFields.forEach( field => {
+                                            let value = req.postman[ field.filter ]( field.name );
+                                            queueObj[ field.name ] = value;
+                                        });
+                                    }
+
+                                    k.rdb.hmset( queueKey, queueObj, function( err ) {
                                         if( err ) return callback( err );
                                         k.rdb.expire( queueKey, userRegistration.timeout, callback );
                                     });
@@ -528,6 +558,8 @@ module.exports = function _users( k ) {
     var users = {
         minPasswordLength: minPasswordLength,
         create: create,
+        getConfirmValues: getConfirmValues,
+        deleteConfirmValues: deleteConfirmValues,
         confirmCreate: confirmCreate,
         read:   loadById,
         readAll:readAll,

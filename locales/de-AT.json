@@ -359,5 +359,6 @@
     "Upload finished": "Upload abgeschlossen",
     "Add & Retain values": "Hinzufügen & Werte kopieren",
     "Target website": "Zielwebsite",
-    "default": "standard"
+    "default": "standard",
+    "Captcha not correct": "Captcha nicht korrekt"
 }
