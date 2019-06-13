@@ -41,7 +41,7 @@ module.exports = {
         };
 
         /* login & permission-wall */
-        k.router.use( k.users.loginRequired( "admin/login" ) );
+        k.router.use( k.users.loginRequired( "admin/login", { noUserRegistration: true } ) );
         k.router.use( function( req, res, next ) {
             if( allowed( req, req.path.split( "/" )[1] || "" ) )
                 next();

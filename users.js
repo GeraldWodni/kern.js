@@ -274,7 +274,7 @@ module.exports = function _users( k ) {
                 return next();
             }
 
-            var userRegistration = req.kern.getWebsiteConfig( "userRegistration", {} );
+            var userRegistration = Object.assign( {},  req.kern.getWebsiteConfig( "userRegistration", {} ) );
             _.defaults( userRegistration, {
                 enabled: false,
                 timeout: 1800,
@@ -287,6 +287,9 @@ module.exports = function _users( k ) {
                     text: "Please click the following link to complete your registration:\n{link}"
                 }
             });
+            if( opts.noUserRegistration )
+                userRegistration.enabled = false;
+
             var captchaWord = captcha.generateRandomText(5);
             var csrf = md5( captcha.generateRandomText(32) );
             var captchaPre = '<pre style="font-size:3px;line-height:2px;">' + captcha.word2Transformedstr(captchaWord) + '</pre>';
