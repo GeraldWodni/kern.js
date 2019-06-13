@@ -306,6 +306,9 @@ module.exports = function _users( k ) {
                     csrf: csrf
                 }
 
+                if( opts.vals )
+                    vals = opts.vals( req, vals );
+
                 /* already logged in, load user and resume */
                 if( req.session && req.session.loggedInUsername ) {
                     opts.loadByName( req.kern.website, req.session.loggedInUsername, function( err, data ) {
