@@ -64,17 +64,17 @@ mixin field(name,type,label,value,opts)
 mixin text-field(name, label, value, opts)
     +field(name, 'text', label, value, opts)&attributes(attributes)
 
-mixin email-field(name, label, value)
-    +field(name, 'email', label, value)&attributes(attributes)
+mixin email-field(name, label, value, opts)
+    +field(name, 'email', label, value, opts)&attributes(attributes)
 
 mixin number-field(name, label, value, opts)
     +field(name, 'number', label, value, opts)&attributes(attributes)
 
-mixin tel-field(name, label, value)
-    +field(name, 'tel', label, value)&attributes(attributes)
+mixin tel-field(name, label, value, opts)
+    +field(name, 'tel', label, value, opts)&attributes(attributes)
 
-mixin url-field(name, label, value)
-    +field(name, 'url', label, value)&attributes(attributes)
+mixin url-field(name, label, value, opts)
+    +field(name, 'url', label, value, opts)&attributes(attributes)
 
 mixin file-field(name, label, value, opts)
     +field(name, 'file', label, value, opts)&attributes(attributes)
@@ -92,8 +92,8 @@ mixin checkbox-field(name, label, value)
 mixin hidden-field(name, value)
     input(type='hidden', name=name, value=value)&attributes(attributes)
 
-mixin password-field(name, label)
-    +field(name, 'password', label)&attributes(attributes)
+mixin password-field(name, label, value, opts)
+    +field(name, 'password', label)&attributes( opts ? opts.attributes : attributes)
 
 mixin date-field(name, label, value, opts)
     div.form-group
