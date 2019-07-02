@@ -97,9 +97,9 @@ module.exports = function _crud( k ) {
             listOpts = listOpts || {};
             var query = listOpts.query || opts.selectListQuery;
             var sql = "SELECT REPLACE(NOW(), ' ', '_') AS now; ";
-                sql+= "SELECT ?? FROM ??; ";
+                sql+= "SELECT ?? FROM ?? ORDER BY ??; ";
                 sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified>=? ORDER BY' );
-            db.query( { sql: sql, nestTables: query.nestTables || false }, listOpts.parameters || [ opts.key, opts.table, /* <ids | query> */ opts.table, opts.table, lastSync, opts.orderBy ], function( err, data ) {
+            db.query( { sql: sql, nestTables: query.nestTables || false }, listOpts.parameters || [ opts.key, opts.table, opts.key, /* <ids | query> */ opts.table, opts.table, lastSync, opts.orderBy ], function( err, data ) {
                 if( err ) return callback( err );
                 var displayRows = [];
                 data[2].forEach( row => {
