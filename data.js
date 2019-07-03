@@ -26,6 +26,7 @@ module.exports = function _data( k ) {
                 users: k.users,
                 crud: k.crud,
                 hierarchyData: data,
+		websiteDir: k.hierarchy.websiteDir( website ),
                 getDb: function() {
                     return k.db.get( website );
                 }

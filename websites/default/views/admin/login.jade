@@ -26,6 +26,10 @@ block content
                     label(for='password')= __("Password")
                     input.form-control(id='password',type='password',name='password',placeholder='Passwort')
                 button.btn.btn-default(type='submit',name='login',value='yes') Login
+                //- TODO: remove style
+                p.hostname(style="text-align:right;color:#AAA")
+                    | Server: 
+                    = hostname
 
         if register
             if( !hideLogin )

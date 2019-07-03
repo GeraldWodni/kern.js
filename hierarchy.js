@@ -109,6 +109,10 @@ module.exports = function _hierarchy( k ) {
         return paths;
     }
 
+    function websiteDir( site ) {
+    	return path.join( process.cwd(), websitesRoot, website( site ) );
+    }
+
     /* get website without any subdomain */
     function website( website ) {
         return upExists( "dummy." + website );
@@ -297,6 +301,7 @@ module.exports = function _hierarchy( k ) {
         upParts:            upParts,
         upExists:           upExists,
         paths:              paths,
-        website:            website
+        website:            website,
+        websiteDir:         websiteDir
     }
 }
