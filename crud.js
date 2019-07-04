@@ -667,6 +667,8 @@ module.exports = function _crud( k ) {
                             /* on successfull insert: handle files */
                             if( opts.fileUpload )
                                 opts.fileUpload( req, res, next, files, storeFiles )
+                            else if( opts.redirectAddToEdit )
+                                return res.redirect( fsPath.join( opts.path, "edit", req.kern.crudId.toString() ) );
                             else
                                 opts.success( req, res, next );
                         };
