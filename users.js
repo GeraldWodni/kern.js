@@ -259,6 +259,19 @@ module.exports = function _users( k ) {
             k.jade.render( req, res, renderer, locals );
     }
 
+    /* Java's hashCode() implementation, Source: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript */
+    function stringHashCode( text ) {
+        var hash = 0;
+        if( !text.length ) return 0;
+
+        for( var i = 0; i < text.length; i++ ) {
+            var chr = text.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash|= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     /* TODO: save prefix in session to avoid cross-site hack-validation */
     /* loginRenderer: function( req, res ) or jade-filename */
     function loginRequired( loginRenderer, opts ) {
@@ -303,6 +316,9 @@ module.exports = function _users( k ) {
                 var vals = {
                     register: userRegistration.enabled,
                     captchaPre: captchaPre,
+                    captchaHash: stringHashCode( captchaWord.toUpperCase() ),
+                    minimumNameLength: userRegistration.minimumNameLength,
+                    minPasswordLength: minPasswordLength,
                     csrf: csrf
                 }
 
@@ -350,9 +366,18 @@ module.exports = function _users( k ) {
                             });
                         }
                         else if( userRegistration.enabled && req.postman.exists( ["register", "email", "username", "password", "password2"] ) ) {
-
                             if( !userRegistration.smtp )
                                 return next( new Error( "UserRegistration: SMTP missing" ) );
+
+                            /* read fields for writeback on error */
+                            var form = {
+                                username: req.postman[ userRegistration.nameFilter ]( "username" ),
+                                email: req.postman.email()
+                            };
+                            if( userRegistration.extraFields )
+                                userRegistration.extraFields.forEach( field => {
+                                    form[ field.name ] = req.postman[ field.filter ]( field.name );
+                                });
 
                             var results = {}
                             async.series([
@@ -379,15 +404,14 @@ module.exports = function _users( k ) {
 
                                     console.log( "AUTO", "username" );
                                     /* attempt to load user to check for existance */
-                                    var username = req.postman[ userRegistration.nameFilter ]( "username" );
-                                    if( username.length < userRegistration.minimumNameLength )
+                                    if( form.username.length < userRegistration.minimumNameLength )
                                         return callback( req.locales.__("Username too short, minimum length: {0}").format( userRegistration.minimumNameLength ) );
 
-                                    opts.loadByName( req.kern.website, username, function( err, data ) {
+                                    opts.loadByName( req.kern.website, form.username, function( err, data ) {
 
                                         /* new user */
                                         if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 ) {
-                                            results.username = username;
+                                            results.username = form.username;
                                             callback();
                                         }
                                         else
@@ -413,14 +437,13 @@ module.exports = function _users( k ) {
                                 function _email( callback )  {
                                     console.log( "AUTO", "email" );
                                     /* check if email exists */
-                                    var email = req.postman.email();
-                                    loadByEmail( req.kern.website, email, function( err, emailUser ) {
+                                    loadByEmail( req.kern.website, form.email, function( err, emailUser ) {
                                         if( err )
                                             callback( err );
                                         else if( emailUser != null )
                                             callback( req.locales.__( "Email address already registered" ) );
                                         else {
-                                            results.email = email;
+                                            results.email = form.email;
                                             callback();
                                         }
                                     });
@@ -488,12 +511,10 @@ module.exports = function _users( k ) {
                                     };
                                     /* TODO: get filters from config or alike */
 
-                                    if( userRegistration.extraFields ) {
+                                    if( userRegistration.extraFields )
                                         userRegistration.extraFields.forEach( field => {
-                                            let value = req.postman[ field.filter ]( field.name );
-                                            queueObj[ field.name ] = value;
+                                            queueObj[ field.name ] = form[ field.name ];
                                         });
-                                    }
 
                                     k.rdb.hmset( queueKey, queueObj, function( err ) {
                                         if( err ) return callback( err );
@@ -540,7 +561,7 @@ module.exports = function _users( k ) {
 
                                 if( err )
                                     return k.rdb.del( deleteKeys, function() {
-                                        executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, vals ) );
+                                        executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, form, vals ) );
                                     });
 
                                 console.log( "REGISTRATION COMPLETE!" );

@@ -41,8 +41,8 @@ block content
 
             if( !hideRegister )
                 form(method='post',role='form')
-                    +text-field("username", __("Username"))
-                    +text-field("email", __("Email"))
+                    +text-field("username", __("Username"), username)
+                    +text-field("email", __("Email"), email)
                     +password-field('password', __("Password"))
                     +password-field('password2', __("Confirm password"))
                     +text-field("captcha", __("Captcha"))
