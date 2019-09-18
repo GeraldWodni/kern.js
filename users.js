@@ -240,6 +240,9 @@ module.exports = function _users( k ) {
             if( err )
                 return next( err, null );
 
+            if( opts.assumePasswordCorrect )
+                return next( null, data );
+
             bcrypt.compare( password, data.passwordHash, function( err, correct ) {
                 if( err )
                     return next( err, null );
