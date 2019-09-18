@@ -374,10 +374,35 @@ module.exports = function _users( k ) {
                                 username: req.postman[ userRegistration.nameFilter ]( "username" ),
                                 email: req.postman.email()
                             };
-                            if( userRegistration.extraFields )
+                            if( userRegistration.extraFields ) {
                                 userRegistration.extraFields.forEach( field => {
                                     form[ field.name ] = req.postman[ field.filter ]( field.name );
                                 });
+                                const EuCountries = [ "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "United Kingdom of Great Britain and Northern Ireland" ];
+                                userRegistration.extraFields.forEach( field => {
+                                    if( field.inferValue )
+                                        switch( field.inferValue.type ) {
+                                            case "constant":
+                                                form[ field.name ] = field.inferValue.value;
+                                                break;
+                                            case "copy":
+                                                form[ field.name ] = form[ field.inferValue.field ];
+                                                break;
+                                            case "vatAT":
+                                                if( form.country == "Austria" )
+                                                    form[ field.name ] = 20;
+                                                else if( EuCountries.indexOf( field.country ) >= 0 ) {
+                                                    if( ( field.vatId || "" ).length > 4 )
+                                                        form[ field.name ] = 0;
+                                                    else
+                                                        form[ field.name ] = 20;
+                                                }
+                                                else
+                                                    form[ field.name ] = 0;
+                                                console.log( "VatAT Infer VALUE", form[ field.name ] );
+                                        }
+                                });
+                            }
 
                             var results = {}
                             async.series([
@@ -522,6 +547,12 @@ module.exports = function _users( k ) {
                                     });
                                 },
                                 function _sendEmail( callback ) {
+
+                                    var link = userRegistration.link.replace( /{hash}/g, results.hash );
+                                    if( req.protocol == "https" )
+                                        link = link.replace(/^http:/, 'https:');
+                                    results.link = link;
+
                                     console.log( "AUTO", "sendEmail" );
                                     /* send email */
                                     var emailTransport = nodemailer.createTransport( smtpTransport({
@@ -536,7 +567,6 @@ module.exports = function _users( k ) {
                                         }
                                     }));
 
-                                    var link = userRegistration.link.replace( /{hash}/g, results.hash );
                                     var text = userRegistration.email.text
                                         .replace( /{link}/g, link )
                                         .replace( /{username}/g, results.username );
@@ -566,6 +596,12 @@ module.exports = function _users( k ) {
 
                                 console.log( "REGISTRATION COMPLETE!" );
                                 var success = req.locales.__("Registration successful, please confirm your email address to activate your account");
+
+                                if( userRegistration.skipEmailLink ) {
+                                    console.log( "Redirect to confirmation link" );
+                                    return res.redirect( results.link );
+                                }
+
                                 executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, vals ) );
                             });
                         }
