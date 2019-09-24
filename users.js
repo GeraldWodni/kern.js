@@ -394,7 +394,7 @@ module.exports = function _users( k ) {
                                             case "vatAT":
                                                 if( form.country == "Austria" )
                                                     form[ field.name ] = 20;
-                                                else if( EuCountries.indexOf( field.country ) >= 0 ) {
+                                                else if( EuCountries.indexOf( form.country ) >= 0 ) {
                                                     if( ( form.vatId || "" ).length > 4 )
                                                         form[ field.name ] = 0;
                                                     else
