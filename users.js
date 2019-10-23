@@ -463,18 +463,32 @@ module.exports = function _users( k ) {
                                         });
                                 },
                                 function _email( callback )  {
-                                    console.log( "AUTO", "email" );
-                                    /* check if email exists */
-                                    loadByEmail( req.kern.website, form.email, function( err, emailUser ) {
-                                        if( err )
-                                            callback( err );
-                                        else if( emailUser != null )
-                                            callback( req.locales.__( "Email address already registered" ) );
-                                        else {
-                                            results.email = form.email;
-                                            callback();
-                                        }
-                                    });
+                                    if( userRegistration.emailAsUsername )
+                                        opts.loadByName( req.kern.website, form.email, function( err, emailUser ) {
+                                            if( err && err.message && err.message.indexOf( "Unknown user" ) == 0 && emailUser == null ) {
+                                                results.email = form.email;
+                                                callback();
+                                            }
+                                            else if( err )
+                                                callback( err );
+                                            else {
+                                                results.email = form.email;
+                                                callback( req.locales.__( "Email address already registered" ) );
+                                            }
+                                        });
+                                    else
+                                        /* check if email exists */
+                                        loadByEmail( req.kern.website, form.email, function( err, emailUser ) {
+                                            console.log( "loadByEmail", "email" );
+                                            if( err )
+                                                callback( err );
+                                            else if( emailUser != null )
+                                                callback( req.locales.__( "Email address already registered" ) );
+                                            else {
+                                                results.email = form.email;
+                                                callback();
+                                            }
+                                        });
                                 },
                                 function _usernameKey( callback ) {
                                     if( userRegistration.emailAsUsername )
