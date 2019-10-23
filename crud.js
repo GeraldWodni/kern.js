@@ -536,7 +536,7 @@ module.exports = function _crud( k ) {
 
                     /* local date format to iso */
                     if( fieldOpts.type == "date" )
-                        values[ field ] = moment( values[ field ], req.locales.__( "date-format-moment" ) ).format("YYYY-MM-DD hh:mm:ss");
+                        values[ field ] = moment( values[ field ], req.locales.__( "date-format-moment" ) ).format("YYYY-MM-DD HH:mm:ss");
                 });
 
                 return values;

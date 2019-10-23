@@ -85,6 +85,11 @@ mixin crudFields( opts )
             +foreign-field( name, label, field.items, opts.values[ name ], field )
         else if field.mixinType == "enum-field"
             +enum-field( name, label, field.keyValues, opts.values[ name ] )
+        else if field.mixinType == "password-field"
+            if opts.values[ "passwordHash" ]
+                +password-field( name, label, field )( password-set="password-set" )
+            else
+                +password-field( name, label, field )()
         else if field.mixinType == "h3"
             h3= label
         else if field.mixinType == "h4"
