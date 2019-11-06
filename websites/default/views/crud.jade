@@ -90,6 +90,11 @@ mixin crudFields( opts )
                 +password-field( name, label, field )( password-set="password-set" )
             else
                 +password-field( name, label, field )()
+        else if field.mixinType == "hidden-field"
+            if opts.field && opts.field.attributes
+                +hidden-field( name, opts.values[ name ] )&attributes( opts.field.attributes )
+            else
+                +hidden-field( name, opts.values[ name ] )&attributes()
         else if field.mixinType == "h3"
             h3= label
         else if field.mixinType == "h4"

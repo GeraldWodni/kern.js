@@ -443,6 +443,7 @@ module.exports = function _crud( k ) {
                 file:       "filepath",
                 upload:     "drop",
                 image:      "filepath",
+                hiddenId:   "id",
                 h3:         "drop",
                 h4:         "drop",
                 p:          "drop"
@@ -462,6 +463,7 @@ module.exports = function _crud( k ) {
                 file:       "enum-field",
                 upload:     "file-field",
                 image:      "enum-field",
+                hiddenId:   "hidden-field",
                 h3:         "h3",
                 h4:         "h4",
                 p:          "p"
