@@ -24,6 +24,8 @@ module.exports = function _cache( k ) {
 
         /* start watches for keys currently in cache */
         k.rdb.keys( opts.prefix + "*", function( err, keys ) {
+            if( err )
+                return console.log( "Cache-Error:".bold.red, err );
             keys.forEach( function( key ) {
                 k.rdb.ttl( key, function( err, ttl ) {
                     var filename = key.substring( opts.prefix.length );
