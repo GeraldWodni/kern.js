@@ -1,1 +1,1 @@
-../../../bower_components/underscore/underscore-min.js
+../../../node_modules/underscore/underscore-min.js

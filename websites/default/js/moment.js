@@ -1,1 +1,1 @@
-../../../bower_components/moment/moment.js
+../../../node_modules/moment/moment.js
