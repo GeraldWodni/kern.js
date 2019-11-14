@@ -29,7 +29,7 @@
     "jade": "1.9.x",
     "jszip": "^2.5.0",
     "jq-console-altgr": "~2.14.0",
-    "jquery": "~1.12.1",
+    "jquery": "~3.4.0",
     "jquery-ui": "~1.12.1",
     "jqplot": "~1.0.9",
     "less": "3.8.x",
