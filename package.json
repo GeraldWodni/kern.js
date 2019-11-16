@@ -11,7 +11,7 @@
     "ascii-captcha": "0.0.3",
     "async": "^0.9.0",
     "bcrypt-nodejs": "0.0.x",
-    "bootstrap": "~3.3.2",
+    "bootstrap": "~3.4.1",
     "busboy": "^0.2.14",
     "chart.js": "^2.7.3",
     "cheerio": "^1.0.0-rc.2",
