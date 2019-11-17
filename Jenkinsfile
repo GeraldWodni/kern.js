@@ -59,8 +59,5 @@ spec:
                 sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER}'
             }
         }
-        stage("trigger-down") {
-            build job: '../teamwork/master', wait: false
-        }
     }
 }
