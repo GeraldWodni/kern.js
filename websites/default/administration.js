@@ -19,6 +19,9 @@ var allowed = function( req, link ) {
 
 var getField;
 function viewValues( req, values ) {
+    if( _.isObject( req.adminValues ) )
+        values = _.extend( req.adminValues, values || {} );
+
     return _.extend( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof( req.user ) !== "undefined" }, values || {} );
 };
 
