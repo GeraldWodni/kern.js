@@ -46,7 +46,7 @@ spec:
         }
         stage("dockerfile") {
             container('docker') {
-                sh 'docker version && DOCKER_BUILDKIT=1 docker build --progress plain -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER} .'
+                sh 'docker version && DOCKER_BUILDKIT=1 docker build --progress plain -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER} -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:latest .'
             }
         }
         stage("dockerlogin") {
