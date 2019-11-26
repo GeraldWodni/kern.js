@@ -15,6 +15,23 @@ module.exports = function _db( k ) {
         config.queryFormat = function _queryFormatter( query, values, timeZone ) { 
             return queryFormatter.call( this, query, values, timeZone, debugLog );
         }
+
+        if( process.env.MYSQL_HOST ) {
+            config.host = process.env.MYSQL_HOST;
+            console.log( "Mysql-host-env:".bold.magenta, config.host );
+        }
+        if( process.env.MYSQL_DATABASE ) {
+            config.database = process.env.MYSQL_DATABASE;
+            console.log( "Mysql-host-env:".bold.magenta, config.database );
+        }
+        if( process.env.MYSQL_USER ) {
+            config.user = process.env.MYSQL_USER;
+            console.log( "Mysql-user-env:".bold.magenta, config.user );
+        }
+        if( process.env.MYSQL_PASSWORD ) {
+            config.password = process.env.MYSQL_PASSWORD;
+            console.log( "Mysql-password-env:".bold.magenta, config.password.replace(/./g, '*') );
+        }
         pools[ website ] = mysql.createPool( config );
     }
 
