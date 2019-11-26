@@ -77,11 +77,12 @@ module.exports = function _site( k, opts ) {
     function routeRequestStart() {
         k.app.use(function (req, res, next) {
 
+            var hostname = req.hostname;
             if( process.env.KERN_STATIC_HOST )
-                req.hostname = process.env.KERN_STATIC_HOST;
+                hostname = process.env.KERN_STATIC_HOST;
 
             /* get website from host, use kern if no config is set */
-            var website = k.hierarchy.website( req.hostname ) || "default";
+            var website = k.hierarchy.website( hostname ) || "default";
             if( !( k.kernOpts.active || false ) )
                 website = "kern";
 
