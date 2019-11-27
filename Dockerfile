@@ -1,13 +1,12 @@
 FROM node:10
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
-RUN useradd -d /usr/src/app kernjs
 EXPOSE 8000
 
 WORKDIR /usr/src/app
-RUN chown -R kernjs:kernjs .
+RUN chown -R node:node .
 
-USER kernjs
+USER node
 RUN mkdir cache && mkdir websites
 
 COPY bin bin
