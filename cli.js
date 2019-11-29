@@ -368,5 +368,10 @@ if( !_.has( sections, section ) || !_.has( sections[ section ], command ) )
 var website = process.argv.length > 4 ? process.argv[4] : "default";
 var params  = process.argv.length > 5 ? process.argv.slice( 5 ) : [];
 
-rdb = redis.createClient();
+var opts = {};
+if( process.env.REDIS_HOST ) {
+    opts.host = process.env.REDIS_HOST;
+    console.log( "Redis-host-env:".bold.magenta, opts.host );
+}
+rdb = redis.createClient(opts);
 sections[ section ][ command ]( website, params );
