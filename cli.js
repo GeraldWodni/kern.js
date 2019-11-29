@@ -376,10 +376,8 @@ function performQuery( argv ) {
     var params  = argv.length > 5 ? argv.slice( 5 ) : [];
 
     var opts = {};
-    if( process.env.REDIS_HOST ) {
+    if( process.env.REDIS_HOST )
         opts.host = process.env.REDIS_HOST;
-        out( "Redis-host-env:".bold.magenta, opts.host );
-    }
     rdb = redis.createClient(opts);
     sections[ section ][ command ]( website, params );
 }
