@@ -142,6 +142,14 @@ var Kern = function( callback, kernOpts ) {
         app.use( "/admin", k.site.module( "default", "administration.js", { register: "admin" } ).router );
 
 
+        /* add (isolated) cli support */
+        if( process.env.KERN_CLI_PORT && process.env.KERN_CLI_SECRET ) {
+            console.log("CLI started".bold.magenta);
+            require("./cli")({
+                port: process.env.KERN_CLI_PORT,
+                secret: process.env.KERN_CLI_SECRET
+            });
+        }
 
         /* configure websites (async) */
         var serverIsOpen = false;

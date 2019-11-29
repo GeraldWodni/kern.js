@@ -12,16 +12,17 @@ var bcrypt = require("bcrypt-nodejs");
 var readline  = require("readline");
 var Writable = require('stream').Writable;
 var util   = require("util");
-var rl =  readline.createInterface({ input: process.stdin, output: process.stdout });
+var rl = null;
+var out = console.log;
 
 var rdb;
 
-function end() {
+var end = function _end() {
     if( rdb )
         rdb.quit();
-    rl.close();
+    if( rl )
+        rl.close();
 }
-
 
 /* module specification */
 var sections = {
@@ -29,7 +30,7 @@ var sections = {
         list: function() {
             rdb.keys( "cache:websites*", function( err, items ) {
                 if( err ) return showErr( err );
-                console.log( items.join( "\n" ) );
+                out( items.join( "\n" ) );
                 end();
             });
         },
@@ -38,7 +39,7 @@ var sections = {
                 if( err ) return showErr( err );
                 rdb.del( items, function( err, count ) {
                     if( err ) return showErr( err );
-                    console.log( count + " items deleted" );
+                    out( count + " items deleted" );
                     end();
                 });
             });
@@ -46,7 +47,7 @@ var sections = {
         list2: function() {
             rdb.keys( "cache2:websites*", function( err, items ) {
                 if( err ) return showErr( err );
-                console.log( items.join( "\n" ) );
+                out( items.join( "\n" ) );
                 end();
             });
         },
@@ -55,7 +56,7 @@ var sections = {
                 if( err ) return showErr( err );
                 rdb.del( items, function( err, count ) {
                     if( err ) return showErr( err );
-                    console.log( count + " items deleted" );
+                    out( count + " items deleted" );
                     end();
                 });
             });
@@ -66,14 +67,19 @@ var sections = {
             rdb.keys( "*:users", function( err, websites ) {
                 if( err ) return showErr( err );
                 websites.forEach( function( website ) {
-                    console.log( website.replace( /:.*$/g, "" ) );
+                    out( website.replace( /:.*$/g, "" ) );
                 });
                 end();
             });
         },
         import: function( website, params ) {
             var filename = params[0];
-            var obj = JSON.parse( fs.readFileSync( filename ) + "" );
+            var content;
+            if( filename == "--" )
+                content = params[1];
+            else
+                content = fs.readFileSync( filename ).toString();
+            var obj = JSON.parse( content );
             var multi = rdb.multi();
 
             var usernames = {};
@@ -85,7 +91,7 @@ var sections = {
             multi.hmset( website + ":usernames", usernames );
             multi.exec( function( err ) {
                 if( err ) return showErr( err );
-                console.log( "Import successfull" );
+                out( "Import successfull" );
                 end();
             });
         },
@@ -113,7 +119,7 @@ var sections = {
                         if( filename )
                             fs.writeFileSync( filename, json );
                         else
-                            console.log( json );
+                            out( json );
 
                         end();
                     });
@@ -125,8 +131,8 @@ var sections = {
                 .hgetall( website + ":usernames" )
                 .exec( function( err, results ) {
                     if( err ) return showErr( err );
-                    console.log( website +  ", maxId:", results[0] );
-                    console.log( "#\tname\tpermissions".magenta );
+                    out( website +  ", maxId:", results[0] );
+                    out( "#\tname\tpermissions".magenta );
                     var usernames = results[1];
                     async.map( _.keys(usernames), function( username, done ) {
                         var index = usernames[username];
@@ -136,7 +142,7 @@ var sections = {
                         });
                     }, function( err, results ) {
                         if( err) return showErr( err );
-                        console.log( results.join("\n") );
+                        out( results.join("\n") );
                         end();
                     });
                 });
@@ -147,7 +153,7 @@ var sections = {
                 rdb.hgetall( website + ":user:" + id, function( err, user ) {
                     if( err ) return showErr( err );
                     _.each( user, function( val, key ) {
-                        console.log( key.magenta, val );
+                        out( key.magenta, val );
                     });
                     end();
                 });
@@ -159,7 +165,7 @@ var sections = {
             getUserId( website, username, function( id ) {
                 rdb.hget( website + ":user:" + id, key, function( err, val ) {
                     if( err ) return showErr( err );
-                    console.log( val );
+                    out( val );
                     end();
                 });
             });
@@ -312,7 +318,7 @@ function setPassword( website, id ) {
     rl = readline.createInterface({ input: process.stdin, output: muted, terminal: true });
 
     muted.on("error", function( err ) {
-        console.log( "readline-Error:", err.status, err.stack );
+        out( "readline-Error:", err.status, err.stack );
     });
 
     process.stdout.write( "Enter password" );
@@ -333,7 +339,7 @@ function setPassword( website, id ) {
     });
 }
 function showErr( err ) {
-    console.log( "ERROR".bold.red, err );
+    out( "ERROR".bold.red, err );
     end();
 }
 function toText( name ) {
@@ -343,35 +349,93 @@ function toName( text ) {
     return text.replace( /-/g, '_' );
 }
 
-function usage() {
-    console.log( "usage: " + process.argv[1] + " <section> <command> [website]");
+function usage( programName ) {
+    out( "usage: " + programName + " <section> <command> [website]");
     _.keys( sections ).forEach( function( section ) {
         var text = section.bold.magenta;
         _.keys( sections[ section ] ).forEach( function( command ) {
             text += " " + toText( command );
         });
-        console.log( text );
+        out( text );
         end();
     });
 }
 
-/* check parameters */
-if( process.argv.length <= 3 )
-    return usage();
+function performQuery( argv ) {
+    /* check parameters */
+    if( argv.length <= 3 )
+        return usage( argv[1] );
 
-var section = process.argv[2];
-var command = toName( process.argv[3] );
+    var section = argv[2];
+    var command = toName( argv[3] );
 
-if( !_.has( sections, section ) || !_.has( sections[ section ], command ) )
-    return usage();
+    if( !_.has( sections, section ) || !_.has( sections[ section ], command ) )
+        return usage( argv[1] );
 
-var website = process.argv.length > 4 ? process.argv[4] : "default";
-var params  = process.argv.length > 5 ? process.argv.slice( 5 ) : [];
+    var website = argv.length > 4 ? argv[4] : "default";
+    var params  = argv.length > 5 ? argv.slice( 5 ) : [];
 
-var opts = {};
-if( process.env.REDIS_HOST ) {
-    opts.host = process.env.REDIS_HOST;
-    console.log( "Redis-host-env:".bold.magenta, opts.host );
+    var opts = {};
+    if( process.env.REDIS_HOST ) {
+        opts.host = process.env.REDIS_HOST;
+        out( "Redis-host-env:".bold.magenta, opts.host );
+    }
+    rdb = redis.createClient(opts);
+    sections[ section ][ command ]( website, params );
 }
-rdb = redis.createClient(opts);
-sections[ section ][ command ]( website, params );
+
+function cliWebserver( opts ) {
+    const http = require("http");
+    const URL = require("url");
+    console.log( opts.secret );
+    const server = http.createServer( (req, res) => {
+        const url = URL.parse( req.url );
+
+
+        var output = "";
+        out = function() {
+            output += Array.from( arguments ).join( " " );
+        }
+
+        end = function() {
+            if( rdb )
+                rdb.quit();
+            res.end( output );
+        }
+
+        if( url.pathname.indexOf( "/" + opts.secret ) == 0 ) {
+            var argv = url.pathname.split("/");
+            argv[1] = "CLI";
+            console.log( req.method );
+            console.log( req.headers )
+
+            console.log( "ARGV:", JSON.stringify( argv, null, 4 ) );
+            if( req.method == "POST" ) {
+                var data = "";
+                req.on( "data", chunk => data+=chunk.toString() );
+                req.on( "end", () => {
+                    argv.push( data );
+                    performQuery( argv );
+                });
+            }
+            else
+                performQuery( argv );
+        }
+        else {
+            res.writeHead( 403 );
+            console.log( "403:", url.pathname );
+            return res.end( "CLI will fight you" );
+        }
+    });
+    server.listen( opts.port );
+}
+
+/* main module? use argv */
+if( require.main === module ) {
+    rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    performQuery( process.argv );
+}
+/* otherwise export */
+else {
+    module.exports = cliWebserver;
+}
