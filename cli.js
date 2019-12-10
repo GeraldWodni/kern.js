@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 // Command line interface for basic redis setup (users)
-// (c)copyright 2016 by Gerald Wodni <gerald.wodni@gmail.com>
+// (c)copyright 2016-2019 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
 require("colors");
