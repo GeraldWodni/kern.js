@@ -185,6 +185,9 @@ module.exports = function _locales( k, opts ) {
                     if( typeof decimals === 'undefined' )
                         decimals = 2;
 
+                    if( num === null )
+                        return "";
+
                     let numText = num.toFixed(decimals) + '';
                     let commaPos = numText.indexOf( '.' );
                     //console.log( "_NCP:", numText, commaPos );
