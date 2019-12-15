@@ -375,7 +375,7 @@ function performQuery( argv ) {
     var website = argv.length > 4 ? argv[4] : "default";
     var params  = argv.length > 5 ? argv.slice( 5 ) : [];
 
-    var opts = {};
+    var opts = { port: 6379 }; /* for some reason redis crashes with opts being an empty object */
     if( process.env.REDIS_HOST )
         opts.host = process.env.REDIS_HOST;
     rdb = redis.createClient(opts);
