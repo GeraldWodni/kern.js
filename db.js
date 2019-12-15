@@ -35,9 +35,12 @@ module.exports = function _db( k ) {
         pools[ website ] = mysql.createPool( config );
     }
 
-    function get( website ) {
+    function get( website, nullOnError = false ) {
         if( !(website in pools ) )
-            throw new Error( "No MySql connection for website '" + website + "'" );
+            if( nullOnError )
+                return null;
+            else
+                throw new Error( "No MySql connection for website '" + website + "'" );
 
         return pools[ website ];
     }

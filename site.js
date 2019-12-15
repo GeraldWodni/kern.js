@@ -100,7 +100,8 @@ module.exports = function _site( k, opts ) {
                 },
                 getWebsiteConfig: function( key, defaultValue ) {
                     return k.siteConfig.get( website, key, defaultValue );
-                }
+                },
+                db: k.db.get( website, true )
             };
 
             req.messages = [];
