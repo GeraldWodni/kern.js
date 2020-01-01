@@ -12,6 +12,9 @@
 	}
 }(function( datepicker ) {
 
+if( navigator.language != "de-AT" && navigator.userLanguage != "de-AT" )
+    return;
+
 datepicker.regional['de-AT'] = {
 	closeText: 'Schließen',
 	prevText: '&#x3C;Zurück',
