@@ -15,7 +15,7 @@ RUN apt-get update; \
         texlive-latex-extra \
         texlive-science \
         ; \
-    rm -rf /var/lib/apt/lists/*; \
+    rm -rf /var/lib/apt/lists/*
 
 USER node
 RUN mkdir cache && mkdir websites
