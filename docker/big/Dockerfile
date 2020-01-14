@@ -1,21 +1,12 @@
-FROM node:10
+ARG REG_HOSTNAME
+ARG REG_FOLDER
+FROM ${REG_HOSTNAME}/${REG_FOLDER}/node-big:latest
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 EXPOSE 8000
 
 WORKDIR /usr/src/app
 RUN chown -R node:node .
-
-RUN apt-get update; \
-    apt-get install -y --no-install-recommends \
-        texlive-base \
-        texlive-lang-english \
-        texlive-lang-german \
-        texlive-latex-base \
-        texlive-latex-extra \
-        texlive-science \
-        ; \
-    rm -rf /var/lib/apt/lists/*
 
 USER node
 RUN mkdir cache && mkdir websites

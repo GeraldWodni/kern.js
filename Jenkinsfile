@@ -51,12 +51,20 @@ spec:
         }
         stage("dockerfile") {
             container('docker') {
-                sh 'docker version && DOCKER_BUILDKIT=1 docker build --progress plain -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER} -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:latest .'
+                sh 'docker version && DOCKER_BUILDKIT=1 \
+                docker build --progress plain \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER} \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:latest .'
             }
         }
         stage("dockerfile big") {
             container('docker') {
-                sh 'docker version && DOCKER_BUILDKIT=1 docker build -f docker/big/Dockerfile --progress plain -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:b${BUILD_NUMBER} -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:latest .'
+                sh 'docker version && DOCKER_BUILDKIT=1 \
+                docker build -f docker/big/Dockerfile --progress plain \
+                --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
+                --build-arg REG_FOLDER=${REG_FOLDER} \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:b${BUILD_NUMBER} \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:latest .'
             }
         }
         stage("dockerpush") {
