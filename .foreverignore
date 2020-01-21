@@ -1,0 +1,9 @@
+# templates
+websites/*/css/*
+websites/*/views/*
+
+# static content
+websites/*/js/*
+websites/*/images/*
+websites/*/fonts/*
+websites/*/files/*
