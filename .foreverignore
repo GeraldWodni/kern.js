@@ -1,20 +1,17 @@
-# root files
 .git
 bin
 bower_components
+cache
 docker
 locales
 misc
 node_modules
 scripts
 test
-
-# templates
-websites/*/css/*
-websites/*/views/*
-
-# static content
-websites/*/js/*
-websites/*/images/*
-websites/*/fonts/*
-websites/*/files/*
+websites/*/css
+websites/*/views
+websites/*/js
+websites/*/images
+websites/*/fonts
+websites/*/files
+websites/*/sub
