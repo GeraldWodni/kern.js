@@ -22,4 +22,6 @@ COPY *.js .
 
 COPY websites/default websites/default
 
+COPY .foreverignore .
+
 CMD ["npm", "start"]

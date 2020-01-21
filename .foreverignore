@@ -8,10 +8,12 @@ misc
 node_modules
 scripts
 test
+*.json
 websites/*/css
-websites/*/views
-websites/*/js
-websites/*/images
-websites/*/fonts
 websites/*/files
+websites/*/fonts
+websites/*/images
+websites/*/js
+websites/*/sql
 websites/*/sub
+websites/*/views
