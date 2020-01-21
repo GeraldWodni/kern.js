@@ -1,3 +1,14 @@
+# root files
+.git
+bin
+bower_components
+docker
+locales
+misc
+node_modules
+scripts
+test
+
 # templates
 websites/*/css/*
 websites/*/views/*
