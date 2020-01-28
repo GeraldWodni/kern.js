@@ -9,6 +9,7 @@ node_modules
 scripts
 test
 *.json
+*.log
 websites/*/css
 websites/*/files
 websites/*/fonts
