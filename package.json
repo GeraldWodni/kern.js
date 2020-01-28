@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
-    "start":   "node ./node_modules/.bin/forever --minUptime 1000 --spinSleepTime 1000 -w ./bin/www",
+    "start": "node ./node_modules/.bin/forever --minUptime 1000 --spinSleepTime 1000 -w ./bin/www",
     "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
