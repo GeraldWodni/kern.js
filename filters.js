@@ -16,9 +16,11 @@ module.exports = function _filters( k ) {
     }
 
     /* registered filters */
+    const localChars = "¢£ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþŸÿĀāĐđĒēĲĳĿŀŒœŠšŽžſ€";
+    function regC( regex, modifiers ) { return new RegExp( regex.replace( /LC/g, localChars ), modifiers + "u" ); }
     var registeredFilters = {
-        address:    function( t ) { return f( t, /[^-,.\/ a-zA-Z0-9äöüßÄÖÜ]/g   ); },
-        allocnum:   function( t ) { return f( t, /[^a-zA-Z0-9äöüßÄÖÜ]/g         ); },
+        address:    function( t ) { return f( t, regC("[^-,.\/ a-zA-Z0-9LC]","g"));},
+        allocnum:   function( t ) { return f( t, regC("[^a-zA-Z0-9LC]", "g")    ); },
         alpha:      function( t ) { return f( t, /[^a-zA-Z]/g                   ); },
         alnum:      function( t ) { return f( t, /[^a-zA-Z0-9]/g                ); },
         alnumList:  function( t ) { return f( t, /[^,a-zA-Z0-9]/g               ); },
@@ -39,7 +41,7 @@ module.exports = function _filters( k ) {
         linkList:   function( t ) { return f( t, /[^-,_.:a-zA-Z0-9]/g           ); },
         password:   function( t ) { return t;                                      },
         raw:        function( t ) { return t;                                      },
-        singleLine: function( t ) { return f( t, /[^-_\/ a-zA-Z0-9äöüßÄÖÜ]/g    ); },
+        singleLine: function( t ) { return f( t, regC("[^-_\/ a-zA-Z0-9LC]", "g"));},
         telephone:  function( t ) { return f( t, /[^-+ 0-9]/g                   ); },
         text:       function( t ) { return t;                                      },
         uint:       function( t ) { return f( t, /[^0-9]/g                      ); },
@@ -49,6 +51,7 @@ module.exports = function _filters( k ) {
             return t
                 .replace( /ä/g, "ae" ).replace( /ö/g, "oe" ).replace( /ü/g, "ue" ).replace( "ß", "sz" )
                 .replace( /Ä/g, "Ae" ).replace( /Ö/g, "Oe" ).replace( /Ü/g, "Ue" )
+                .replace( regC( "[LC]", "g" ), "" )
                 .replace( /\s+/, "_" ).replace( /[^-_.0-9a-zA-Z]/g, "" );
         }
     };
