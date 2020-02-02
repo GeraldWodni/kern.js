@@ -9,11 +9,12 @@ var _    = require("underscore");
 
 module.exports = function _proxyCache( k ) {
     /* generic hit or load */
-    function serve( website, filename, res, loader ) {
-        
+    function serve( website, filename, req, res, loader ) {
         var cacheStream = k.hierarchy.createReadStream( website, filename );
         /* local copy exists, pipe it */
         cacheStream.on( "open", function() {
+            if( req.kernInternalPipeCallback )
+                return req.kernInternalPipeCallback();
             cacheStream.pipe( res );
         });
 
@@ -26,6 +27,8 @@ module.exports = function _proxyCache( k ) {
                 });
 
                 getRes.pipe( writeStream );
+                if( req.kernInternalPipeCallback )
+                    return req.kernInternalPipeCallback();
                 getRes.pipe( res );
             });
         });
@@ -47,7 +50,7 @@ module.exports = function _proxyCache( k ) {
             var cacheFilename = path.join( opts.prefix, email + "-" + size + "-" + def );
 
             /* provide loader on cache miss */
-            serve( website, cacheFilename, res, function( callback ) {
+            serve( website, cacheFilename, req, res, function( callback ) {
                 http.get( "http://www.gravatar.com/avatar/" + email + "?s=" + size + "&d=" + def, callback);
             });
         });
