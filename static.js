@@ -70,12 +70,19 @@ module.exports = function _static( k, opts ) {
 
                     /* file cached? */
                     fs.stat( cachepath, function( err, cacheStat ) {
+                        function sendIt() {
+                            if( opts.contentType )
+                                res.header( 'Content-Type', opts.contentType );
+                            const fullpath = path.join( k.kernOpts.rootFolder, cachepath );
+                            res.sendFile( fullpath );
+                        }
+
                         /* exists -> check age */
                         if( err == null )
                             return fs.stat( filepath, function( err, fileStat ) {
                                 /* send cached file */
                                 if( err || fileStat.mtimeMs <= cacheStat.mtimeMs )
-                                    return res.sendfile( cachepath );
+                                    return sendIt();
 
                                 /* generate */
                                 console.log( "Refresh prefixCache: " + filepath );
@@ -85,7 +92,7 @@ module.exports = function _static( k, opts ) {
                                         return next( err );
                                     }
 
-                                    res.sendfile( cachepath );
+                                    sendIt();
                                 });
 
                             });
@@ -101,7 +108,7 @@ module.exports = function _static( k, opts ) {
                                     return next( err );
                                 }
 
-                                res.sendfile( cachepath );
+                                sendIt();
                             });
                         });
 

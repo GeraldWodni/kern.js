@@ -10,6 +10,7 @@ scripts
 test
 *.json
 *.log
+websites/*/proxy
 websites/*/css
 websites/*/files
 websites/*/fonts
