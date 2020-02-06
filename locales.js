@@ -105,6 +105,9 @@ module.exports = function _locales( k, opts ) {
     }
 
     function getBestMatch( requested ) {
+        if( process.env.KERN_STATIC_LOCALE )
+            return process.env.KERN_STATIC_LOCALE;
+
         var requests = sortRequested( requested );
 
         for( var i = 0; i < requests.length; i++ ) {
