@@ -35,7 +35,7 @@
     "Username exists": "Benutzername vergeben",
     "Confirm password": "Passwort wiederholen",
     "Passwords do not match": "Passwörter stimmen nicht überein",
-    "Password to short, minimum: {0}": "Passwort zu kurz, Mindestlänge: {0} Zeichen",
+    "Password too short, minimum: {0}": "Passwort zu kurz, Mindestlänge: {0} Zeichen",
     "Permissions": "Berechtigungen",
     "Insufficient permissions to view this site": "Unzureichende Berechtigungen um diese Seite darzustellen",
     "Access Denied": "Zugriff verweigert",

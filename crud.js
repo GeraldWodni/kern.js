@@ -516,7 +516,7 @@ module.exports = function _crud( k ) {
                                 throw req.locales.__( "Passwords do not match" );
 
                             if( password.length < k.users.minPasswordLength ) 
-                                throw req.locales.__( "Password to short, minimum: {0}" ).format( k.users.minPasswordLength );
+                                throw req.locales.__( "Password too short, minimum: {0}" ).format( k.users.minPasswordLength );
 
                             values[ field + "Hash" ] = bcrypt.hashSync( password );
                         }

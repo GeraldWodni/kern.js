@@ -113,7 +113,7 @@ k.rdb.crud.router( k, ["/", "/edit/:id"], k.rdb.users, {
                 throw req.locales.__( "Passwords do not match" );
 
             if( password.length < k.rdb.users.minPasswordLength )
-                throw req.locales.__( "Password to short, minimum: {0}" ).format( k.rdb.users.minPasswordLength );
+                throw req.locales.__( "Password too short, minimum: {0}" ).format( k.rdb.users.minPasswordLength );
 
             fields.password = password;
         }

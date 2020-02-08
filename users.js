@@ -212,19 +212,30 @@ module.exports = function _users( k ) {
         });
     };
 
+    function changePasswordCallback( req, callback ) {
+        const password = req.postman.password();
+        if( !req.postman.fieldsMatch( "password", "password2" ) )
+            callback( new Error( req.locales.__( "Passwords do not match" ) ) );
+        else if( password.length < minPasswordLength )
+            callback( new Error( req.locales.__( "Password too short, minimum length: {0}" ).format( minPasswordLength ) ) );
+        else {
+            bcrypt.hash( password, null, null, function( err, hash ) {
+                if( err )
+                    return callback( err, null );
+                callback( null, hash );
+            });
+        }
+    }
+
     function changePassword( req, res, next ) {
         k.postman( req, res, function() {
+            changePasswordCallback( req, (err, passwordHash) => {
+                if( err ) return next( err );
 
-            var password = req.postman.password();
-            if( !req.postman.fieldsMatch( "password", "password2" ) )
-                next( new Error( req.locales.__( "Passwords do not match" ) ) );
-            else if( password.length < minPasswordLength )
-                next( new Error( req.locales.__( "Password too short, minimum length: {0}" ).format( minPasswordLength ) ) );
-            else {
                 var user = _.clone( req.user );
-                user.password = password
+                user.password = req.postman.password()
                 save( user, req.kern.website, user.id, next );
-            }
+            });
         });
     }
 
@@ -647,6 +658,7 @@ module.exports = function _users( k ) {
         update: function( prefix, id, obj, callback ) {
             save( obj, prefix, id, callback );
         },
+        changePasswordCallback: changePasswordCallback,
         changePassword: changePassword,
         del: function( prefix, id, callback ) {
             return callback( new Error( "users.del not implemented" ) );
