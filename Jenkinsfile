@@ -71,7 +71,7 @@ spec:
             container('docker') {
                 dir('docker/website-sync') {
                     sh 'docker version && DOCKER_BUILDKIT=1 \
-                    docker build -f docker/website-sync/Dockerfile --progress plain \
+                    docker build --progress plain \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
                 }
