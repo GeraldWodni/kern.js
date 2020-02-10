@@ -67,6 +67,16 @@ spec:
                 -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:latest .'
             }
         }
+        stage("dockerfile website-sync") {
+            container('docker') {
+                sh 'docker version && DOCKER_BUILDKIT=1 \
+                docker build -f docker/website-sync/Dockerfile --progress plain \
+                --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
+                --build-arg REG_FOLDER=${REG_FOLDER} \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
+                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
+            }
+        }
         stage("dockerpush") {
             container('docker') {
                 sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER}'
@@ -74,6 +84,9 @@ spec:
                 // push big
                 sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:b${BUILD_NUMBER}'
                 sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-big:latest'
+                // push website-sync
+                sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER}'
+                sh 'docker push ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest'
             }
         }
     }
