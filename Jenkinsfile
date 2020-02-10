@@ -69,12 +69,12 @@ spec:
         }
         stage("dockerfile website-sync") {
             container('docker') {
-                sh 'docker version && DOCKER_BUILDKIT=1 \
-                docker build -f docker/website-sync/Dockerfile --progress plain \
-                --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
-                --build-arg REG_FOLDER=${REG_FOLDER} \
-                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
-                -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
+                dir('docker/website-sync') {
+                    sh 'docker version && DOCKER_BUILDKIT=1 \
+                    docker build -f docker/website-sync/Dockerfile --progress plain \
+                    -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
+                    -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
+                }
             }
         }
         stage("dockerpush") {
