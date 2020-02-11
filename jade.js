@@ -124,6 +124,13 @@ module.exports = function _jade( k, opts ) {
         });
     };
 
+    async function renderJadeAsync( req, res, filename, locals, opts, callback ) {
+        if( locals instanceof Promise )
+            renderJadeAsync( req, res, filename, await locals, opts, callback );
+        else
+            renderJadeAsync( req, res, filename, locals, opts, callback );
+    }
+
     function renderAndSend( req, res, filename, locals, opts ) {
         renderJade( req, res, filename, locals, opts, function( err, html ) {
             if( err )
@@ -133,8 +140,15 @@ module.exports = function _jade( k, opts ) {
         });
     }
 
+    async function renderAndSendAsync( req, res, filename, locals, opts ) {
+        if( locals instanceof Promise )
+            renderAndSend( req, res, filename, await locals, opts )
+        else
+            renderAndSend( req, res, filename, locals, opts )
+    }
+
     return {
-        render: renderAndSend,
-        renderToString: renderJade
+        render: renderAndSendAsync,
+        renderToString: renderJadeAsync
     }
 }
