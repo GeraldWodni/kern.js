@@ -136,8 +136,7 @@ module.exports = function _locales( k, opts ) {
     }
 
     
-    /* TODO: finish this function, always yields notFound */
-    function __( website, locale, text ) {
+    function __text( website, locale, text ) {
         if( text.length > 0 && text.charAt(0) === "=" )
             return text.substring(1);
 
@@ -153,6 +152,16 @@ module.exports = function _locales( k, opts ) {
 
         return notFound( text );
     };
+
+
+    function __( website, locale, text, values = null ) {
+        var text = __text( website, locale, text );
+        if( values instanceof Array && values[0] instanceof Object ) {
+            Object.keys( values[0] ).forEach( key => text = text.replace( new RegExp( `{${key}}`, "g" ), values[0][ key ] ) );
+        }
+
+        return text;
+    }
 
     /* get websites containing locales */
     function getWebsites( reqWebsite ) {
