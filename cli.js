@@ -7,6 +7,7 @@ require("colors");
 var _ = require("underscore");
 var async  = require("async");
 var fs     = require("fs");
+const path = require("path");
 const spawn = require("child_process").spawn;
 var redis  = require("redis");
 var bcrypt = require("bcrypt-nodejs");
@@ -285,12 +286,14 @@ var sections = {
     },
     /* npm interface getting called by website-sync after startup sync */
     npm: {
-        install: function() {
+        install: function( website ) {
             /* run npm as separate process to avoid getting killed by forever */
             spawn('npm', ['install'], {
                 stdio: 'ignore',
-                detached: true
+                detached: true,
+                cwd: path.join( "websites", website )
             }).unref();
+            end();
         }
     }
 };
