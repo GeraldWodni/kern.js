@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.10
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 RUN apk --no-cache add \
