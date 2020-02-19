@@ -130,10 +130,10 @@ function waitNextQuarterHour {
 syncRepo "STARTUP"
 
 if [ -f $DIR/package.json ]; then
-    printStatus INFO "skip npm install, no package.json"
-else
     printStatus INFO "npm install (in website container)"
     wget -q localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/npm/install
+else
+    printStatus INFO "skip npm install, no package.json"
 fi
 
 sleep 5m
