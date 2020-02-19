@@ -72,6 +72,7 @@ spec:
                 dir('docker/website-sync') {
                     sh 'docker version && DOCKER_BUILDKIT=1 \
                     docker build --progress plain \
+                    --network host \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
                 }
@@ -82,6 +83,7 @@ spec:
                 dir('docker/database-sync') {
                     sh 'docker version && DOCKER_BUILDKIT=1 \
                     docker build --progress plain \
+                    --network host \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-database-sync:b${BUILD_NUMBER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-database-sync:latest .'
                 }
