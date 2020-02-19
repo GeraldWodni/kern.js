@@ -128,6 +128,14 @@ function waitNextQuarterHour {
 }
 
 syncRepo "STARTUP"
+
+if [ -f package.json ]; then
+    printStatus INFO "skip npm install, no package.json"
+else
+    printStatus INFO "npm install"
+    npm install
+fi
+
 sleep 5m
 
 while true; do
