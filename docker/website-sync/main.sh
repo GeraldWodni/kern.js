@@ -132,8 +132,8 @@ syncRepo "STARTUP"
 if [ -f package.json ]; then
     printStatus INFO "skip npm install, no package.json"
 else
-    printStatus INFO "npm install"
-    npm install
+    printStatus INFO "npm install (in website container)"
+    wget -q localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/npm/install
 fi
 
 sleep 5m

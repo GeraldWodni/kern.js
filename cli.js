@@ -7,6 +7,7 @@ require("colors");
 var _ = require("underscore");
 var async  = require("async");
 var fs     = require("fs");
+const spawn = require("child_process").spawn;
 var redis  = require("redis");
 var bcrypt = require("bcrypt-nodejs");
 var readline  = require("readline");
@@ -280,6 +281,16 @@ var sections = {
                     });
                 });
             });
+        }
+    },
+    /* npm interface getting called by website-sync after startup sync */
+    npm: {
+        install: function() {
+            /* run npm as separate process to avoid getting killed by forever */
+            spawn('npm', ['install'], {
+                stdio: 'ignore',
+                detached: true
+            }).unref();
         }
     }
 };
