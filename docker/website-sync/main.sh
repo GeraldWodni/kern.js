@@ -129,7 +129,7 @@ function waitNextQuarterHour {
 
 syncRepo "STARTUP"
 
-if [ -f package.json ]; then
+if [ -f $DIR/package.json ]; then
     printStatus INFO "skip npm install, no package.json"
 else
     printStatus INFO "npm install (in website container)"
