@@ -136,6 +136,13 @@ else
     printStatus INFO "skip npm install, no package.json"
 fi
 
+if [ -f $DIR/bin/startup.sh ]; then
+    printStatus INFO "startup (in website-sync container)"
+    $DIR/bin/startup.sh
+else
+    printStatus INFO "skip startup, no bin/startup.sh"
+fi
+
 sleep 5m
 
 while true; do
