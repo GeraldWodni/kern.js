@@ -13,7 +13,10 @@ module.exports = function _ws( k ) {
     function getTarget( req ) {
         /* host */
         var fullUrl = url.parse( "http://" + req.headers.host + req.url );
-        let website = k.hierarchy.website( fullUrl.hostname ) || "default";
+        let hostname = fullUrl.hostname;
+        if( process.env.KERN_STATIC_HOST )
+            hostname = process.env.KERN_STATIC_HOST;
+        let website = k.hierarchy.website( hostname ) || "default";
 
         req.kern = {
             website: website,
