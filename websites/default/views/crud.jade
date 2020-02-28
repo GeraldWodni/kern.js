@@ -107,7 +107,7 @@ mixin crudFields( opts )
 
 //- edit form
 mixin crudEdit( opts )
-    form.crud-edit(method="post",role="form",enctype=opts.enctype)
+    form.crud-edit(method="post",role="form",enctype=opts.enctype,class=opts.formClass)
         h2
             = " " + __("Change")
             +glyph("pencil", "pull-right")
@@ -123,7 +123,7 @@ mixin crudEdit( opts )
 
 //- add form
 mixin crudAdd( opts )
-    form.crud-add(method='post',role='form',enctype=opts.enctype,action=opts.formAction)
+    form.crud-add(method='post',role='form',enctype=opts.enctype,action=opts.formAction,class=opts.formClass)
         h2#crud-add-header
             +glyph("plus", "pull-right")
             = " " + __("Add")

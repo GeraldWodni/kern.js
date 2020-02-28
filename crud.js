@@ -1094,6 +1094,7 @@ module.exports = function _crud( k ) {
                                 fullData: fullData,
                                 hiddenForeignKeyData: hiddenForeignKeyData,
                                 formAction: req.baseUrl,
+                                formClass: opts.formClass || null,
                                 showList: getOptional( k, opts.showList, req ),
                                 showAdd: opts.showAdd,
                                 showPages: opts.pageSize > 0 && pageCount > 1,
