@@ -14,10 +14,11 @@ module.exports = function _hierarchy( k ) {
     var websitesRoot = k.kernOpts.websitesRoot;
 
     /* locate by hierarchy: cut subdomains, then check 'default' folder  */
-    function lookupFile( website, filename ) {
+    function lookupFile( website, filename, opts ) {
+        opts = opts || {};
 
         /* file found */
-        var filePath = path.join( websitesRoot, website, filename ) 
+        var filePath = opts.unlockRoot ? path.join( website, filename ) : path.join( websitesRoot, website, filename )
         //console.log( "LookUp:", filePath );
         if( fs.existsSync( filePath ) )
             return filePath;
@@ -129,8 +130,9 @@ module.exports = function _hierarchy( k ) {
         return fs.createReadStream( filepath || "" );
     }
 
-    function createWriteStream( _website, filename ) {
-        var filepath = path.join( websitesRoot, website( _website ), filename );
+    function createWriteStream( _website, filename, opts ) {
+        opts = opts || {};
+        var filepath = opts.unlockRoot ? path.join( _website, filename ) : path.join( websitesRoot, website( _website ), filename );
         return fs.createWriteStream( filepath ); 
     }
 
@@ -154,10 +156,10 @@ module.exports = function _hierarchy( k ) {
     /* check if directory name is allowed i.e. when creating a new directory */
     function checkDirname( website, dirname, opts ) {
         opts = createDirFileFilters( opts );
-        var dir = path.normalize( path.join(  websitesRoot, website, dirname ) );
+        var dir = path.normalize( opts.unlockRoot ? path.join( website, dirname ) : path.join(  websitesRoot, website, dirname ) );
 
         if(     opts.dirnameFilter( dirname )
-            &&  dir.indexOf( websitesRoot ) == 0
+            && ( opts.unlockRoot  || dir.indexOf( websitesRoot ) == 0)
             && (!opts.lockWebsite || dir.indexOf( path.join( websitesRoot, website ) ) == 0 ) )
             return dir;
         else
@@ -167,11 +169,11 @@ module.exports = function _hierarchy( k ) {
     function checkFilename( website, filename, opts ) {
         opts = createDirFileFilters( opts );
         var info = path.parse( filename );
-        var file = path.normalize( path.join(  websitesRoot, website, filename ) );
+        var file = path.normalize( opts.unlockRoot ? path.join( website, filename ) : path.join( websitesRoot, website, filename ) );
 
         if (    opts.dirnameFilter ( info.dir  )
             &&  opts.filenameFilter( info.base )
-            &&  file.indexOf( websitesRoot ) == 0   // lock to websites
+            && ( opts.unlockRoot  || file.indexOf( websitesRoot ) == 0 )  // lock to websites
             && (!opts.lockWebsite || file.indexOf( path.join( websitesRoot, website ) ) == 0 ) ) // lock to given website
             return file;
         else
@@ -181,7 +183,7 @@ module.exports = function _hierarchy( k ) {
     function checkFilters( website, filename, opts ) {
         opts = createDirFileFilters( opts );
         var info = path.parse( filename );
-        var file = lookupFile( website, filename )
+        var file = lookupFile( website, filename, opts )
 
         if (    opts.dirnameFilter ( info.dir  )
             &&  opts.filenameFilter( info.base )
@@ -253,7 +255,7 @@ module.exports = function _hierarchy( k ) {
             opts = {};
         }
 
-        var filepath = lookupFile( website, dirpath );
+        var filepath = opts.unlockRoot ? lookupFile( "", dirpath, opts ) : lookupFile( website, dirpath );
         if( filepath == null )
             return callback( new Error( "No Directory" ) );
 
