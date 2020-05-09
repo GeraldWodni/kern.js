@@ -119,7 +119,7 @@ module.exports = function _hierarchy( k ) {
         return upExists( "dummy." + website );
     }
 
-    /* add custom route to hierary */
+    /* add custom route to hierarchy */
     function addRoute( source, target ) {
         routes[ source ] = target;
     }
