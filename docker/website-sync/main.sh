@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOCK=/tmp/sync.lock
-KERNDIR=/usr/src/app
+[ -z "$KERNDIR" ] && KERNDIR=/usr/src/app
 DIR=$KERNDIR/websites/$WEBSITE
 USERFILE=$DIR/users.json
 
