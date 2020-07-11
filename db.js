@@ -32,7 +32,18 @@ module.exports = function _db( k ) {
             config.password = process.env.MYSQL_PASSWORD;
             console.log( "Mysql-password-env:".bold.magenta, config.password.replace(/./g, '*') );
         }
-        pools[ website ] = mysql.createPool( config );
+        const pool = mysql.createPool( config );
+        pool.pQuery = function() {
+            const args = Array.from( arguments );
+            return new Promise( (fulfill, reject) => {
+                args.push( ( err, data ) => {
+                    if( err ) return reject( err );
+                    fulfill( data );
+                });
+                pool.query.apply( pool, args );
+            });
+        }
+        pools[ website ] = pool;
     }
 
     function get( website, nullOnError = false ) {
