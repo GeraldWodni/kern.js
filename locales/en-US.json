@@ -76,6 +76,7 @@
     "employee": "employee",
     "current-locale": "en-US",
     "date-format-moment": "MM/DD/YYYY",
+    "datetime-format-moment": "MM/DD/YYYY HH:mm:ss",
     "Unknown ID": "Unknown ID",
     "Guests": "Guests",
     "Error: users.del not implemented": "Error: users.del not implemented",

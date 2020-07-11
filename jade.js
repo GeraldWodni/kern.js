@@ -51,6 +51,7 @@ module.exports = function _jade( k, opts ) {
                 else
                     return moment( d ).format( req.locales.__( "date-format-moment" ) );
             },
+            _datetime: d => moment( d ).format( req.locales.__( "datetime-format-moment" ) ),
             __locale: req.locales,
             _: _,
             _filename: _filename,
@@ -59,6 +60,7 @@ module.exports = function _jade( k, opts ) {
             _originalUrl: req.originalUrl.replace(/\?.*$/, ''),
             _loggedInUsername: req.session ? req.session.loggedInUsername : null,
             moment: moment,
+            localeMoment: d => moment( d ).locale( req.locales.current ),
             marked: marked,
             hostname: os.hostname()
         });
