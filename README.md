@@ -299,3 +299,21 @@ First matching key's object is used as configuration for the website (*Attention
 - **mysql** *object* specifies the mysql-connection, see [node-mysql](https://github.com/felixge/node-mysql/)
 - **hierarchyUp** *string* used as next hierarchy-step in the search order, see *Website Hierarchy*
 - **custom** *object* you can add other configuration values for your modules 
+
+### Enviroment Variables
+Containers (i.e. in cloud environments) are usually configured using environment variables.
+When making `kern.js` ready for kubernetes, the following variables were added. Please feel free to suggest additional variables and state a reason as well as a usecase.
+
+- `KERN_STATIC_HOST`: Force the use of this `Hostname`, ignoring the HTTP-Header. Usefull if running as a service and meant to be accessed via a ClusterIP
+- `KERN_STATIC_LOCALE`: Force the use of this `locale`, ignoring the HTTP-Header.
+- `KERN_CLI_SECRET`: Secret used by the websync-container to access the `CLI` api. This is meant to read userdata and store it in the repo.
+- `KERN_CLI_PORT`: While you are protected by a secret, why not randomize the `CLI` port. This is security by obscurity but makes it a bit harder for script kiddies. That being said: this port should never be exposed outside of your pod.
+- `KERN_SESSION_TIMEOUT`: session timeout in seconds. Defaults to `3000` (50min).
+
+#### Database
+If you have configured a database, you can insert stubs for the actual values and override them with the following environment variables.
+This is usefull if you have access data stored in a kubernetes secret or the like. The names are the same as used by mysql and mariadb containers.
+- `MYSQL_HOST`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`

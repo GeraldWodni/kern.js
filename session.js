@@ -19,6 +19,11 @@ module.exports = function _session( k, opts ) {
     if( !( "key" in opts ) )
         opts.key = crypto.pseudoRandomBytes( 256 );
 
+    if( process.env.KERN_SESSION_TIMEOUT ) {
+        opts.timeout = process.env.KERN_SESSION_TIMEOUT;
+        console.log( "Session-timeout-env:".bold.magenta, `${opts.timeout}s (${opts.timeout/60}min)` );
+    }
+
     /* callback( randomaHashed ) */
     function randomHash( callback ) {
         crypto.pseudoRandomBytes(256, function( ex, buf) {
