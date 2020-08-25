@@ -159,6 +159,7 @@ module.exports = function _site( k, opts ) {
             getman:  k.getman,
             postman: k.postman,
             requestman: k.requestman,
+            session: k.session,
             static: k.static,
             proxyCache: k.proxyCache,
             website: website,

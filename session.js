@@ -24,6 +24,28 @@ module.exports = function _session( k, opts ) {
         console.log( "Session-timeout-env:".bold.magenta, `${opts.timeout}s (${opts.timeout/60}min)` );
     }
 
+    /* active sessions */
+    function activeSessions( website ) {
+        return new Promise( (fulfill, reject) => {
+            k.rdb.keys( `session:${website}:*`, (err, sessionKeys) => {
+                if( err ) return reject( err );
+
+                const multi = k.rdb.multi();
+                sessionKeys.forEach( sessionKey => multi.hgetall( sessionKey ) );
+                /* fetch sessions */
+                const now = new moment();
+                multi.exec( (err, sessions ) => {
+                    if( err ) return reject( err );
+                    for( var i = 0; i < sessions.length; i++ ) {
+                        const lastActivity = moment( sessions[i]["session:activity"] );
+                        sessions[i]["session:activityDuration"] = moment.utc( now.diff( lastActivity ) );
+                    }
+                    fulfill( sessions );
+                });
+            });
+        });
+    }
+
     /* callback( randomaHashed ) */
     function randomHash( callback ) {
         crypto.pseudoRandomBytes(256, function( ex, buf) {
@@ -138,6 +160,7 @@ module.exports = function _session( k, opts ) {
     }
 
     return {
+        getActive: activeSessions,
         pushPostHook: pushPostHook,
         route: route
     }
