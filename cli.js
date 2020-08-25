@@ -11,6 +11,7 @@ const path = require("path");
 const spawn = require("child_process").spawn;
 var redis  = require("redis");
 var bcrypt = require("bcrypt-nodejs");
+const moment = require("moment");
 var readline  = require("readline");
 var Writable = require('stream').Writable;
 var util   = require("util");
@@ -280,6 +281,28 @@ var sections = {
                             });
                         });
                     });
+                });
+            });
+        },
+        active: function( website ) {
+            if( website == "default" )
+                website = "*";
+
+            rdb.keys( `session:${website}:*`, (err, sessionKeys) => {
+                if( err ) return showErr( err );
+
+                const multi = rdb.multi();
+                sessionKeys.forEach( sessionKey => multi.hgetall( sessionKey ) );
+                /* fetch sessions */
+                const now = new moment();
+                multi.exec( (err, sessions ) => {
+                    if( err ) return showErr( err );
+                    for( var i = 0; i < sessions.length; i++ ) {
+                        const lastActivity = moment( sessions[i]["session:activity"] );
+                        const durationString = moment.utc( now.diff( lastActivity ) ).format("HH:mm:ss")
+                        console.log( sessionKeys[i], sessions[i].loggedInUsername.bold.cyan, durationString.bold.green );
+                    }
+                    end();
                 });
             });
         }
