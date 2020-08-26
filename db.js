@@ -20,6 +20,10 @@ module.exports = function _db( k ) {
             config.host = process.env.MYSQL_HOST;
             console.log( "Mysql-host-env:".bold.magenta, config.host );
         }
+        if( process.env.MYSQL_PORT ) {
+            config.port = process.env.MYSQL_PORT;
+            console.log( "Mysql-port-env:".bold.magenta, config.port );
+        }
         if( process.env.MYSQL_DATABASE ) {
             config.database = process.env.MYSQL_DATABASE;
             console.log( "Mysql-host-env:".bold.magenta, config.database );
