@@ -51,7 +51,12 @@ module.exports = function _jade( k, opts ) {
                 else
                     return moment( d ).format( req.locales.__( "date-format-moment" ) );
             },
-            _datetime: d => moment( d ).format( req.locales.__( "datetime-format-moment" ) ),
+            _datetime: ( d, forceIso = false ) => {
+                if( forceIso )
+                    return moment( d ).format( "YYYY-MM-DD HH:mm:ss" );
+                else
+                    return moment( d ).format( req.locales.__( "datetime-format-moment" ) );
+            },
             __locale: req.locales,
             _: _,
             _filename: _filename,
