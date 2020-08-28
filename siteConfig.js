@@ -10,6 +10,8 @@ var async   = require( "async" );
 
 module.exports = function _siteConfig( k, opts ) {
 
+    const autoLoadEnabled = process.env.KERN_AUTO_LOAD !== "false"
+
     var websiteConfigs = {};
     function getField( item, field, defaultValue ) {
         if( typeof item === "undefined" )
@@ -80,7 +82,7 @@ module.exports = function _siteConfig( k, opts ) {
                     }
 
                     /* autoload */
-                    if( finalConfig.autoLoad )
+                    if( finalConfig.autoLoad && autoLoadEnabled )
                         k.site.load( website, function _autoLoad_callback(err) {
                             if( err )
                                 console.log("Autoload-Error:".bold.red, err );

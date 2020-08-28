@@ -309,6 +309,7 @@ When making `kern.js` ready for kubernetes, the following variables were added. 
 - `KERN_CLI_SECRET`: Secret used by the websync-container to access the `CLI` api. This is meant to read userdata and store it in the repo.
 - `KERN_CLI_PORT`: While you are protected by a secret, why not randomize the `CLI` port. This is security by obscurity but makes it a bit harder for script kiddies. That being said: this port should never be exposed outside of your pod.
 - `KERN_SESSION_TIMEOUT`: session timeout in seconds. Defaults to `3000` (50min).
+- `KERN_AUTO_LOAD`: if set to `"false"`, autoLoad will be skipped for all websites
 
 #### Database
 If you have configured a database, you can insert stubs for the actual values and override them with the following environment variables.
