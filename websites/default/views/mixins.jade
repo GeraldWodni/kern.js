@@ -99,6 +99,8 @@ mixin date-field(name, label, value, opts)
     div.form-group
         label= label
         - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {}, { rel: "date" });
+        if typeof attrs == "object" && !Object.hasOwnProperty("placeholder")
+            - attrs.placeholder = __("date-format-moment")
         +_field(name,"text",value)&attributes(attrs)
         input(type='hidden', name=newName + "-alt", value=value)
 

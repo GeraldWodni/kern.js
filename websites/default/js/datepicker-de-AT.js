@@ -12,8 +12,14 @@
 	}
 }(function( datepicker ) {
 
-if( navigator.language != "de-AT" && navigator.userLanguage != "de-AT" )
+var language = window.navigator.userLanguage || window.navigator.language;
+if( language != "de-AT" ) {
+    if( language.indexOf("de") == 0 )
+        datepicker.setDefaults(datepicker.regional['de']);
+    else
+        datepicker.setDefaults(datepicker.regional['en-US']);
     return;
+}
 
 datepicker.regional['de-AT'] = {
 	closeText: 'Schließen',
