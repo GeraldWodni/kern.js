@@ -157,7 +157,7 @@ module.exports = function _static( k, opts ) {
 
         prefixCache( "/files-preview/", "/files/", function( filepath, cachepath, next ) {
             var extension = path.extname( filepath );
-            if( [".jpg", ".jpeg", "*.png", "*.gif"].indexOf( extension ) < 0 )
+            if( [".jpg", ".jpeg", ".png", ".gif"].indexOf( extension ) < 0 )
                 return next( new Error( `Unsupported file type '${extension}'` ) );
 
             imageMagick( filepath )
