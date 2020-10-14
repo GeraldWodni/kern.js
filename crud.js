@@ -1093,7 +1093,7 @@ module.exports = function _crud( k ) {
                                 retain: renderOpts.retain,
                                 fullData: fullData,
                                 hiddenForeignKeyData: hiddenForeignKeyData,
-                                formAction: req.baseUrl,
+                                formAction: opts.baseUrl || req.baseUrl,
                                 formClass: opts.formClass || null,
                                 showList: getOptional( k, opts.showList, req ),
                                 showAdd: opts.showAdd,
