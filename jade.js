@@ -140,7 +140,7 @@ module.exports = function _jade( k, opts ) {
         if( locals instanceof Promise )
             renderJadeAsync( req, res, filename, await locals, opts, callback );
         else
-            renderJadeAsync( req, res, filename, locals, opts, callback );
+            renderJade( req, res, filename, locals, opts, callback );
     }
 
     function renderAndSend( req, res, filename, locals, opts ) {
