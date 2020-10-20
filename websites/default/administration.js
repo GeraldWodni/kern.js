@@ -18,11 +18,23 @@ var allowed = function( req, link ) {
 };
 
 var getField;
+const valueCallbacks = {};
+function addValuesCallback( website, callback ) {
+    console.log( "ADD VALUE CALLback", website );
+    if( !_.isArray( valueCallbacks[ website ] ) )
+        valueCallbacks[ website ] = [ callback ];
+    else
+        valueCallbacks[ website ].push( callback );
+}
 function viewValues( req, values ) {
+    values = values || {};
     if( _.isObject( req.adminValues ) )
-        values = _.extend( req.adminValues, values || {} );
+        values = _.extend( req.adminValues, values );
 
-    return _.extend( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof( req.user ) !== "undefined" }, values || {} );
+    if( valueCallbacks.hasOwnProperty( req.kern.website ) )
+        valueCallbacks[ req.kern.website ].forEach( callback => callback( req, values ) );
+
+    return _.extend( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof( req.user ) !== "undefined" }, values );
 };
 
 module.exports = {
@@ -202,6 +214,7 @@ module.exports = {
 
     },
     values: viewValues,
+    addValuesCallback: addValuesCallback,
     allowed: allowed,
     addPermissionType: function() {
         addPermissionType.apply( this, arguments );
