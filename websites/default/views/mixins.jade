@@ -1,4 +1,5 @@
 - var scriptSources = [];
+- var scriptModules = [];
 - var styleSources = [];
 - var usedScripts = []
 - var usedStyles = []
@@ -7,8 +8,14 @@
 mixin script(src)
     - scriptSources.push( src );
 
+mixin script-module(src)
+    - scriptModules.push( src );
+
 mixin script-tag(scriptSource)
     script(type='text/javascript',src='#{scriptSource}')
+
+mixin script-module-tag(scriptSource)
+    script(type='module',src='#{scriptSource}')
 
 mixin script-json( id, obj )
     script(type="application/json",id=id)&attributes(attributes)
@@ -20,6 +27,10 @@ mixin scripts()
         if usedScripts.indexOf( scriptSource ) == -1
             - usedScripts.push( scriptSource )
             +script-tag(scriptSource)
+    each scriptModule in scriptModules
+        if usedScripts.indexOf( scriptModule ) == -1
+            - usedScripts.push( scriptModule )
+            +script-module-tag(scriptModule)
 
 mixin style(href)
     - styleSources.push( href );
