@@ -752,8 +752,9 @@ module.exports = function _crud( k ) {
 
                         /** some fields require special  **/
                         /* translate values */
-                        if( _.has( fieldOpts, "keys" ) && !_.has( fieldOpts, "keyValues" ) ) {
+                        if( _.has( fieldOpts, "keys" ) && ( !_.has( fieldOpts, "keyValues" ) || fieldOpts.retranslate ) ) {
                             fieldOpts.keyValues = {}
+                            fieldOpts.retranslate = true; // retranslate: force recompute on keyValues, otherwise first translation persists
                             _.each( fieldOpts.keys, function( key ) {
                                 fieldOpts.keyValues[ key ] = req.locales.__( key );
                             });
