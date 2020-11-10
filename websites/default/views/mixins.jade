@@ -162,7 +162,7 @@ mixin _foreign-grouped-field(name, label, items, value, opts)
                 option(value=0)= "<"+__("None")+">"
         - var grouped = _.groupBy(items, opts.groupBy);
         - var composeName = function( item ) { return opts && opts.composeName ? opts.composeName(item) : item.name };
-        each groupName in _.keys(grouped).sort()
+        each groupName in opts.unsortedGroups ? _.keys(grouped) : _.keys(grouped).sort()
             optgroup(label=groupName)
                 each item in _.sortBy( grouped[groupName], function( item ) { return composeName( item ).toLowerCase(); } )
                     -var id = (opts && opts.idField ? item[opts.idField] : item.id)
