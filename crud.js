@@ -1090,6 +1090,7 @@ module.exports = function _crud( k ) {
                                 pageCount: pageCount || 0,
                                 pageSize: opts.pageSize,
                                 scripts: opts.scripts || [],
+                                scriptModules: opts.scriptModules || [],
                                 values: r.getValues( req, fields, values ),
                                 retain: renderOpts.retain,
                                 fullData: fullData,

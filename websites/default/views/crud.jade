@@ -4,6 +4,8 @@ mixin crud( opts )
     +script("/js/crud.js")
     each script in opts.scripts
         +script(script)
+    each scriptModule in opts.scriptModules
+        +script-module(scriptModule)
     div.row
         if opts.showList
             div.crud-items(class=opts.startExpanded?"":"col-sm-4")
