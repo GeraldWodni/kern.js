@@ -12,9 +12,19 @@ var addSiteModule;
 var addPermissionType;
 var menu;
 
-var allowed = function( req, link ) {
-    var permissions = ( req.user || {} ).permissions || "";
-    return permissions.indexOf( link ) >= 0;
+var allowed = function( req, link, fullLink = "" ) {
+    const permissions = (( req.user || {} ).permissions || "").split(",").filter( p => p.length > 0 );
+
+    const modulePermissions = [];
+    const linkPermissions = [];
+    permissions.forEach( permission => {
+        if( permission.indexOf("/") >= 0 )
+            linkPermissions.push( permission );
+        else
+            modulePermissions.push( permission );
+    });
+
+    return modulePermissions.indexOf( link ) >= 0 || linkPermissions.some( linkPermission => fullLink.indexOf( linkPermission ) == 0 );
 };
 
 var getField;
@@ -58,7 +68,7 @@ module.exports = {
         /* login & permission-wall */
         k.router.use( k.users.loginRequired( "admin/login", { noUserRegistration: true } ) );
         k.router.use( function( req, res, next ) {
-            if( allowed( req, req.path.split( "/" )[1] || "" ) )
+            if( allowed( req, req.path.split( "/" )[1] || "", req.path ) )
                 next();
             else
                 k.jade.render( req, res, "admin/accessDenied" );
