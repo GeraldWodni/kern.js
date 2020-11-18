@@ -13,6 +13,10 @@ var addPermissionType;
 var menu;
 
 var allowed = function( req, link, fullLink = "" ) {
+    // alway allow root
+    if( link == "" || fullLink == "/" )
+        return true;
+
     const permissions = (( req.user || {} ).permissions || "").split(",").filter( p => p.length > 0 );
 
     const modulePermissions = [];
