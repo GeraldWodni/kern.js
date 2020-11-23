@@ -7,10 +7,14 @@ var async   = require( "async" );
 
 module.exports = function _rdb( k, opts )  {
 
+    opts = opts || {};
     if( process.env.REDIS_HOST ) {
-        opts = opts || {};
         opts.host = process.env.REDIS_HOST;
         console.log( "Redis-host-env:".bold.magenta, opts.host );
+    }
+    if( process.env.REDIS_PORT ) {
+        opts.port = process.env.REDIS_PORT;
+        console.log( "Redis-host-env:".bold.magenta, opts.port );
     }
 
     var rdb = redis.createClient( opts );
