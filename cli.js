@@ -17,6 +17,7 @@ var Writable = require('stream').Writable;
 var util   = require("util");
 var rl = null;
 var out = console.log;
+var webMode = false;
 
 var rdb;
 
@@ -376,7 +377,17 @@ function setPassword( website, id ) {
     });
 }
 function showErr( err ) {
-    out( "ERROR".bold.red, err );
+    if( webMode ) {
+        console.error( "ERROR(WEB)".bold.red, err );
+        out( JSON.stringify({
+            err: err,
+            error: true,
+            maxId: null,
+            users: {}
+        }, null, 4) );
+    }
+    else
+        out( "ERROR".bold.red, err );
     end();
 }
 function toText( name ) {
@@ -416,6 +427,8 @@ function performQuery( argv ) {
     if( process.env.REDIS_HOST )
         opts.host = process.env.REDIS_HOST;
     rdb = redis.createClient(opts);
+    rdb.on("error", showErr );
+
     sections[ section ][ command ]( website, params );
 }
 
@@ -472,5 +485,6 @@ if( require.main === module ) {
 }
 /* otherwise export */
 else {
+    webMode = true;
     module.exports = cliWebserver;
 }

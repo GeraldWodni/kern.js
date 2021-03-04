@@ -41,7 +41,22 @@ function syncUsers {
         return
     fi
 
-    REDIS_MAX_ID=$(wget -q -O - localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/user/export/$WEBSITE | jq --raw-output ".maxId")
+    # avoid startup issues (redis not ready)
+    REDIS_REPLY=$(wget -q -O - localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/user/export/$WEBSITE)
+    REDIS_ERROR=$(echo $REDIS_REPLY | jq --raw-output ".error")
+    REDIS_MAX_ID=$(echo $REDIS_REPLY | jq --raw-output ".maxId")
+    if [ $REDIS_ERROR = "true" ]; then
+        printStatus WARN "syncUsers Redis Error: $(echo $REDIS_REPLY | jq --raw-output '.err')"
+        return
+    fi
+
+    # avoid synching on empty volume
+    if [ ! -f $USERFILE ]; then
+        printStatus WARN "syncUsers Error: USERFILE does not exist: $USERFILE"
+        return
+    fi
+
+    # sync from or into redis
     FILE_MAX_ID=$(jq --raw-output ".maxId" $USERFILE)
     printStatus INFO "REDIS_MAX_ID: $REDIS_MAX_ID ,  FILE_MAX_ID: $FILE_MAX_ID"
     if [ $REDIS_MAX_ID = "null" ] || [ $REDIS_MAX_ID -lt $FILE_MAX_ID ]; then
