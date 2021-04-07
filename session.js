@@ -61,7 +61,7 @@ module.exports = function _session( k, opts ) {
     }
 
     function setCookie( req, res ) {
-        res.cookie( opts.cookie, req.sessionId, { httpOnly: true, maxAge: opts.timeout * 1000 } );
+        res.cookie( opts.cookie, req.sessionId, { sameSite: 'strict', httpOnly: true, maxAge: opts.timeout * 1000 } );
     }
 
     function start( req, res, next ) {
