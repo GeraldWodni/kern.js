@@ -12,7 +12,7 @@
 	}
 }(function( datepicker ) {
 
-var language = window.navigator.userLanguage || window.navigator.language;
+var language = document.documentElement.getAttribute("lang") || window.navigator.userLanguage || window.navigator.language;
 if( language != "de-AT" ) {
     if( language.indexOf("de") == 0 )
         datepicker.setDefaults(datepicker.regional['de']);
