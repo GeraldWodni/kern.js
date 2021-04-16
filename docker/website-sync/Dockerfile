@@ -1,4 +1,6 @@
-FROM alpine:3.10
+ARG REG_HOSTNAME
+ARG REG_FOLDER
+FROM ${REG_HOSTNAME}/${REG_FOLDER}/alpine:3.10
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 # install proper wget, default busybox-wget is not capable enough

@@ -53,6 +53,8 @@ spec:
             container('docker') {
                 sh 'docker version && DOCKER_BUILDKIT=1 \
                 docker build --progress plain \
+                --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
+                --build-arg REG_FOLDER=${REG_FOLDER} \
                 -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:b${BUILD_NUMBER} \
                 -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js:latest .'
             }
@@ -73,6 +75,8 @@ spec:
                     sh 'docker version && DOCKER_BUILDKIT=1 \
                     docker build --progress plain \
                     --network host \
+                    --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
+                    --build-arg REG_FOLDER=${REG_FOLDER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:b${BUILD_NUMBER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-website-sync:latest .'
                 }
@@ -84,6 +88,8 @@ spec:
                     sh 'docker version && DOCKER_BUILDKIT=1 \
                     docker build --progress plain \
                     --network host \
+                    --build-arg REG_HOSTNAME=${REG_HOSTNAME} \
+                    --build-arg REG_FOLDER=${REG_FOLDER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-database-sync:b${BUILD_NUMBER} \
                     -t ${REG_HOSTNAME}/${REG_FOLDER}/kern.js-database-sync:latest .'
                 }

@@ -1,4 +1,6 @@
-FROM node:10
+ARG REG_HOSTNAME
+ARG REG_FOLDER
+FROM ${REG_HOSTNAME}/${REG_FOLDER}/node:12
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 EXPOSE 8000
