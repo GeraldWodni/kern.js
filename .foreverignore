@@ -10,12 +10,13 @@ scripts
 test
 *.json
 *.log
-websites/*/proxy
 websites/*/css
 websites/*/files
 websites/*/fonts
 websites/*/images
 websites/*/js
+websites/*/package
+websites/*/proxy
 websites/*/sql
 websites/*/sub
 websites/*/views
