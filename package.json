@@ -13,7 +13,7 @@
     "bcrypt-nodejs": "0.0.x",
     "bootstrap": "~3.4.1",
     "busboy": "^0.2.14",
-    "chart.js": "^2.7.3",
+    "chart.js": "^2.9.4",
     "cheerio": "^1.0.0-rc.2",
     "clusterhub": "0.2.x",
     "colors": "^0.6.2",
