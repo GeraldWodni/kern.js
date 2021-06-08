@@ -262,6 +262,12 @@ Here is a list of the currently implemented filters. Currently they are maintain
 ## Users & Sessions
 *TODO*
 
+### Session Cookies
+Once a session is started, a cookie (default name: `kernSession`) is sent and updated in every request to extend it for another timeout(see `KERN_SESSION_TIMEOUT` period). The cookie options can be set using `sessionCookies`, defaults to: `{ sameSite: "strict" }`.
+
+To allow returning from an external processing i.e. payment providers, an external cookie can be set using `req.sessionInterface.setExternalCookie( req, res )`.
+After the external process has concluded, the cookie should be destroyed using `req.sessionInterface.destroyExternalCookie( req, res )`.
+
 ## Hooks
 *TODO*
 

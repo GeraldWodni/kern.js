@@ -7,6 +7,7 @@ var moment  = require("moment");
 var _       = require("underscore");
 var defaults = {
     cookie: "kernSession",
+    externalCookie: "kernSessionExternal",
     timeout: 3000, /* in seconds */
     autostart: false
 }
@@ -67,6 +68,17 @@ module.exports = function _session( k, opts ) {
         res.cookie( opts.cookie, req.sessionId, cookieOpts );
     }
 
+    function setExternalCookie( req, res ) {
+        console.log( "EXTERNAL COOKIE SETTYYYYYY!" );
+        const cookieOpts = {
+            sameSite: 'Lax',
+            //secure: true,
+            httpOnly: true,
+            maxAge: opts.timeout * 1000
+        };
+        res.cookie( opts.externalCookie, req.sessionId, cookieOpts );
+    }
+
     function start( req, res, next ) {
         if( typeof req.session !== "undefined" )
             return next( new Error( "Session already started" ) );
@@ -123,12 +135,18 @@ module.exports = function _session( k, opts ) {
     function destroy( req, res, next ) {
         if( req.session ) {
             res.clearCookie( opts.cookie );
+            res.clearCookie( opts.externalCookie );
             k.rdb.del( sessionKey( req ) );
 
             req.session = undefined;
         }
 
         next();
+    }
+
+    function destroyExternalCookie( req, res, next ) {
+        if( req.session )
+            res.clearCookie( opts.externalCookie );
     }
 
     function route() {
@@ -138,12 +156,20 @@ module.exports = function _session( k, opts ) {
             req.sessionInterface = {
                 start: start,
                 save: save,
+                setExternalCookie,
+                destroyExternalCookie,
                 destroy: destroy
             }
 
             /* if kernSession-cookie exists, attempt to load session */
             if( req.cookies && opts.cookie in req.cookies ) {
                 req.sessionId = req.cookies[ opts.cookie ];
+                load( req, res, next );
+            }
+            /* external return? allow reload */
+            else if( req.cookies && opts.externalCookie in req.cookies ) {
+                console.log( "RESUME SESSION FROM external cookie".bold.cyan );
+                req.sessionId = req.cookies[ opts.externalCookie ];
                 load( req, res, next );
             }
             else if( opts.autostart )
