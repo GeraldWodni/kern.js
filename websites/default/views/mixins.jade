@@ -90,6 +90,9 @@ mixin url-field(name, label, value, opts)
 mixin file-field(name, label, value, opts)
     +field(name, 'file', label, value, opts)&attributes(attributes)
 
+mixin time-field(name, label, value, opts)
+    +field(name, 'time', label, value, opts)&attributes(attributes)
+
 mixin checkbox-field(name, label, value)
     div.form-group
         div.checkbox
