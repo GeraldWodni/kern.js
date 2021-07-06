@@ -29,12 +29,6 @@ TODO
 ## jszip: ^2.5.0
 TODO
 
-## less: 3.8.x
-TODO
-
-## mocha: 5.x.x
-TODO
-
 ## moment: ^2.27.0
 TODO
 
@@ -75,5 +69,4 @@ TODO
 TODO
 
 # optionalDependencies
-## node-windows: ^0.1.1
 TODO
