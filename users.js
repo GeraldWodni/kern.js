@@ -8,7 +8,6 @@ var async           = require("async");
 var bcrypt          = require("bcrypt-nodejs");
 var md5             = require("md5");
 var nodemailer      = require("nodemailer");
-var smtpTransport   = require("nodemailer-smtp-transport");
 var url             = require("url");
 
 module.exports = function _users( k ) {
@@ -583,7 +582,7 @@ module.exports = function _users( k ) {
 
                                     console.log( "AUTO", "sendEmail" );
                                     /* send email */
-                                    var emailTransport = nodemailer.createTransport( smtpTransport({
+                                    var emailTransport = nodemailer.createTransport( {
                                         host: userRegistration.smtp.host,
                                         port: userRegistration.smtp.port || 25,
                                         tls: {
@@ -593,7 +592,7 @@ module.exports = function _users( k ) {
                                             user: userRegistration.smtp.user,
                                             pass: userRegistration.smtp.password
                                         }
-                                    }));
+                                    });
 
                                     var text = userRegistration.email.text
                                         .replace( /{link}/g, link )
