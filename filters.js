@@ -52,7 +52,7 @@ module.exports = function _filters( k ) {
                 .replace( /ä/g, "ae" ).replace( /ö/g, "oe" ).replace( /ü/g, "ue" ).replace( "ß", "sz" )
                 .replace( /Ä/g, "Ae" ).replace( /Ö/g, "Oe" ).replace( /Ü/g, "Ue" )
                 .replace( regC( "[LC]", "g" ), "" )
-                .replace( /\s+/, "_" ).replace( /[^-_.0-9a-zA-Z]/g, "" );
+                .replace( /\s+/g, "_" ).replace( /[^-_.0-9a-zA-Z]/g, "" );
         }
     };
 
