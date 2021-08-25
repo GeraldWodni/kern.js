@@ -11,6 +11,7 @@ test
 *.json
 *.log
 websites/*/css
+websites/*/drive
 websites/*/files
 websites/*/fonts
 websites/*/images
