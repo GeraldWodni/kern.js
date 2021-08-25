@@ -227,6 +227,7 @@ module.exports = function _locales( k, opts ) {
 
     return {
         route: route,
-        reload: reload
+        reload: reload,
+        __: __ // direct access for static translation
     }
 };

@@ -164,6 +164,7 @@ module.exports = function _site( k, opts ) {
             proxyCache: k.proxyCache,
             website: website,
             newRouter: newRouter,
+            locales: k.locales,
             ws: function() {
                 console.log( "Websocket-Server".yellow.bold, arguments );
                 k.ws.apply( this, arguments );
