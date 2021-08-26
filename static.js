@@ -16,7 +16,7 @@ module.exports = function _static( k, opts ) {
     function guard( prefix, req, res, callback ) {
 
         /* normalize to os-independent path */
-        var pathname = url.parse( req.url ).pathname;
+        var pathname = decodeURI( url.parse( req.url ).pathname );
         pathname = path.normalize( pathname );
         pathname = pathname.replace( guardRegex, '/' );
 
