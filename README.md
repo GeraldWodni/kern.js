@@ -324,3 +324,80 @@ This is usefull if you have access data stored in a kubernetes secret or the lik
 - `MYSQL_DATABASE`
 - `MYSQL_USER`
 - `MYSQL_PASSWORD`
+
+#### Static content
+
+##### prefixCache
+Generate previews of files by prefix.
+
+Example how internal image-previews are generated.
+```js
+prefixCache( "/images-preview/", "/images/", function( filepath, cachepath, next ) {
+    imageMagick( filepath )
+        .autoOrient()
+        .resize( 200, 200 + "^" )
+        .gravity( "Center" )
+        .extent( 200, 200 )
+        .write( cachepath, next );
+});
+```
+
+If a more fine grain control is required to generate previews, here is how to generate previews for different filetypes, as well as how to serve static images if a custom preview is hard to generate (i.e. for spreadsheets):
+```js
+const pictures = [".jpg", ".jpeg", ".png", ".gif"];
+const extPictures = [".pdf", ".eps"];
+const movies = [".mov", ".mp4"];
+const allowedTypes = [].concat(pictures, extPictures, movies);
+
+k.static.prefixCache( "/server-preview/", path.join( config.syncPrefix, 'server/' ) , function( filepath, cachepath, next ) {
+    const extension = path.extname( filepath ).toLowerCase();
+    if( allowedTypes.indexOf( extension ) < 0 )
+        return next( new Error( `Unsupported file type '${extension}'` ) );
+
+    /* use 10th frame as preview */
+    if( movies.indexOf( extension ) >= 0 )
+        filepath = filepath + "[10]"
+    /* use 1st page of pdf */
+    else if( [".pdf"].indexOf( extension ) >= 0 )
+        filepath = filepath + "[0]"
+
+    imageMagick( filepath )
+        .autoOrient()
+        .resize( 200, 200 + "^" )
+        .gravity( "Center" )
+        .extent( 200, 200 )
+        .write( cachepath, next );
+}, {
+    router: k.router, /* mount directly on current path */
+    pathRewrite: t => {
+        const extension = path.extname( t ).toLowerCase();
+        /* map known mimes */
+        if( /\.odt|\.doc.?|\.rtf|\.txt/.exec( extension ) )
+            return { redirect: "/images/mimetypes/text.png" };
+        if( /\.ods|\.xls.?|\.csv/.exec( extension ) )
+            return { redirect: "/images/mimetypes/spreadsheet.png" };
+        if( /\.odp|\.ppt.?/.exec( extension ) )
+            return { redirect: "/images/mimetypes/presentation.png" };
+        if( /\.mp3|\.wav?/.exec( extension ) )
+            return { redirect: "/images/mimetypes/audio.png" };
+        if( /\.zip|\.7z|\.tar|\.gz?/.exec( extension ) )
+            return { redirect: "/images/mimetypes/archive.png" };
+
+        /* custom previews */
+        const match = /(.*)\.tw-([a-z0-9]{3})\.(jpg)/gi.exec( t );
+        if( match )
+            return {
+                source: `${match[1]}.${match[2]}`,
+                targetExtension: `.${match[3]}`,
+            };
+
+        /* previews */
+        if( allowedTypes.indexOf( extension ) >= 0 )
+            return t;
+
+        /* generic image */
+        return { redirect: "/images/mimetypes/generic.png" };
+    },
+});
+
+```

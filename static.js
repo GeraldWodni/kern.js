@@ -59,14 +59,32 @@ module.exports = function _static( k, opts ) {
                     if( opts.sourceExtension )
                         pathname = pathname.slice( 0, -targetExtension.length ) + opts.sourceExtension;
 
-                    /* get original and cache-filename */
+                    /* get real prefixed path */
                     pathname = pathname.replace( new RegExp( "^" + prefix ), originPrefix );
+
+                    /* rewrite pathes */
+                    var changeCacheExtension = false;
+                    if( opts.pathRewrite ) {
+                        const pathes = opts.pathRewrite( pathname );
+                        if( typeof pathes !== "string" ) {
+                            if( pathes.hasOwnProperty( "redirect" ) )
+                                return res.redirect( pathes.redirect );
+
+                            pathname = pathes.source;
+                            changeCacheExtension = pathes.targetExtension;
+                        }
+                    }
+
+                    /* get original and cache-filename */
                     var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
                     var cachepath = filepath.replace( /^websites\//, "cache" + prefix )
 
                     /* rename target (from hierarchy path to be safe) */
                     if( opts.sourceExtension )
                         cachepath = cachepath.slice( 0, -opts.sourceExtension.length ) + targetExtension;
+
+                    if( changeCacheExtension !== false )
+                        cachepath = cachepath.slice( 0, -path.extname( cachepath ).length ) + changeCacheExtension;
 
                     /* file cached? */
                     fs.stat( cachepath, function( err, cacheStat ) {
