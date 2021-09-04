@@ -146,7 +146,7 @@ function syncRepo {
         # clone private repo if set
         if [ -z "$PRIVATE_REPO" ]; then
             echo "No private repo to sync"
-        elif [ ! -d private/.git ]; then
+        elif [ -d private/.git ]; then
             cd private
             syncGit
             cd ..
