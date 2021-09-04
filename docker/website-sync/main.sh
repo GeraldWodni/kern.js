@@ -19,6 +19,14 @@ fi
 
 cd $DIR
 
+# clone private repo if set
+if [ -z "$PRIVATE_REPO" ]; then
+    echo "No private repo"
+elif [ ! -d private/.git ]; then
+    echo "Private repo does not exist, clone it"
+    git clone $PRIVATE_REPO private
+fi
+
 trap terminate SIGHUP SIGINT SIGTERM
 
 function terminate {
@@ -79,51 +87,71 @@ syncUsers
 
 printStatus INFO "Startup completed"
 
+function syncGit {
+    # ... git commit & push
+    if git remote update &> /dev/null; then
+        UPSTREAM='@{u}' #'
+        LOCAL=$(git rev-parse @)
+        REMOTE=$(git rev-parse "$UPSTREAM")
+        BASE=$(git merge-base @ "$UPSTREAM")
+
+        # local changes? create commit
+        CHANGES=$(git status -s | wc -l)
+        if [ $CHANGES -eq 0 ]; then
+            printStatus INFO "No local changes"
+        else
+            printStatus INFO "Local changes, commit required ($CHANGES changes)"
+            git add .
+            git commit -am "$COMMIT_MSG" 2>&1 | indent
+        fi
+
+        # remote changes? pull
+        if [ "$LOCAL" = "$BASE" ] && [ "$REMOTE" != "$LOCAL" ]; then
+            printStatus INFO "Pull required"
+            if git pull -X theirs 2>&1 | indent; then
+                printStatus INFO "Pull completed"
+            else
+                printStatus ERROR "Pull failed"
+                return
+            fi
+        fi
+
+        if [ "$LOCAL" != "$REMOTE" ] || [ $CHANGES -gt 0 ]; then
+            printStatus INFO "Push required"
+            if git push 2>&1 | indent; then
+                printStatus INFO "Push completed"
+            else
+                printStatus ERROR "Push failed"
+            fi
+        fi
+
+    else
+        printStatus WARN "No connection to git repo"
+    fi
+}
+
 function syncRepo {
+    if [ "$SYNC_DISABLED" == "true" ]; then
+        printStatus INFO "Skipping syncRepo (env SYNC_DISABLED == true)"
+        return
+    fi
+
     PREFIX=$1
     if mkdir $LOCK; then
         echo "$PREFIX: Got lock, performing syncRepo"
         COMMIT_MSG=$(date +"Autocommit %Y-%m-%d %H:%M:%S")
-        # ... git commit & push
-        if git remote update &> /dev/null; then
-            UPSTREAM='@{u}' #'
-            LOCAL=$(git rev-parse @)
-            REMOTE=$(git rev-parse "$UPSTREAM")
-            BASE=$(git merge-base @ "$UPSTREAM")
 
-            # local changes? create commit
-            CHANGES=$(git status -s | wc -l)
-            if [ $CHANGES -eq 0 ]; then
-                printStatus INFO "No local changes"
-            else
-                printStatus INFO "Local changes, commit required ($CHANGES changes)"
-                git add .
-                git commit -am "$COMMIT_MSG" 2>&1 | indent
-            fi
+        syncGit
 
-            # remote changes? pull
-            if [ "$LOCAL" = "$BASE" ] && [ "$REMOTE" != "$LOCAL" ]; then
-                printStatus INFO "Pull required"
-                if git pull -X theirs 2>&1 | indent; then
-                    printStatus INFO "Pull completed"
-                else
-                    printStatus ERROR "Pull failed"
-                    return
-                fi
-            fi
-
-            if [ "$LOCAL" != "$REMOTE" ] || [ $CHANGES -gt 0 ]; then
-                printStatus INFO "Push required"
-                if git push 2>&1 | indent; then
-                    printStatus INFO "Push completed"
-                else
-                    printStatus ERROR "Push failed"
-                fi
-            fi
-
-        else
-            printStatus WARN "No connection to git repo"
+        # clone private repo if set
+        if [ -z "$PRIVATE_REPO" ]; then
+            echo "No private repo to sync"
+        elif [ ! -d private/.git ]; then
+            cd private
+            syncGit
+            cd ..
         fi
+
         rm -r $LOCK
     else
         printStatus WARN "$PREFIX: cannot acquire lock, syncRepo in progress"

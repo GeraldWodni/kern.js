@@ -10,3 +10,5 @@ Checking out and synching a website every 15 minutes
 
 ### Optional
 - `SYNC_USERS`: if `true` users are loaded from and saved into users.json (default: `false`)
+- `SYNC_DISABLED`: if `true` interval syncing is disabled (default: `false`)
+- `PRIVATE_REPO`: git URL for 2nd repository mounted under /private inside `REPOSITORY` (default: _empty_).
