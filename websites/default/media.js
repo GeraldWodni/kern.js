@@ -17,11 +17,24 @@ module.exports = {
         const view      = setupOpts.view || "admin/media";
 
         /* protection filters, TODO: allow overwrite per user-permission */
-        var hierarchyFilters = {
-            dirShowFilters:  [ /^\/images$/g, /^\/images\/.*/g, /^\/media$/g, /^\/media\/.*/g, /^\/files$/g, /^\/files\/.*/g ],
-            fileShowFilters: [ /.*/g ],
-            lockWebsite: true
+        const filterCache = {}
+        function hierarchyFilters(req) {
+            if( req.kern.website in filterCache ) {
+                console.log( "CACHE:".bold.red, filterCache[ req.kern.website ] );
+                return filterCache[ req.kern.website ];
+            }
+
+            const dirHideFilters = req.kern.getWebsiteConfig( "media.dirHideFilters", [] )
+                .map( s => new RegExp( s.slice(0, -1), s.slice(-1) ) );
+
+            return filterCache[ req.kern.website ] = {
+                dirShowFilters:  [ /^\/images$/g, /^\/images\/.*/g, /^\/media$/g, /^\/media\/.*/g, /^\/files$/g, /^\/files\/.*/g ],
+                dirHideFilters,
+                fileShowFilters: [ /.*/g ],
+                lockWebsite: true
+            };
         };
+
 
         function sanitizePath( req, res, directoryPrefix ) {
             /* get link or compose of prefix and name */
@@ -60,7 +73,7 @@ module.exports = {
                     return console.log( "Ignoring empty file" );
                 }
                 var filepath = path.join( "/", filename, k.filters.filename( name ) );
-                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters ) != null ) {
+                if( k.hierarchy.checkDirname( req.kern.website, path.dirname( filepath ), hierarchyFilters(req) ) != null ) {
                     file.pipe( k.hierarchy.createWriteStream( req.kern.website, filepath ) );
                     req.kern.uploadedFiles.push( {
                         name: path.basename( filepath ),
@@ -74,8 +87,8 @@ module.exports = {
                 console.log( "FILEPATH:", filepath.bold.red );
 
                 if( req.postman.exists( "create-dir" ) ) {
-                    console.log( "CD-FILEPATH:", filepath.bold.red, req.kern.website, hierarchyFilters );
-                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    console.log( "CD-FILEPATH:", filepath.bold.red, req.kern.website, hierarchyFilters(req) );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters(req) );
                     if( filepath == null )
                         return k.httpStatus( req, res, 403 );
                     console.log( "CREATE-DIR", filepath );
@@ -85,13 +98,13 @@ module.exports = {
                     });
                 }
                 else if( req.postman.exists( "delete-dir" ) ) {
-                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters(req) );
                     rmrf( filepath );
                     res.redirect( 301, path.dirname( path.join( "/admin/media", req.path ) ) );
                 }
                 else if( req.postman.exists( "delete-file" ) ) {
                     filepath = path.join( filepath, req.postman.filename( "delete-file" ) );
-                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters );
+                    filepath = k.hierarchy.checkDirname( req.kern.website, filepath, hierarchyFilters(req) );
                     fs.unlink( filepath, ( err ) => {
                         if( err ) return next( err );
                         renderAll( req, res, next );
@@ -135,7 +148,7 @@ module.exports = {
 
         /* render directory tree & files */
         function renderAll( req, res, next, values ) {
-            k.hierarchy.readHierarchyTree( req.kern.website, "/", _.extend( {}, hierarchyFilters, {
+            k.hierarchy.readHierarchyTree( req.kern.website, "/", _.extend( {}, hierarchyFilters(req), {
                 prefix: "/"
             }),
             function( err, tree ) {
