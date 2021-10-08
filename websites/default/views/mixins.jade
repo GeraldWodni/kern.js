@@ -195,7 +195,7 @@ mixin textarea(name, label)
     +textarea-field(name, label, "")&attributes(attributes)
 
 mixin modal(id,title,saveCaption)
-    div.modal.fade(id=id)
+    div.modal.fade(id=id)&attributes(attributes)
         div.modal-dialog
             div.modal-content
                 div.modal-header
