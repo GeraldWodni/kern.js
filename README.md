@@ -311,6 +311,7 @@ Containers (i.e. in cloud environments) are usually configured using environment
 When making `kern.js` ready for kubernetes, the following variables were added. Please feel free to suggest additional variables and state a reason as well as a usecase.
 
 - `KERN_STATIC_HOST`: Force the use of this `Hostname`, ignoring the HTTP-Header. Usefull if running as a service and meant to be accessed via a ClusterIP
+- `KERN_LOAD_ONLY_HOSTS`: Comma separated list of websites that are loaded, others are skipped
 - `KERN_STATIC_LOCALE`: Force the use of this `locale`, ignoring the HTTP-Header.
 - `KERN_CLI_SECRET`: Secret used by the websync-container to access the `CLI` api. This is meant to read userdata and store it in the repo.
 - `KERN_CLI_PORT`: While you are protected by a secret, why not randomize the `CLI` port. This is security by obscurity but makes it a bit harder for script kiddies. That being said: this port should never be exposed outside of your pod.

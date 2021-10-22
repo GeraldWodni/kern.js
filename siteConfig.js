@@ -33,6 +33,11 @@ module.exports = function _siteConfig( k, opts ) {
     }
 
     function loadAll(d) {
+        const loadOnlyHosts = process.env.KERN_LOAD_ONLY_HOSTS || "" != "" ?
+            process.env.KERN_LOAD_ONLY_HOSTS.split(",") : false;
+
+        console.log("LoadOnlyHosts:".yellow.bold, loadOnlyHosts );
+
         /* configure websites (async) */
         fs.readdir( k.kernOpts.websitesRoot, function _loadAll_readdir( err, dirs ) {
             if( err )
@@ -46,6 +51,9 @@ module.exports = function _siteConfig( k, opts ) {
             }
 
             _.map( dirs, function _configure_dir( website ) {
+                if( loadOnlyHosts && loadOnlyHosts.indexOf( website ) == -1 )
+                    return done();
+
                 fs.readFile( path.join( k.kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
                     /* skip if error / non-existant */
                     if( err )
