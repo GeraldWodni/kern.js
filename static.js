@@ -73,6 +73,8 @@ module.exports = function _static( k, opts ) {
                             pathname = pathes.source;
                             changeCacheExtension = pathes.targetExtension;
                         }
+                        else
+                            pathname = pathes;
                     }
 
                     /* get original and cache-filename */
