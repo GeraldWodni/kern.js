@@ -746,6 +746,8 @@ module.exports = function _crud( k ) {
                         var element = "text-field"
                         if( _.has( opts.elements, fieldOpts.type ) )
                             element = opts.elements[ fieldOpts.type];
+                        else if( opts.customElements instanceof Array && opts.customElements.indexOf( fieldOpts.type ) >= 0 )
+                            element = fieldOpts.type;
                         else
                             throw new Error( "CRUD Unknown Element " + fieldOpts.type );
                         //console.error( "CRUD Element ".magenta.bold, element, "(" + field + ": " + fieldOpts.type + ")" );

@@ -53,7 +53,15 @@ module.exports = function _filters( k ) {
                 .replace( /Ä/g, "Ae" ).replace( /Ö/g, "Oe" ).replace( /Ü/g, "Ue" )
                 .replace( regC( "[LC]", "g" ), "" )
                 .replace( /\s+/g, "_" ).replace( /[^-_.0-9a-zA-Z]/g, "" );
-        }
+        },
+        json: function( t ) {
+            try {
+                JSON.parse( t );
+                return t;
+            } catch( err ) {
+                return null;
+            }
+        },
     };
 
     /* return a new fetcher which supports all registered filters */
