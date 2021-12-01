@@ -121,10 +121,11 @@ mixin date-field(name, label, value, opts)
 mixin datetime-field(name, label, value, opts)
     +date-field(name, label, value)&attributes(rel="datetime",attributes)
 
-mixin enum-field(name, label, keyValues, value)
+mixin enum-field(name, label, keyValues, value, opts)
+    - var attrs = _.extend(attributes || {}, (opts && opts.attributes) ? opts.attributes : {});
     div.form-group
         label= label
-        select.form-control(name=name)&attributes(attributes)
+        select.form-control(name=name)&attributes(attrs)
             each val, key in keyValues
                 if(key == value)
                     option(value=key,selected='selected')= val
@@ -149,7 +150,7 @@ mixin foreign-field(name, label, items, value, opts)
         label= label
         if opts && opts.inputGroup
             div.input-group
-                +_foreign-field(name, label, items, value, opts)&attributes(attributes)
+                +_foreign-field(name, label, items, value, opts)&attributes(attrs)
                 - var groupType = opts.inputGroup.type || "button"
                 if groupType == "button"
                     span.input-group-btn
