@@ -7,7 +7,7 @@ var fs      = require("fs");
 var path    = require("path");
 var os      = require("os");
 var moment  = require("moment");
-var marked  = require("marked");
+const { marked } = require("marked");
 var _       = require("underscore");
 
 module.exports = function _jade( k, opts ) {
@@ -66,7 +66,7 @@ module.exports = function _jade( k, opts ) {
             _loggedInUsername: req.session ? req.session.loggedInUsername : null,
             moment: moment,
             localeMoment: d => moment( d ).locale( req.locales.current ),
-            marked: marked,
+            marked,
             hostname: os.hostname()
         });
 
