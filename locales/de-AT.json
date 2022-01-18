@@ -361,5 +361,7 @@
     "Add & Retain values": "Hinzufügen & Werte kopieren",
     "Target website": "Zielwebsite",
     "default": "standard",
-    "Captcha not correct": "Captcha nicht korrekt"
+    "Captcha not correct": "Captcha nicht korrekt",
+    "The resource that is being accessed is locked.": "Die Ressource, auf die Sie zugreifen möchten, ist gesperrt.",
+    "Locked": "Gesperrt"
 }
