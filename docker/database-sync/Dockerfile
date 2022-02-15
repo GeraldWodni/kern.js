@@ -1,6 +1,6 @@
 ARG REG_HOSTNAME
 ARG REG_FOLDER
-FROM ${REG_HOSTNAME}/${REG_FOLDER}/alpine:3.10
+FROM ${REG_HOSTNAME}/${REG_FOLDER}/alpine:3.15
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 RUN apk --no-cache add \
