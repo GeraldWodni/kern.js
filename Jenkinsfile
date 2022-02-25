@@ -34,6 +34,8 @@ spec:
             key: folder
   - name: docker-daemon
     image: docker:stable-dind
+    args:
+    - "--mtu=1400"
     securityContext:
       privileged: true
     env:
