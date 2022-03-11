@@ -17,6 +17,8 @@ COPY misc misc
 COPY websites/kern websites/kern
 
 COPY *.json .
+# note: npm fails when package-lock.json is not writable :P
+COPY --chown=node:node package-lock.json .
 RUN npm install
 
 COPY locales locales
