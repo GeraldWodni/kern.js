@@ -74,8 +74,10 @@ module.exports = {
         k.router.use( function( req, res, next ) {
             if( allowed( req, req.path.split( "/" )[1] || "", req.path ) )
                 next();
-            else
+            else {
+                res.status(403);
                 k.jade.render( req, res, "admin/accessDenied" );
+            }
         } );
 
         /* assemble and translate menu */
