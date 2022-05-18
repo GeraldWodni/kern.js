@@ -47,6 +47,65 @@ module.exports = function _db( k ) {
                 pool.query.apply( pool, args );
             });
         }
+        pool.pTransaction = function() {
+            return new Promise( ( fulfill, reject ) => {
+                pool.getConnection( function( err, connection ) {
+                    if( err ) {
+                        if( connection && connection.release )
+                            connection.release();
+                        return reject( err );
+                    }
+
+                    var aborted = false;
+                    function abortTransaction() {
+                        if( aborted ) /* avoid double-abort */
+                            return Promise.resolve();
+                        aborted = true;
+
+                        return new Promise( ( fulfillAbort, rejectAbort ) => {
+                            connection.rollback( () => {
+                                connection.release();
+                                fulfillAbort();
+                            });
+                        });
+                    }
+
+                    function commitTransaction() {
+                        return new Promise( (fulfill, reject) => {
+                            connection.commit( err => {
+                                if( err ) return abortTransaction().then( () => reject( err ) );
+                                connection.release();
+                                fulfill();
+                            });
+                        });
+                    }
+
+                    connection.beginTransaction( err => {
+                        if( err ) {
+                            connection.release();
+                            return reject( err );
+                        }
+
+                        fulfill({
+                            abort:  abortTransaction,   /* expose to abort for non sql releated errors */
+                            commit: commitTransaction,
+                            connection,
+                            pQuery: function() {        /* modified pQuery which automatically rolls back */
+                                const args = Array.from( arguments );
+                                return new Promise( (fulfill, reject) => {
+                                    args.push( ( err, data ) => {
+                                        if( err ) return abortTransaction().then( reject( err ) );
+                                        fulfill( data );
+                                    });
+                                    connection.query.apply( connection, args );
+                                });
+                            },
+                        });
+                    })
+
+                });
+            });
+        }
         pools[ website ] = pool;
     }
 
