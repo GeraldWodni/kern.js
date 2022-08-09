@@ -127,6 +127,7 @@ mixin enum-field(name, label, keyValues, value, opts)
         label= label
         select.form-control(name=name)&attributes(attrs)
             each val, key in keyValues
+                - if( opts && opts.retranslate ) val = __(val)
                 if(key == value)
                     option(value=key,selected='selected')= val
                 else
