@@ -45,6 +45,11 @@ spec:
     node(POD_LABEL) {
         stage("checkout") {
             checkout scm
+            script {
+                VERSION_NUMBER = VersionNumber(versionNumberString: '${BUILD_YEAR}${BUILDS_THIS_YEAR, XXX}')
+                currentBuild.displayName = "${VERSION_NUMBER}"
+                env.BUILD_NUMBER=VERSION_NUMBER
+            }
         }
         stage("dockerlogin") {
             container('docker') {
