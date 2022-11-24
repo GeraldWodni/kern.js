@@ -71,7 +71,7 @@ if [ $DATABASE_TABLES -lt 3 ]; then
     if [ -f $DUMPFILE ]; then
         cd $DUMPDIR
         printStatus INFO "Updating $DATABASE CHARACTER SET to utf8mb4, disabling  STRICT_TRANS_TABLES"
-        mysql --defaults-file=$CONFIG_FILE -e "ALTER DATABASE $DATABASE CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci'" --silent
+        mysql --defaults-file=$CONFIG_FILE -e "ALTER DATABASE \`$DATABASE\` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci'" --silent
         # disable warnings as errors (remove STRICT_TRANS_TABLES):
         mysql --defaults-file=$CONFIG_FILE -e "SET GLOBAL sql_mode = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'" --silent
 
