@@ -10,6 +10,8 @@ DUMPFILE=$DUMPDIR/$DATABASE.sql
 DUMPFILE_COMBINED=$DUMPDIR/$DATABASE-combined.sql
 AUTO_SETUP=$DUMPDIR/autosetup.sh
 
+[ -z $SYNC_INTERVAL ] && SYNC_INTERVAL=60
+
 # setup git
 git config --global user.name "$GIT_NAME"
 git config --global user.email "$GIT_EMAIL"
@@ -184,14 +186,16 @@ function syncRepo {
     fi
 }
 
-function waitNextQuarterHour {
-    MIN=$(( 15 - 10#$(date +%M) % 15 - 1 ))
+function waitNextInterval {
+    MIN=$(( $SYNC_INTERVAL - (10#$(date +%M) + 60*10#$(date +%H)) % $SYNC_INTERVAL - 1 ))
     if [ $MIN -lt 0 ]; then
         MIN=0
     fi
     SEC=$(( 60 - 10#$(date +%S) ))
-    WAIT=$(( (MIN)*60 + SEC ))
-    echo "Waiting for next quarter hour ($MIN:$SEC = $WAIT)"
+    HRS=$(( ($MIN - $MIN%60)/60 ))
+    MIN=$(( $MIN%60 ))
+    WAIT=$(( $HRS*60*60 + (MIN)*60 + SEC ))
+    printf "Waiting for next ${SYNC_INTERVAL}min. (%02d:%02d:%02d = %ds)\n" $HRS $MIN $SEC $WAIT
     sleep $WAIT
     date +"%Y-%m-%d %H:%M:%S"
 }
@@ -200,7 +204,7 @@ syncRepo "STARTUP" "noDump"
 sleep 5m
 
 while true; do
-    waitNextQuarterHour
+    waitNextInterval
     syncRepo "INTERVAL" "performDump"
 done
 
