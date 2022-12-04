@@ -83,8 +83,17 @@ module.exports = function _crud( k ) {
             db.query( opts.selectAllQuery, [ opts.table, opts.orderBy ], callback );
         }
 
-        function countItems( callback, listOpts ) {
+        function countItems( callback ) {
             db.query( "SELECT COUNT(*) AS count FROM ??", [ opts.table ], callback );
+        }
+
+        function pagePrefixes( callback, prefixLength ) {
+            db.query( "SELECT UPPER(LEFT(??, ?)) AS letter FROM ?? GROUP BY letter", [ opts.orderBy, prefixLength, opts.table ], (err, items) => {
+                if( err ) return callback( err );
+                const prefixes = items.map( row => row.letter );
+                console.log( "PREFIXES:".bold.red, prefixes );
+                callback( null, prefixes );
+            });
         }
 
         /* TODO: difference to readForeignKey? function really needed to justify enum foreignBoldName? */
@@ -196,6 +205,7 @@ module.exports = function _crud( k ) {
                 read:   read,
                 readAll:readAll,
                 countItems: countItems,
+                pagePrefixes,
                 readList: readList,
                 readDisplayList: readDisplayList,
                 readForeignKey: readForeignKey,
@@ -948,7 +958,9 @@ module.exports = function _crud( k ) {
             }
 
             var currentPage = 0;
+            var currentPrefix = 'A';
             var pageCount = 0;
+            var pagePrefixes = [];
             var showMode = 'all';
 
             if( opts.mostRecent && !req.getman.isset("page") ) {
@@ -976,6 +988,24 @@ module.exports = function _crud( k ) {
                     listOpts.parameters = (listOpts.parameters || [ crud.table, crud.orderBy]).concat([ currentPage * opts.pageSize, opts.pageSize ]);
 
                 showMode = 'page';
+            }
+            else if( opts.pagePrefix ) {
+                currentPrefix = req.getman.address("prefix") || "A";
+
+                listOpts.query = listOpts.query || crud.selectListQuery.sql;
+
+                /* TODO: catch empty and/or all other nonprintable chars */
+                const where = "WHERE LEFT(??, ?) = ?";
+                listOpts.parameters = (listOpts.parameters || [ crud.table]).concat([ crud.orderBy, opts.pagePrefix, currentPrefix ], [crud.orderBy]);
+
+                /* check for where */
+                if( listOpts.query.indexOf( "WHERE" ) >= 0 ) {
+                    listOpts.query = listOpts.query.replace( /WHERE/, where + " AND" );
+                } else {
+                    listOpts.query = listOpts.query.replace( /ORDER BY/, where + " ORDER BY" );
+                }
+
+                showMode = 'prefix';
             }
 
 
@@ -1079,6 +1109,15 @@ module.exports = function _crud( k ) {
                                 })
                             );
                         }
+                        else if( opts.pagePrefix ) {
+                            promise = new Promise( (fulfill, reject) =>
+                                crud.pagePrefixes( (err, items) => {
+                                    if( err ) return reject( err );
+                                    pagePrefixes = items;
+                                    fulfill();
+                                }, opts.pagePrefix )
+                            );
+                        }
 
                         promise.then( () => {
                             var jadeCrudOpts = {
@@ -1090,7 +1129,10 @@ module.exports = function _crud( k ) {
                                 fields: fields,
                                 currentPage: currentPage || 0,
                                 pageCount: pageCount || 0,
+                                currentPrefix,
+                                pagePrefixes: pagePrefixes || [],
                                 pageSize: opts.pageSize,
+                                pagePrefix: opts.pagePrefix,
                                 scripts: opts.scripts || [],
                                 scriptModules: opts.scriptModules || [],
                                 values: r.getValues( req, fields, values ),
@@ -1101,7 +1143,7 @@ module.exports = function _crud( k ) {
                                 formClass: opts.formClass || null,
                                 showList: getOptional( k, opts.showList, req ),
                                 showAdd: opts.showAdd,
-                                showPages: opts.pageSize > 0 && pageCount > 1,
+                                showPages: opts.pageSize > 0 && pageCount > 1 || opts.pagePrefix > 0,
                                 showRecent: opts.mostRecent > 0,
                                 showMode: showMode,
                                 table: crud.table,

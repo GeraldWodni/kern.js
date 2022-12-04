@@ -38,6 +38,13 @@ mixin crudListPages( opts )
                 a(href=opts.link+"?page=#{page}", title=__("Page") + " " + (page+1), class=(opts.showMode!="recent"&&page==opts.currentPage?"active":null))
                     = page+1
                 |  
+            each prefix in opts.pagePrefixes || []
+                a(href=opts.link+"?prefix=#{encodeURI(prefix)}", title=__("Prefix") + " " + prefix, class=(opts.showMode!="recent"&&prefix==opts.currentPrefix?"active":null))
+                    if( prefix == " ")
+                        i blank
+                    else
+                        = prefix
+                |  
 
 mixin crudList( opts )
     - opts.idField = opts.idField || "id";
