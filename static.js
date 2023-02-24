@@ -27,12 +27,57 @@ module.exports = function _static( k, opts ) {
         callback( pathname.indexOf( prefix ) == 0, pathname );
     };
 
-    function prefixServeStatic( router, prefix ) {
+    async function renderBrowseDirectory( req, res, prefix, dirpath ) {
+        const items = await fs.promises.readdir( dirpath );
+        const dirs = [];
+        const files = [];
+
+        const upLink = path.dirname( prefix );
+        if( upLink != "/" )
+            dirs.push({
+                name: "..",
+                link: upLink,
+            });
+
+        for( let item of items ) {
+            const itemPath = path.join( dirpath, item );
+            const stat = await fs.promises.stat( itemPath )
+
+            const obj = {
+                name: item,
+                link: path.join( prefix, item ),
+                path: itemPath,
+            };
+
+            if( stat.isDirectory() )
+                dirs.push( obj );
+            else
+                files.push( obj );
+        }
+
+        k.jade.render( req, res, "browseDir", { prefix, dirs, files } );
+    }
+
+    function prefixServeStatic( router, prefix, opts = {} ) {
         router.use( function( req, res, next ) {
-            guard( prefix, req, res, function( prefixOkay, pathname ) {
+            guard( prefix, req, res, async function( prefixOkay, pathname ) {
                 if( prefixOkay ) {
-                    var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-                    return res.sendfile( filepath );
+                    try {
+                        const filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+                        const stat = await fs.promises.stat( filepath );
+
+                        if( !stat.isDirectory() )
+                            return res.sendfile( filepath );
+
+                        /* list browsable directoy (if enable via opts.browse) */
+                        if( opts.browse )
+                            return renderBrowseDirectory( req, res, pathname, filepath );
+
+                        return k.err.renderHttpStatus( req, res, 404 );
+                    }
+                    catch( err )  {
+                        return next( err );
+                    }
                 }
                 next();
             });

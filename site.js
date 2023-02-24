@@ -191,8 +191,8 @@ module.exports = function _site( k, opts ) {
             router: router,
             httpStatus: k.err.renderHttpStatus,
             serverConfig: k.kernOpts,
-            prefixServeStatic: function( prefix ) {
-                k.static.prefixServeStatic( router, prefix );
+            prefixServeStatic: function( prefix, opts = {} ) {
+                k.static.prefixServeStatic( router, prefix, opts );
             },
             singleStatic: function( path, filename, mimeType ) {
                 router.get( path, k.static.single( filename, mimeType ) );

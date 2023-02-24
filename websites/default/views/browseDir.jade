@@ -1,0 +1,20 @@
+extends layout
+
+mixin browseDirItem( icon, item )
+    li
+        +fa(icon).fa-li
+        a(href=item.link)= item.name
+
+block content
+    div.browseDir
+        h2= prefix
+
+        if dirs.length > 0
+            ul.fa-ul
+                each dir in dirs
+                    +browseDirItem( "folder", dir )
+
+        if files.length > 0
+            ul.fa-ul
+                each file in files
+                    +browseDirItem( "file", file )
