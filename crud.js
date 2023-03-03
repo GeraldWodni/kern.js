@@ -181,11 +181,14 @@ module.exports = function _crud( k ) {
         }
 
         function readWhere( name, values, callback ) {
-            var where = opts.wheres[ name ];
+            var where = Object.assign({
+                fields: "*",
+                joins: "",
+            }, opts.wheres[ name ]);
             values.unshift( opts.table ); /* make table the first item */
             values.push( opts.orderBy );  /* add order by */
 
-            db.query( "SELECT * FROM ?? WHERE " + where.where + " ORDER BY ??", values, callback );
+            db.query( `SELECT ${where.fields} FROM ?? ${where.joins} WHERE ${where.where} ORDER BY ??`, values, callback );
         }
 
         function update( key, obj, callback ) {
