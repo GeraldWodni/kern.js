@@ -10,6 +10,7 @@ var _         = require("underscore");
 /* methods */
 var addSiteModule;
 var addPermissionType;
+var getPermissionTypes;
 var menu;
 
 var allowed = function( req, link, fullLink = "" ) {
@@ -94,10 +95,17 @@ module.exports = {
                 });
             });
 
-            /* flatten menu */
-            modules = _.union( modules.early, modules.main, modules.admin, modules.late, modules.final )
+            /* flatten menu and remove duplicates */
+            const flatModules = [];
+            const flatModuleLinks = [];
+            [ modules.early, modules.main, modules.admin, modules.late, modules.final ].forEach( stage => stage.forEach( item => {
+                if( flatModuleLinks.indexOf( item.link ) >= 0 )
+                    return;
+                flatModules.push( item );
+                flatModuleLinks.push( item.link );
+            }));
 
-            var menuItems = _.map( modules, function( module ) {
+            var menuItems = _.map( flatModules, function( module ) {
                 return _.extend( module, {
                     name: module.english != "" ? req.locales.__( module.english ) : ""
                 });
@@ -119,15 +127,15 @@ module.exports = {
                 subModules[website].permissionTypes.push( link );
         }
 
-        function getPermissionTypes( website ) {
+        getPermissionTypes = function _getPermissionTypes( website ) {
             /* top of hierarchy reached */
             if( website == null )
                 return [];
             /* framework in-between website */
             if( !subModules[website] )
-                return getPermissionTypes( k.hierarchy.up( website ) );
+                return _getPermissionTypes( k.hierarchy.up( website ) );
             /* found, concat and move up further */
-            return subModules[website].permissionTypes.concat( getPermissionTypes( k.hierarchy.up( website ) ) );
+            return subModules[website].permissionTypes.concat( _getPermissionTypes( k.hierarchy.up( website ) ) );
         }
 
         addSiteModule = function( link, website, filename, name, glyph, opts ) {
@@ -234,6 +242,9 @@ module.exports = {
     allowed: allowed,
     addPermissionType: function() {
         addPermissionType.apply( this, arguments );
+    },
+    getPermissionTypes: function() {
+        return getPermissionTypes.apply( this, arguments );
     },
     addSiteModule: function() {
         addSiteModule.apply( this, arguments );
