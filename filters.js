@@ -29,6 +29,7 @@ module.exports = function _filters( k ) {
         dateTime:   function( t ) { return f( t, /[^-\/_.: 0-9]/g               ).replace(/_/g, ' '); },
         decimal:    function( t ) { return f( t, /[^-.,0-9]/g                   ).replace(/,/g, '.'); },
         email:      function( t ) { return f( t, /[^-@+_.0-9a-zA-Z]/g            ); },
+        emails:     function( t ) { return f( t, /[^-,@+_.0-9a-zA-Z]/g           ); },
         escapedLink:function( t ) { return f( decodeURIComponent( t ), /[^-_.a-zA-Z0-9\/]/g ); },
         filename:   function( t ) { return f( t, /[^-_.0-9a-zA-Z]/g             ); },
         filepath:   function( t ) { return f( t, /[^-\/_.0-9a-zA-Z]/g           ); },
