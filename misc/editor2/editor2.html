@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor 2</title>
+    <link rel="icon" href="/images/favicon.gif">
+    <style>
+        #images img {
+            <!--max-width: 256px;-->
+        }
+    </style>
+</head>
+<body>
+    <h1>Editor2</h1>
+    <input type="file" multiple>
+    <div id="images">
+    </div>
+    <markdown-field></markdown-field>
+
+
+    <template id="markdown-field">
+    <style>
+        <!--@import "/css/kern/admin.css";-->
+        .root {
+            --info-color: #31708f;
+            --info-border: 1px solid #bce8f1;
+            --info-background: #d9edf7;
+
+            --help-width: 2rem;
+            --root-padding: 4px;
+        }
+        .root {
+            border-radius: 10px;
+            padding: var(--root-padding);
+            border: 1px solid #CCC;
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: var(--root-padding);
+            min-height: 5rem;
+        }
+        .preview,
+        .help {
+            padding: 12px;
+            min-height: 100%;
+
+            border-radius: 4px;
+        }
+        .help {
+            background-color: var(--info-background);
+            border: var(--info-border);
+        }
+        .help-container {
+            display: none;
+        }
+        .hint {
+            float: right;
+            font-style: italic;
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            margin-right: var(--help-width);
+            color: var(--info-color);
+            user-select: none;
+        }
+        .toggle-help {
+            --w: var(--help-width);
+            float: right;
+            position: relative;
+            margin-left: -2rem;
+            width: var(--w);
+            font-size: var(--w);
+            cursor: pointer;
+        }
+        /* markdown elements */
+        .markdown h1,
+        .markdown h2,
+        .markdown h3,
+        .markdown h4,
+        .markdown h5,
+        .markdown h6,
+        .markdown p
+        {
+            position: initial;
+            padding: initial;
+            margin: initial;
+        }
+        .markdown h1 { font-size: 2.0rem; }
+        .markdown h2 { font-size: 1.75rem; }
+        .markdown h3 { font-size: 1.5rem; }
+        .markdown h4 { font-size: 1.3rem; }
+        .markdown h5 { font-size: 1.2rem; }
+        .markdown h6 { font-size: 1.1rem; }
+        .markdown blockquote::before {
+            --h: 4rem;
+
+            display: block;
+            position: relative;
+            top: -1rem;
+            left: -2rem;
+            height: var(--h);
+            margin-bottom: calc( var(--h)*-1 );
+
+            color: #AAA;
+            content: open-quote;
+            font-size: 4rem;
+            quotes: "“" "”";
+        }
+    </style>
+    <div class="root">
+        <div class="toggle-help">
+            <span title="Help" class=text-info">?</span>
+        </div>
+        <div class="wrapper">
+            <textarea id="" class="form-control" name="text">
+                # Überschrift
+                **bold**
+                *kursive*  
+                newline?
+            </textarea>
+            <div class="preview-container">
+                <div class="hint">
+                    Preview
+                </div>
+                <div class="preview markdow">
+                </div>
+            </div>
+            <div class="help-container"></div>
+                <div class="hint">
+                    Help
+                </div>
+                <div class="help markdown">
+                    p Markdown funktioniert mit einfachen Textsymbolen.
+                        br
+                        | Hier ein paar Beispiele:
+                        br
+                        |  
+                    h1 # Überschrift 1
+                    h2 ## Überschrift 2
+                    b **fett**
+                    br
+                    i *kursiv*
+                </div>
+        </div>
+    </div>
+    </template>
+
+    <script type="module" src="js/marked.min.js"></script>
+    <script type="module" src="js/markdown-field.mjs"></script>
+    <script type="module" src="js/editor2.mjs"></script>
+</body>
+</html>
