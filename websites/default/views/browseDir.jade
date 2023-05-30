@@ -14,6 +14,14 @@ block content
                 each dir in dirs
                     +browseDirItem( "folder", dir )
 
+        if indexHtml != null
+            .browse-index.browse-index-html
+                != indexHtml
+
+        if indexMarkdown != null
+            .browse-index.browse-index-markdown
+                != marked( indexMarkdown )
+
         if files.length > 0
             ul.fa-ul
                 each file in files

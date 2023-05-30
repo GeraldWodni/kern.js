@@ -27,7 +27,7 @@ module.exports = function _static( k, opts ) {
         callback( pathname.indexOf( prefix ) == 0, pathname );
     };
 
-    async function renderBrowseDirectory( req, res, prefix, dirpath ) {
+    async function renderBrowseDirectory( req, res, prefix, dirpath, opts ) {
         const items = await fs.promises.readdir( dirpath );
         const dirs = [];
         const files = [];
@@ -39,6 +39,8 @@ module.exports = function _static( k, opts ) {
                 link: upLink,
             });
 
+        let indexHtml = null;
+        let indexMarkdown = null;
         for( let item of items ) {
             const itemPath = path.join( dirpath, item );
             const stat = await fs.promises.stat( itemPath )
@@ -51,11 +53,17 @@ module.exports = function _static( k, opts ) {
 
             if( stat.isDirectory() )
                 dirs.push( obj );
-            else
+            else {
                 files.push( obj );
+                console.log( opts.indexHtml, obj.name );
+                if( opts.indexHtml && obj.name == "index.html" )
+                    indexHtml = (await fs.promises.readFile( itemPath )).toString();
+                else if( opts.indexMarkdown && obj.name == "index.md" )
+                    indexMarkdown = (await fs.promises.readFile( itemPath )).toString();
+            }
         }
 
-        k.jade.render( req, res, "browseDir", { prefix, dirs, files } );
+        k.jade.render( req, res, "browseDir", { prefix, dirs, files, indexHtml, indexMarkdown } );
     }
 
     function prefixServeStatic( router, prefix, opts = {} ) {
@@ -71,7 +79,7 @@ module.exports = function _static( k, opts ) {
 
                         /* list browsable directoy (if enable via opts.browse) */
                         if( opts.browse )
-                            return renderBrowseDirectory( req, res, pathname, filepath );
+                            return renderBrowseDirectory( req, res, pathname, filepath, opts );
 
                         return k.err.renderHttpStatus( req, res, 404 );
                     }
