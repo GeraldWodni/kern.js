@@ -5,8 +5,20 @@
     <title>Editor 2</title>
     <link rel="icon" href="/images/favicon.gif">
     <style>
+        #images {
+            border: 3px solid #DDD;
+            border-radius: 10px;
+            margin: 20px 0;
+            min-height: 1em;
+            padding: 0.5em;
+        }
         #images img {
-            <!--max-width: 256px;-->
+            --w: 128px;
+            width: var(--w);
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #DDD;
         }
     </style>
 </head>
@@ -125,7 +137,7 @@
                 <div class="preview markdow">
                 </div>
             </div>
-            <div class="help-container"></div>
+            <div class="help-container">
                 <div class="hint">
                     Help
                 </div>
@@ -141,6 +153,7 @@
                     br
                     i *kursiv*
                 </div>
+            </div>
         </div>
     </div>
     </template>
