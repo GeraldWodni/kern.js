@@ -51,8 +51,10 @@ module.exports = function _static( k, opts ) {
                 path: itemPath,
             };
 
-            if( stat.isDirectory() )
+            if( stat.isDirectory() ) {
+                obj.link += "/";
                 dirs.push( obj );
+            }
             else {
                 files.push( obj );
                 console.log( opts.indexHtml, obj.name );
