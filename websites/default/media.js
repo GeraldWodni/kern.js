@@ -151,7 +151,7 @@ module.exports = {
             k.hierarchy.readHierarchyTree( req.kern.website, "/", _.extend( {}, hierarchyFilters(req), {
                 prefix: "/"
             }),
-            function( err, tree ) {
+            async function( err, tree ) {
                 if( err ) return next( err );
                 //console.log( "TREE", tree );
 
@@ -179,14 +179,14 @@ module.exports = {
                     currentFiles.push( file );
                 });
 
-                const reqValues = setupOpts.reqValues || k.reg("admin").values;
+                const reqValues = setupOpts.reqValues || k.reg("admin").pValues;
 
                 k.jade.render( req, res, view, reqValues( req, _.extend( {
                     tree: tree,
                     dirOptions: setupOpts.dirOptions,
                     currentPath: currentPath,
                     currentFiles: currentFiles
-                }, values ) ) );
+                }, await values ) ) );
             });
         }
 

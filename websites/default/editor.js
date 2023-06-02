@@ -31,9 +31,9 @@ module.exports = {
             k.hierarchy.readHierarchyTree( req.kern.website, ".", _.extend( {}, hierarchyFilters, {
                 prefix: "/admin/editor/edit"
             }),
-            function( err, tree ) {
+            async function( err, tree ) {
                 if( err ) return next( err );
-                k.jade.render( req, res, "admin/editor", k.reg("admin").values( req, _.extend( { tree: tree }, values ) ) );
+                k.jade.render( req, res, "admin/editor", await k.reg("admin").pValues( req, _.extend( { tree: tree }, values ) ) );
             });
         }
 

@@ -34,7 +34,7 @@ module.exports = {
         });
 
         function renderAll( req, res, values ) {
-            k.rdb.navigation.readAll( req.kern.website, function( err, items ) {
+            k.rdb.navigation.readAll( req.kern.website, async function( err, items ) {
                 if( err )
                     next( err );
                     
@@ -43,7 +43,7 @@ module.exports = {
                 });
             
                 /* TODO: generic non-JS version */
-                k.renderJade( req, res, "admin/navigation", k.reg("admin").values( req, { messages: req.messages, items: items, values: values } ) );
+                k.renderJade( req, res, "admin/navigation", await k.reg("admin").pValues( req, { messages: req.messages, items: items, values: values } ) );
             });
         }
 

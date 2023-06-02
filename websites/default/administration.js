@@ -51,6 +51,23 @@ function viewValues( req, values ) {
 
     return _.extend( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof( req.user ) !== "undefined" }, values );
 };
+async function pViewValues( req, values ) {
+    values = values || {};
+    if( typeof req.adminValues == "object" )
+        values = Object.assign( req.adminValues, values );
+
+    const promises = [];
+    if( valueCallbacks.hasOwnProperty( req.kern.website ) )
+        for( let callback of valueCallbacks[ req.kern.website ] ) {
+            const res = callback( req, values ); 
+            if( res instanceof Promise )
+                promises.push( res );
+        }
+
+    await Promise.all(promises);
+
+    return Object.assign( { menu: menu( req ), getField: getField, userIsLoggedIn: typeof req.user !== "undefined" }, values );
+}
 
 module.exports = {
     setup: function( k ) {
@@ -181,8 +198,8 @@ module.exports = {
         }, "Logout", "log-out", { router: "late" } );
 
         /* manual info (first item, last match) */
-        addSiteModule( "", "default", function( req, res ) {
-            k.jade.render( req, res, "admin/info", viewValues( req ) );
+        addSiteModule( "", "default", async function( req, res ) {
+            k.jade.render( req, res, "admin/info", await pViewValues( req ) );
         }, "Info", "info-sign", { router: "final", menu: "early" } );
 
         /* use routers by hierarchy and priority */
@@ -238,6 +255,7 @@ module.exports = {
 
     },
     values: viewValues,
+    pValues: pViewValues,
     addValuesCallback: addValuesCallback,
     allowed: allowed,
     addPermissionType: function() {

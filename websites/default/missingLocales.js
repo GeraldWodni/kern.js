@@ -64,7 +64,7 @@ module.exports = {
         });
 
         k.router.get( "/", function( req, res, next ) {
-            k.rdb.smembers( "missing-locales", function( err, members ) {
+            k.rdb.smembers( "missing-locales", async function( err, members ) {
                 if( err )
                     return next( err );
 
@@ -72,7 +72,7 @@ module.exports = {
                 var websites = req.locales.getWebsites();
                 websites = _.object( _.map( websites, website => [ website, website ? website : '<root>' ] ) );
 
-                k.jade.render( req, res, "admin/missingLocales", k.reg("admin").values( req, {
+                k.jade.render( req, res, "admin/missingLocales", await k.reg("admin").pValues( req, {
                     members: members,
                     locales: req.locales.available,
                     websites: websites

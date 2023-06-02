@@ -1122,7 +1122,7 @@ module.exports = function _crud( k ) {
                             );
                         }
 
-                        promise.then( () => {
+                        promise.then( async () => {
                             var jadeCrudOpts = {
                                 items: items,
                                 idField: opts.id,
@@ -1156,7 +1156,7 @@ module.exports = function _crud( k ) {
                                 ajaxList: opts.ajaxList
                             };
 
-                            var jadeValues = k.reg("admin").values( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
+                            var jadeValues = await k.reg("admin").pValues( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
                             if( opts.renderExtender )
                                 opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
                                     if( err )
