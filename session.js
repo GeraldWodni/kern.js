@@ -26,20 +26,26 @@ module.exports = function _session( k, opts ) {
     }
 
     /* active sessions */
-    function activeSessions( website ) {
+    function activeSessions( website, opts = {} ) {
         return new Promise( (fulfill, reject) => {
             k.rdb.keys( `session:${website}:*`, (err, sessionKeys) => {
                 if( err ) return reject( err );
 
                 const multi = k.rdb.multi();
                 sessionKeys.forEach( sessionKey => multi.hgetall( sessionKey ) );
+                sessionKeys.forEach( sessionKey => multi.ttl( sessionKey ) );
                 /* fetch sessions */
                 const now = new moment();
-                multi.exec( (err, sessions ) => {
+                multi.exec( (err, data ) => {
+                    const sessions = data.slice( 0, data.length/2 );
+                    const ttls = data.slice( data.length/2 );
                     if( err ) return reject( err );
                     for( var i = 0; i < sessions.length; i++ ) {
                         const lastActivity = moment( sessions[i]["session:activity"] );
                         sessions[i]["session:activityDuration"] = moment.utc( now.diff( lastActivity ) );
+                        sessions[i]["session:ttl"] = ttls[i];
+                        if( opts.addKey )
+                            sessions[i]["session:key"] = sessionKeys[i];
                     }
                     fulfill( sessions );
                 });
@@ -54,6 +60,11 @@ module.exports = function _session( k, opts ) {
             hash.update( buf );
 
             callback( hash.digest( "hex" ) );
+        });
+    }
+    function pRandomHash() {
+        return new Promise( (fulfill, reject) => {
+            randomHash( fulfill );
         });
     }
 
@@ -132,6 +143,18 @@ module.exports = function _session( k, opts ) {
         next();
     };
 
+    async function destroyByPseudoId( website, pseudoId ) {
+        const sessions = await activeSessions( website, { addKey: true } );
+
+        for( let session of sessions ) {
+            if( session.loggedInPseudoId == pseudoId ) {
+                await new Promise( (fulfill, reject) => k.rdb.del( session["session:key"], err => err ? reject(err) : fulfill() ) );
+                return;
+            }
+        }
+        throw new Error( `destroyByPseudoId: session with pseudoId ${pseudoId} in ${website} not found` );
+    }
+
     function destroy( req, res, next ) {
         if( req.session ) {
             res.clearCookie( opts.cookie );
@@ -190,6 +213,8 @@ module.exports = function _session( k, opts ) {
 
     return {
         getActive: activeSessions,
+        destroyByPseudoId,
+        randomHash: pRandomHash,
         pushPostHook: pushPostHook,
         route: route
     }

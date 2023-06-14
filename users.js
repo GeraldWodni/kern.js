@@ -371,8 +371,10 @@ module.exports = function _users( k ) {
                                 if( err )
                                     return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
 
-                                req.sessionInterface.start( req, res, function() {
+                                req.sessionInterface.start( req, res, async function() {
                                     req.session.loggedInUsername = username;
+                                    req.session.loggedInUserId = data.id;
+                                    req.session.loggedInPseudoId = await k.session.randomHash(); /* hint: use this for identifying the session rather than providing the real sid */
                                     req.user = data;
                                     req.method = "GET";
                                     next();
