@@ -101,6 +101,10 @@ module.exports = function _users( k ) {
     function create( prefix, obj, next ) {
         var userCounter = prefix + ":users";
 
+        /* if permissions are set separatly, ensure the field is present at user creation */
+        if( ! obj.hasOwnProperty("permissions") )
+            obj.permissions = "logout";
+
         var name = obj[ "name" ];
         console.log( "Create new User".bold.green, getNamesKey( prefix ), name );
         k.rdb.hget( getNamesKey( prefix ), name, function( err, userId ) {
