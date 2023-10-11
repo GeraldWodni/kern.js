@@ -743,7 +743,8 @@ module.exports = function _users( k ) {
         save:   save,
         load:   loadByName,
         login:  login,
-        loginRequired: loginRequired
+        loginRequired: loginRequired,
+        persistantLoginCookie,
     };
 
     /* TODO: document examples below */
