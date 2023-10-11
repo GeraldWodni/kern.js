@@ -293,6 +293,25 @@ module.exports = function _users( k ) {
         return hash;
     }
 
+    async function startPersistantLogin( req, res, username ) {
+        const series = await k.session.randomHash();
+        const token = await k.session.randomHash();
+
+        await req.kern.db.pQuery( `
+            INSERT INTO persistantLogins
+            (series, hashedToken, username, expires)
+            VALUES
+            ({series}, SHA2({token}, 256), {username}, DATE_ADD( NOW(), INTERVAL {persistantLoginDays} DAY ))
+        `,{
+            series,
+            token,
+            username,
+            persistantLoginDays
+        });
+
+        setPersistantLoginCookie( req, res, series, token );
+    }
+
     function setPersistantLoginCookie( req, res, series, token ) {
         const value = `${series}-${token}`;
         res.cookie( persistantLoginCookie, value, {
@@ -442,9 +461,12 @@ module.exports = function _users( k ) {
                         if( req.postman.exists( ["login", "username", "password"] ) ) {
                             var username = req.postman.username();
                             console.log( "Login: ", username );
-                            login( req.kern.website, username, req.postman.password(), { loadByName: opts.loadByName }, function( err, data ) {
+                            login( req.kern.website, username, req.postman.password(), { loadByName: opts.loadByName }, async function( err, data ) {
                                 if( err )
                                     return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
+
+                                if( persistantLoginDays && req.postman.exists("rememberMe") )
+                                    await startPersistantLogin( req, res, username );
 
                                 req.sessionInterface.start( req, res, async function() {
                                     req.session.loggedInUsername = username;

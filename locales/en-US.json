@@ -370,5 +370,6 @@
     "default": "default",
     "Captcha not correct": "Captcha not correct",
     "The resource that is being accessed is locked.": "The resource that is being accessed is locked.",
-    "Locked": "Locked"
+    "Locked": "Locked",
+    "Remember Me": "Remember Me"
 }
