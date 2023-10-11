@@ -268,6 +268,35 @@ Once a session is started, a cookie (default name: `kernSession`) is sent and up
 To allow returning from an external processing i.e. payment providers, an external cookie can be set using `req.sessionInterface.setExternalCookie( req, res )`.
 After the external process has concluded, the cookie should be destroyed using `req.sessionInterface.destroyExternalCookie( req, res )`.
 
+### Persistant Logins
+Using a combination of [best practice (2006)](https://web.archive.org/web/20180819014446/http://jaspan.com/improved_persistent_login_cookie_best_practice) and an [updated strategy described here (2015)](https://paragonie.com/blog/2015/04/secure-authentication-php-with-long-term-persistence#title.2), the persistant login works as follows:
+
+1. When the user successfully logs in with _Remember me_ checked, a `persistantLoginCookie` is issued in addition to the standard session cookie.
+2. The `persistantLoginCookie` contains a series identifier and a token. The series and token are unguessable random numbers. They are stored in the persistantSessions table.
+3. When a non-logged-in user visits the site and presents a `persistantLoginCookie`, the series and token are looked up in the database.
+  1. If the pair is present, the user is considered authenticated. The used token is replaced in the database and the cookie.
+  2. If the series is present but the token does not match, a theft is assumed. The user receives a strongly worded warning and all of the user's persistant logins are deleted.
+  3. If the series is not present, the `persistantLoginCookie` is ignored.
+
+#### Cookie
+The cookie consists of two random values which are SHA256 hashed:
+- A `series` (64 chars long)
+- A `token` (64 chars long)
+- They are sepated by `-`.
+
+Example: `5db1fee4b5703808c48078a76768b155b421b210c0761cd6a5d223f4d99f1eaa-b7d8d2de6ec20d8ac3b75ea3a9054b9f9079d5947c52dbb230356014934cccac`
+
+#### Table
+```sql
+CREATE TABLE persistantLogins(
+    series VARCHAR(64) NOT NULL,        -- unique series
+    hashedToken VARCHAR(64) NOT NULL,   -- token value, but hashed
+    username VARCHAR(64) NOT NULL,      -- associated user name
+    expires DATETIME NOT NULL,          -- old persistantLogins are removed
+    PRIMARY KEY(series)
+);
+```
+
 ## Hooks
 *TODO*
 

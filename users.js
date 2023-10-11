@@ -17,6 +17,9 @@ module.exports = function _users( k ) {
     var captchaTimeout = 1800;
     var forbiddenKeys = [ "id", "prefix", "password" ];
 
+    const persistantLoginDays = process.env.KERN_PERSISTANT_LOGIN_DAYS || null;
+    const persistantLoginCookie = "kernPersistantLogin";
+
     function getKey( prefix, id ) {
         return prefix + ":user:" + id;
     }
@@ -290,6 +293,14 @@ module.exports = function _users( k ) {
         return hash;
     }
 
+    function setPersistantLoginCookie( req, res, series, token ) {
+        const value = `${series}-${token}`;
+        res.cookie( persistantLoginCookie, value, {
+            httpOnly: true,
+            maxAge: persistantLoginDays * 24 * 60 * 60 * 1000,
+        });
+    }
+
     /* TODO: save prefix in session to avoid cross-site hack-validation */
     /* loginRenderer: function( req, res ) or jade-filename */
     function loginRequired( loginRenderer, opts ) {
@@ -326,7 +337,7 @@ module.exports = function _users( k ) {
             var captchaPre = '<pre style="font-size:3px;line-height:2px;">' + captcha.word2Transformedstr(captchaWord) + '</pre>';
 
             /* save csrf and captcha (which is only used for registration) */
-            k.rdb.set( [ getCsrfKey( req.kern.website, csrf ), captchaWord, "EX", captchaTimeout ], function( err ) {
+            k.rdb.set( [ getCsrfKey( req.kern.website, csrf ), captchaWord, "EX", captchaTimeout ], async function( err ) {
                 console.log( "loginRequired:csrf", err );
                 if( err )
                     return next( err );
@@ -362,6 +373,66 @@ module.exports = function _users( k ) {
                         next();
                     });
                     return;
+                }
+
+                /* persistant logins, see ReadMe.md */
+                if( persistantLoginDays && req.cookies && persistantLoginCookie in req.cookies ) {
+                    try {
+                        const [ series, token ] = req.cookies[ persistantLoginCookie ].split("-");
+                        let user = await req.kern.db.pQuery(`
+                            SELECT
+                                username,
+                                hashedToken=SHA2( {token}, 256 ) AS tokenOk
+                            FROM persistantLogins
+                            WHERE expires > NOW()
+                            AND series={series}
+                        `, { series, token });
+
+                        if( user.length != 1 )
+                            throw new Error( "Unknown user: no matching long term session found" );
+
+                        user = user[0];
+                        if( !user.tokenOk ) {
+                            /* TODO: delete all long term series and all open sessions, display warning */
+                            throw new Error( "Unknown user: identity theft" );
+                        }
+
+                        /* create new token to resume series */
+                        const newToken = await k.session.randomHash();
+                        await req.kern.db.pQuery(`
+                            UPDATE persistantLogins
+                            SET hashedToken=SHA2( {newToken}, 256 ),
+                                expires=DATE_ADD( NOW(), INTERVAL {persistantLoginDays} DAY )
+                            WHERE series={series};
+                            DELETE FROM persistantLogins
+                            WHERE expires < NOW()
+                        `, { series, newToken, persistantLoginDays });
+
+                        setPersistantLoginCookie( req, res, series, newToken );
+
+                        /* start session */
+                        return users.login( req.kern.website, user.username, "", { assumePasswordCorrect: true, loadByName: opts.loadByName }, function( err, data ) {
+                            if( err )
+                                return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
+
+                            req.sessionInterface.start( req, res, async function() {
+                                req.session.loggedInUsername = user.username;
+                                req.session.loggedInUserId = data.id;
+                                req.session.loggedInPseudoId = await k.session.randomHash(); /* hint: use this for identifying the session rather than providing the real sid */
+                                req.user = data;
+                                next();
+                            });
+                        })
+                    } catch( err ) {
+                        if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
+                            console.log( "Login invalid, destroy session".red.bold, err );
+                            return req.sessionInterface.destroy( req, res, function() {
+                                executeOrRender( req, res, next, loginRenderer, vals );
+                            });
+                        }
+                        else
+                            return next( err, null );
+                    }
                 }
 
                 /* check for credentials */
