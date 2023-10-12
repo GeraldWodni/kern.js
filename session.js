@@ -159,8 +159,8 @@ module.exports = function _session( k, opts ) {
         if( req.session ) {
             res.clearCookie( opts.cookie );
             res.clearCookie( opts.externalCookie );
-            if( k.users.persistantLoginCookie )
-                res.clearCookie( k.users.persistantLoginCookie );
+            if( k.users.persistentLoginCookie )
+                res.clearCookie( k.users.persistentLoginCookie );
             k.rdb.del( sessionKey( req ) );
 
             req.session = undefined;

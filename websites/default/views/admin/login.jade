@@ -25,6 +25,8 @@ block content
                 div.form-group
                     label(for='password')= __("Password")
                     input.form-control(id='password',type='password',name='password',placeholder='Passwort')
+                if process.env.KERN_PERSISTENT_LOGIN_DAYS
+                    +checkbox-field("rememberMe", __("Remember Me"))(title="#{process.env.KERN_PERSISTENT_LOGIN_DAYS} days")
                 button.btn.btn-default(type='submit',name='login',value='yes') Login
                 //- TODO: remove style
                 p.hostname(style="text-align:right;color:#AAA")

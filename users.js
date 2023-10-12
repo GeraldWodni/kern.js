@@ -17,8 +17,8 @@ module.exports = function _users( k ) {
     var captchaTimeout = 1800;
     var forbiddenKeys = [ "id", "prefix", "password" ];
 
-    const persistantLoginDays = process.env.KERN_PERSISTANT_LOGIN_DAYS || null;
-    const persistantLoginCookie = "kernPersistantLogin";
+    const persistentLoginDays = process.env.KERN_PERSISTENT_LOGIN_DAYS || null;
+    const persistentLoginCookie = "kernPersistentLogin";
 
     function getKey( prefix, id ) {
         return prefix + ":user:" + id;
@@ -293,30 +293,30 @@ module.exports = function _users( k ) {
         return hash;
     }
 
-    async function startPersistantLogin( req, res, username ) {
+    async function startPersistentLogin( req, res, username ) {
         const series = await k.session.randomHash();
         const token = await k.session.randomHash();
 
         await req.kern.db.pQuery( `
-            INSERT INTO persistantLogins
+            INSERT INTO persistentLogins
             (series, hashedToken, username, expires)
             VALUES
-            ({series}, SHA2({token}, 256), {username}, DATE_ADD( NOW(), INTERVAL {persistantLoginDays} DAY ))
+            ({series}, SHA2({token}, 256), {username}, DATE_ADD( NOW(), INTERVAL {persistentLoginDays} DAY ))
         `,{
             series,
             token,
             username,
-            persistantLoginDays
+            persistentLoginDays
         });
 
-        setPersistantLoginCookie( req, res, series, token );
+        setPersistentLoginCookie( req, res, series, token );
     }
 
-    function setPersistantLoginCookie( req, res, series, token ) {
+    function setPersistentLoginCookie( req, res, series, token ) {
         const value = `${series}-${token}`;
-        res.cookie( persistantLoginCookie, value, {
+        res.cookie( persistentLoginCookie, value, {
             httpOnly: true,
-            maxAge: persistantLoginDays * 24 * 60 * 60 * 1000,
+            maxAge: persistentLoginDays * 24 * 60 * 60 * 1000,
         });
     }
 
@@ -394,15 +394,15 @@ module.exports = function _users( k ) {
                     return;
                 }
 
-                /* persistant logins, see ReadMe.md */
-                if( persistantLoginDays && req.cookies && persistantLoginCookie in req.cookies ) {
+                /* persistent logins, see ReadMe.md */
+                if( persistentLoginDays && req.cookies && persistentLoginCookie in req.cookies ) {
                     try {
-                        const [ series, token ] = req.cookies[ persistantLoginCookie ].split("-");
+                        const [ series, token ] = req.cookies[ persistentLoginCookie ].split("-");
                         let user = await req.kern.db.pQuery(`
                             SELECT
                                 username,
                                 hashedToken=SHA2( {token}, 256 ) AS tokenOk
-                            FROM persistantLogins
+                            FROM persistentLogins
                             WHERE expires > NOW()
                             AND series={series}
                         `, { series, token });
@@ -419,15 +419,15 @@ module.exports = function _users( k ) {
                         /* create new token to resume series */
                         const newToken = await k.session.randomHash();
                         await req.kern.db.pQuery(`
-                            UPDATE persistantLogins
+                            UPDATE persistentLogins
                             SET hashedToken=SHA2( {newToken}, 256 ),
-                                expires=DATE_ADD( NOW(), INTERVAL {persistantLoginDays} DAY )
+                                expires=DATE_ADD( NOW(), INTERVAL {persistentLoginDays} DAY )
                             WHERE series={series};
-                            DELETE FROM persistantLogins
+                            DELETE FROM persistentLogins
                             WHERE expires < NOW()
-                        `, { series, newToken, persistantLoginDays });
+                        `, { series, newToken, persistentLoginDays });
 
-                        setPersistantLoginCookie( req, res, series, newToken );
+                        setPersistentLoginCookie( req, res, series, newToken );
 
                         /* start session */
                         return users.login( req.kern.website, user.username, "", { assumePasswordCorrect: true, loadByName: opts.loadByName }, function( err, data ) {
@@ -465,8 +465,8 @@ module.exports = function _users( k ) {
                                 if( err )
                                     return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
 
-                                if( persistantLoginDays && req.postman.exists("rememberMe") )
-                                    await startPersistantLogin( req, res, username );
+                                if( persistentLoginDays && req.postman.exists("rememberMe") )
+                                    await startPersistentLogin( req, res, username );
 
                                 req.sessionInterface.start( req, res, async function() {
                                     req.session.loggedInUsername = username;
@@ -766,7 +766,7 @@ module.exports = function _users( k ) {
         load:   loadByName,
         login:  login,
         loginRequired: loginRequired,
-        persistantLoginCookie,
+        persistentLoginCookie,
     };
 
     /* TODO: document examples below */
