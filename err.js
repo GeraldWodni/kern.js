@@ -17,6 +17,9 @@ module.exports = function _err( k ) {
     }
 
     function isDebugHost( ip ) {
+        if( process.env.KERN_DEBUG === "true" )
+            return true
+
         /* check all debugHost-prefixes */
         var debugHosts = k.kernOpts.debugHosts || [];
         for( var i = 0; i < debugHosts.length; i++ )
