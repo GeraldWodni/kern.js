@@ -3,7 +3,7 @@
 "use strict";
 
 var fs   = require("fs");
-var http = require("http");
+var https= require("https");
 var path = require("path");
 var _    = require("underscore");
 
@@ -51,7 +51,7 @@ module.exports = function _proxyCache( k ) {
 
             /* provide loader on cache miss */
             serve( website, cacheFilename, req, res, function( callback ) {
-                http.get( "http://www.gravatar.com/avatar/" + email + "?s=" + size + "&d=" + def, callback);
+                https.get( "https://www.gravatar.com/avatar/" + email + "?s=" + size + "&d=" + def, callback);
             });
         });
 
