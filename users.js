@@ -445,6 +445,11 @@ module.exports = function _users( k ) {
                     } catch( err ) {
                         if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
                             console.log( "Login invalid, destroy session".red.bold, err );
+                            /* delete this long term series, display warning */
+                            res.clearCookie( persistentLoginCookie );
+                            Object.assign( vals, {
+                                error: err,
+                            });
                             return req.sessionInterface.destroy( req, res, function() {
                                 executeOrRender( req, res, next, loginRenderer, vals );
                             });
