@@ -71,23 +71,42 @@ module.exports = function _filters( k ) {
         var filters = {
             /* walk array through filter */
             array: function( filter, field ) {
-                var values = [];
                 if( typeof field === "undefined" )
                     field = filter;
 
-                var data = fetch( field );
-                if( !Array.isArray( data ) )
-                    if( typeof data === "undefined" || data === "" )
-                        data = [];          // no value generates empty array
-                    else
-                        data = [ data ];    // convert single value to array
+                const data = filters.object( filter, field, "uint" );
+                const values = [];
 
-                data.forEach( function( item ) {
-                    values.push( registeredFilters[ filter ]( item ) );
-                });
+                for( let i = 0; i < Object.keys( data ).length; i++ )
+                    if( data.hasOwnProperty( i ) )
+                        values.push( registeredFilters[ filter ]( data[i] ) );
+                    else
+                        throw new Error( "filter.array expects all field-keys to be numeric and a contonious range from [0..n)" );
 
                 return values;
-            }
+            },
+            object: function( filter, field, keyFilter = "id" ) {
+                if( typeof field === "undefined" )
+                    field = filter;
+
+                let data = fetch( field );
+                if( typeof data != "object" )
+                    if( typeof data === "undefined" || data === "" )
+                        return {};
+                    else
+                        throw new Error( `filter.object expectes field(${field}) to fetch as object` );
+
+                if( data == null )
+                    data = {};
+
+                const obj = {}
+                for( let [key, value] of Object.entries( data ) ) {
+                    key = registeredFilters[ keyFilter ]( key );
+                    obj[ key ] = registeredFilters[ filter ]( value );
+                }
+
+                return obj;
+            },
         };
         _.each( registeredFilters, function _filters_fetch_callback( filter, name ) {
             filters[ name ] = function( field ) {
