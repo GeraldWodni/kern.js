@@ -84,7 +84,7 @@ module.exports = function _postman( k ) {
                         break;
                     /* assume post-data */
                     default:
-                        addPostman( qs.parse( body ) );
+                        addPostman( qs.parse( body, { parseArrays: false } ) );
                 }
 
                 callback( req, res );
