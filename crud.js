@@ -116,13 +116,20 @@ module.exports = function _crud( k ) {
             listOpts = listOpts || {};
             var query = listOpts.query || opts.selectListQuery;
             var sql = "SELECT REPLACE(NOW(), ' ', '_') AS now; ";
+            const untilParam = listOpts.until ? "?" : "NOW()";
             if( listOpts.useDeleteLog )
-                sql+= "SELECT moduleUin FROM deleteLog WHERE module=? AND `deleted`>=?; ";
+                sql+= "SELECT moduleUin FROM deleteLog WHERE module=? AND `deleted` BETWEEN ? AND " + untilParam +  "; ";
             else
                 sql+= "SELECT ?? FROM ?? ORDER BY ??; ";
-            sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified>=? ORDER BY' );
+            sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified BETWEEN ? AND ' + untilParam + ' ORDER BY' );
 
-            const parameters = listOpts.parameters || [ ( listOpts.useDeleteLog ? [ opts.table, lastSync ] : [ opts.key, opts.table, opts.key ] ), /* <ids | query> */ [ opts.table, opts.table, lastSync, opts.orderBy ] ].flat();
+            const parameters = listOpts.parameters || [
+                ( listOpts.useDeleteLog ? [ opts.table, lastSync ] : [ opts.key, opts.table, opts.key ] ), /* ids */
+                ( listOpts.useDeleteLog && listOpts.until ? [ listOpts.until ] : [] ), /* until */
+                [ opts.table, opts.table, lastSync ], /* query */
+                ( listOpts.until ? [ listOpts.until ] : [] ),
+                [ opts.orderBy ], /* order */
+            ].flat();
 
             if( listOpts.page && listOpts.pageSize ) {
                 sql += "LIMIT ?, ?";
