@@ -131,7 +131,7 @@ module.exports = function _crud( k ) {
                 [ opts.orderBy ], /* order */
             ].flat();
 
-            if( listOpts.page && listOpts.pageSize ) {
+            if( listOpts.hasOwnProperty("page") && listOpts.pageSize ) {
                 sql += "LIMIT ?, ?";
                 parameters.push( listOpts.page * listOpts.pageSize ); // offset
                 parameters.push( listOpts.pageSize ); // row count
