@@ -124,6 +124,12 @@ module.exports = function _crud( k ) {
 
             const parameters = listOpts.parameters || [ ( listOpts.useDeleteLog ? [ opts.table, lastSync ] : [ opts.key, opts.table, opts.key ] ), /* <ids | query> */ [ opts.table, opts.table, lastSync, opts.orderBy ] ].flat();
 
+            if( listOpts.page && listOpts.pageSize ) {
+                sql += "LIMIT ?, ?";
+                parameters.push( listOpts.page * listOpts.pageSize ); // offset
+                parameters.push( listOpts.pageSize ); // row count
+            }
+
             db.query( { sql: sql, nestTables: query.nestTables || false }, parameters, function( err, data ) {
                 if( err ) return callback( err );
                 var displayRows = [];
