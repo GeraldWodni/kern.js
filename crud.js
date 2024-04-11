@@ -102,13 +102,29 @@ module.exports = function _crud( k ) {
             db.query( listOpts.query || opts.selectListQuery, listOpts.parameters || [ opts.table, opts.orderBy ], callback );
         }
 
+        function pReadDisplayList( lastSync, listOpts = {} ) {
+            return new Promise( (fulfill, reject) => {
+                readDisplayList( lastSync, (err, data) => {
+                    if( err )
+                        return reject( err );
+                    fulfill( data );
+                }, listOpts );
+            });
+        }
+
         function readDisplayList( lastSync, callback, listOpts ) {
             listOpts = listOpts || {};
             var query = listOpts.query || opts.selectListQuery;
             var sql = "SELECT REPLACE(NOW(), ' ', '_') AS now; ";
+            if( listOpts.useDeleteLog )
+                sql+= "SELECT moduleUin FROM deleteLog WHERE module=? AND `deleted`>=?; ";
+            else
                 sql+= "SELECT ?? FROM ?? ORDER BY ??; ";
-                sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified>=? ORDER BY' );
-            db.query( { sql: sql, nestTables: query.nestTables || false }, listOpts.parameters || [ opts.key, opts.table, opts.key, /* <ids | query> */ opts.table, opts.table, lastSync, opts.orderBy ], function( err, data ) {
+            sql+= (query.sql || query).replace( /ORDER BY/, 'WHERE ??.modified>=? ORDER BY' );
+
+            const parameters = listOpts.parameters || [ ( listOpts.useDeleteLog ? [ opts.table, lastSync ] : [ opts.key, opts.table, opts.key ] ), /* <ids | query> */ [ opts.table, opts.table, lastSync, opts.orderBy ] ].flat();
+
+            db.query( { sql: sql, nestTables: query.nestTables || false }, parameters, function( err, data ) {
                 if( err ) return callback( err );
                 var displayRows = [];
                 data[2].forEach( row => {
@@ -143,10 +159,13 @@ module.exports = function _crud( k ) {
                 var deleteIds = [];
                 var lastId = 1;
 
-                data[1].forEach( row => {
-                    while( lastId++ < row.uin )
-                        deleteIds.push( lastId - 1 );
-                });
+                if( listOpts.useDeleteLog )
+                    deleteIds = [... data[1] ].map( r => r.moduleUin );
+                else
+                    data[1].forEach( row => {
+                        while( lastId++ < row.uin )
+                            deleteIds.push( lastId - 1 );
+                    });
 
                 callback( null, {
                     now: data[0][0].now,
@@ -211,6 +230,7 @@ module.exports = function _crud( k ) {
                 pagePrefixes,
                 readList: readList,
                 readDisplayList: readDisplayList,
+                pReadDisplayList,
                 readForeignKey: readForeignKey,
                 readWhere: readWhere,
                 update: update,
