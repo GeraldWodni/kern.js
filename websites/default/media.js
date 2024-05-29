@@ -6,7 +6,6 @@ var path    = require("path");
 var async   = require("async");
 var util    = require("util");
 var rmrf    = require("rmrf");
-var multer  = require("multer");
 var _       = require("underscore");
 
 module.exports = {
@@ -127,24 +126,6 @@ module.exports = {
                 }
             });
         });
-
-        /* upload */
-        /* TODO: fix for new multer-API */
-        //k.router.use("/upload/*", multer({
-        //    /* change target directory */
-        //    changeDest: function _upload_changeDest( dest, req, res ) {
-        //        var pathname = req.params[0];
-        //        if( pathname.indexOf( "files/" ) != 0 ) {
-        //            res.status( 403 ).send({success:false, cracker: true});
-        //            return false;
-        //        }
-        //        return k.hierarchy.lookupFile( req.kern.website, pathname )
-        //    },
-        //    /* rename special chars */
-        //    rename: function _upload_rename( fieldname, filename, req, res ) {
-        //        return k.filters.renameFile( filename );
-        //    }
-        //}));
 
         /* render directory tree & files */
         function renderAll( req, res, next, values ) {
