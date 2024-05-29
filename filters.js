@@ -74,7 +74,16 @@ module.exports = function _filters( k ) {
                 if( typeof field === "undefined" )
                     field = filter;
 
-                const data = filters.object( filter, field, "uint" );
+                let data;
+                try {
+                    data = filters.object( filter, field, "uint" );
+                } catch( err ) {
+                    /* only a single value was trasmitted */
+                    if( err.message.indexOf( "filter.object expects field" ) != 0 )
+                        throw err;
+
+                    data = { 0: registeredFilters[ filter ]( fetch( field ) ) };
+                }
                 const values = [];
 
                 for( let i = 0; i < Object.keys( data ).length; i++ )
@@ -94,7 +103,7 @@ module.exports = function _filters( k ) {
                     if( typeof data === "undefined" || data === "" )
                         return {};
                     else
-                        throw new Error( `filter.object expectes field(${field}) to fetch as object` );
+                        throw new Error( `filter.object expects field(${field}) to fetch as object` );
 
                 if( data == null )
                     data = {};
