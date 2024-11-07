@@ -54,7 +54,7 @@ function syncUsers {
     REDIS_REPLY=$(wget -q -O - localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/user/export/$WEBSITE)
     REDIS_RC=$?
     if [ $REDIS_RC -ne 0 ]; then
-        print "syncUsers wget Error: $REDIS_RC"
+        echo "syncUsers wget Error: $REDIS_RC"
         return
     fi
 
