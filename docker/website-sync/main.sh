@@ -8,6 +8,7 @@ USERFILE=$DIR/users.json
 # setup git
 git config --global user.name "$GIT_NAME"
 git config --global user.email "$GIT_EMAIL"
+git config --global pull.rebase false
 
 # if repo does not exists clone it
 if [ ! -d $DIR/.git ]; then
@@ -51,6 +52,12 @@ function syncUsers {
 
     # avoid startup issues (redis not ready)
     REDIS_REPLY=$(wget -q -O - localhost:$KERN_CLI_PORT/$KERN_CLI_SECRET/user/export/$WEBSITE)
+    REDIS_RC=$?
+    if [ $REDIS_RC -ne 0 ]; then
+        print "syncUsers wget Error: $REDIS_RC"
+        return
+    fi
+
     REDIS_ERROR=$(echo $REDIS_REPLY | jq --raw-output ".error")
     REDIS_MAX_ID=$(echo $REDIS_REPLY | jq --raw-output ".maxId")
     if [ $REDIS_ERROR = "true" ]; then
