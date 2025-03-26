@@ -12,16 +12,24 @@ var async   = require( "async" );
 module.exports = function _site( k, opts ) {
 
     var websites = {};
-    function load( website, next ) {
+    async function load( website, next ) {
         console.log("LoadWebsite".bold.magenta, website );
 
         /* load website-data */
         k.data.load( website );
-        var siteFilename = k.hierarchy.lookupFile( website, "site.js" );
-        if( siteFilename != null ) {
+        let siteModuleOpts = {
+            exactFilename: true,
+        };
+        var siteFilename = k.hierarchy.lookupFile( website, "site.mjs" );
+        if( siteFilename != null )
+            siteModuleOpts.esm = await import( "./" + siteFilename );
+        else
+            siteFilename = k.hierarchy.lookupFile( website, "site.js" );
+
+        if( siteFilename != null  ) {
             console.log( "Using ".magenta.bold, siteFilename );
             try {
-                var target = siteModule( website, './' + siteFilename, { exactFilename: true } );
+                var target = siteModule( website, './' + siteFilename, siteModuleOpts );
                 websites[ website ] = target;
                 console.log("LoadWebsite".bold.green, website );
                 next( null, target );
@@ -130,7 +138,12 @@ module.exports = function _site( k, opts ) {
         if( !opts.exactFilename )
             filename = "./" + k.hierarchy.lookupFileThrow( website, filename );
 
-        var target = require( filename )
+        /* esm modules come pre-loaded */
+        var target;
+        if( opts.esm )
+            target = opts.esm.default;
+        else
+            target = require( filename );
 
         /* register module */
         if( opts.register ) {
