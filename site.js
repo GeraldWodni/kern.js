@@ -89,6 +89,12 @@ module.exports = function _site( k, opts ) {
             if( process.env.KERN_STATIC_HOST )
                 hostname = process.env.KERN_STATIC_HOST;
 
+            if( process.env.KERN_ADDITIONAL_HOSTS ) {
+                const allowedHosts = process.env.KERN_ADDITIONAL_HOSTS.split( "," );
+                if( allowedHosts.indexOf( req.hostname ) >= 0 )
+                    hostname = req.hostname;
+            }
+
             /* get website from host, use kern if no config is set */
             var website = k.hierarchy.website( hostname ) || "default";
             if( !( k.kernOpts.active || false ) )
