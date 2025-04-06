@@ -39,7 +39,7 @@ module.exports = function _siteConfig( k, opts ) {
         console.log("LoadOnlyHosts:".yellow.bold, loadOnlyHosts );
 
         /* configure websites (async) */
-        fs.readdir( k.kernOpts.websitesRoot, function _loadAll_readdir( err, unsortedDirs ) {
+        fs.readdir( k.kernOpts.websitesRoot, async function _loadAll_readdir( err, unsortedDirs ) {
             if( err )
                 throw err;
 
@@ -57,38 +57,35 @@ module.exports = function _siteConfig( k, opts ) {
             for( let dir of unsortedDirs )
                 dirs.push( dir );
 
-            /* all loaded, perform callback */
-            var remaining = dirs.length;
-            function done() {
-                if( --remaining == 0 )
-                    d();
-            }
-
-            _.map( dirs, function _configure_dir( website ) {
+            for( let website of dirs ) {
                 if( loadOnlyHosts && loadOnlyHosts.indexOf( website ) == -1 )
-                    return done();
+                    continue;
 
-                fs.readFile( path.join( k.kernOpts.websitesRoot, website, "config.json" ), function( err, data ) {
-                    /* skip if error / non-existant */
-                    if( err )
-                        return done();
+                let data;
+                try {
+                    data = fs.readFileSync( path.join( k.kernOpts.websitesRoot, website, "config.json" ) );
+                }
+                catch( err ) {
+                    continue;
+                }
 
                     var finalConfig = {};
 
+                    let config;
                     try {
-                        var config = JSON.parse( data );
+                        config = JSON.parse( data );
                     } catch( err ) {
                         console.log( "WebSite Config ERROR".bold.red, website );
                         throw err;
                     }
-                    _.each( config, function _it( websiteConfig, host ) {
+
+                    for( let[ host, websiteConfig ] of Object.entries( config ) )
                         if( new RegExp( host, "i" ).test( os.hostname() ) ) {
                             finalConfig = _.extend( finalConfig, websiteConfig );
                             console.log( "Config".green.bold + " " + website.grey + " " + host + " activated".bold.green );
                         }
                         else
                             console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
-                    });
 
                     websiteConfigs[ website ] = finalConfig;
 
@@ -105,15 +102,15 @@ module.exports = function _siteConfig( k, opts ) {
 
                     /* autoload */
                     if( finalConfig.autoLoad && autoLoadEnabled )
-                        k.site.load( website, function _autoLoad_callback(err) {
-                            if( err )
-                                console.log("Autoload-Error:".bold.red, err );
-                            done();
-                        });
-                    else
-                        done();
-                });
-            });
+                        await new Promise( (fulfill, reject) => 
+                            k.site.load( website, function _autoLoad_callback(err) {
+                                if( err )
+                                    console.log("Autoload-Error:".bold.red, err );
+                                fulfill();
+                            })
+                        );
+            }
+            d();
         });
     }
 
