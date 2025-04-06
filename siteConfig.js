@@ -69,46 +69,46 @@ module.exports = function _siteConfig( k, opts ) {
                     continue;
                 }
 
-                    var finalConfig = {};
+                var finalConfig = {};
 
-                    let config;
-                    try {
-                        config = JSON.parse( data );
-                    } catch( err ) {
-                        console.log( "WebSite Config ERROR".bold.red, website );
-                        throw err;
+                let config;
+                try {
+                    config = JSON.parse( data );
+                } catch( err ) {
+                    console.log( "WebSite Config ERROR".bold.red, website );
+                    throw err;
+                }
+
+                for( let[ host, websiteConfig ] of Object.entries( config ) )
+                    if( new RegExp( host, "i" ).test( os.hostname() ) ) {
+                        finalConfig = _.extend( finalConfig, websiteConfig );
+                        console.log( "Config".green.bold + " " + website.grey + " " + host + " activated".bold.green );
                     }
+                    else
+                        console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
 
-                    for( let[ host, websiteConfig ] of Object.entries( config ) )
-                        if( new RegExp( host, "i" ).test( os.hostname() ) ) {
-                            finalConfig = _.extend( finalConfig, websiteConfig );
-                            console.log( "Config".green.bold + " " + website.grey + " " + host + " activated".bold.green );
-                        }
-                        else
-                            console.log( "Config".green.bold + " " + website.grey + " " +  host + " skipped".yellow );
+                websiteConfigs[ website ] = finalConfig;
 
-                    websiteConfigs[ website ] = finalConfig;
+                /* add routes */
+                if( finalConfig.hierarchyUp ) {
+                    console.log( "Hierarchy-Route: ", website, " -> ", finalConfig.hierarchyUp );
+                    k.hierarchy.addRoute( website, finalConfig.hierarchyUp );
+                }
 
-                    /* add routes */
-                    if( finalConfig.hierarchyUp ) {
-                        console.log( "Hierarchy-Route: ", website, " -> ", finalConfig.hierarchyUp );
-                        k.hierarchy.addRoute( website, finalConfig.hierarchyUp );
-                    }
+                /* add mysql DB */
+                if( finalConfig.mysql ) {
+                    k.db.add( website, finalConfig.mysql );
+                }
 
-                    /* add mysql DB */
-                    if( finalConfig.mysql ) {
-                        k.db.add( website, finalConfig.mysql );
-                    }
-
-                    /* autoload */
-                    if( finalConfig.autoLoad && autoLoadEnabled )
-                        await new Promise( (fulfill, reject) => 
-                            k.site.load( website, function _autoLoad_callback(err) {
-                                if( err )
-                                    console.log("Autoload-Error:".bold.red, err );
-                                fulfill();
-                            })
-                        );
+                /* autoload */
+                if( finalConfig.autoLoad && autoLoadEnabled )
+                    await new Promise( (fulfill, reject) => 
+                        k.site.load( website, function _autoLoad_callback(err) {
+                            if( err )
+                                console.log("Autoload-Error:".bold.red, err );
+                            fulfill();
+                        })
+                    );
             }
             d();
         });
