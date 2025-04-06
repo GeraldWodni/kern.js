@@ -39,9 +39,23 @@ module.exports = function _siteConfig( k, opts ) {
         console.log("LoadOnlyHosts:".yellow.bold, loadOnlyHosts );
 
         /* configure websites (async) */
-        fs.readdir( k.kernOpts.websitesRoot, function _loadAll_readdir( err, dirs ) {
+        fs.readdir( k.kernOpts.websitesRoot, function _loadAll_readdir( err, unsortedDirs ) {
             if( err )
                 throw err;
+
+            /* sort dirs, put loadOnlyHosts on top (same order as in ENV) */
+            unsortedDirs.sort();
+            const dirs = [];
+            for( let loadOnlyHost of loadOnlyHosts ) {
+                let index = unsortedDirs.indexOf( loadOnlyHost );
+                if( index < 0 )
+                    continue;
+
+                unsortedDirs.splice( index, 1 );
+                dirs.push( loadOnlyHost );
+            }
+            for( let dir of unsortedDirs )
+                dirs.push( dir );
 
             /* all loaded, perform callback */
             var remaining = dirs.length;
