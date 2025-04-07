@@ -34,7 +34,7 @@ module.exports = function _siteConfig( k, opts ) {
 
     function loadAll(d) {
         const loadOnlyHosts = process.env.KERN_LOAD_ONLY_HOSTS || "" != "" ?
-            process.env.KERN_LOAD_ONLY_HOSTS.split(",") : false;
+            process.env.KERN_LOAD_ONLY_HOSTS.split(",") : [];
 
         console.log("LoadOnlyHosts:".yellow.bold, loadOnlyHosts );
 

@@ -16,6 +16,7 @@ websites/*/files
 websites/*/fonts
 websites/*/images
 websites/*/js
+websites/*/logs
 websites/*/package
 websites/*/proxy
 websites/*/sql
