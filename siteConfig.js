@@ -58,7 +58,7 @@ module.exports = function _siteConfig( k, opts ) {
                 dirs.push( dir );
 
             for( let website of dirs ) {
-                if( loadOnlyHosts && loadOnlyHosts.indexOf( website ) == -1 )
+                if( loadOnlyHosts.length && loadOnlyHosts.indexOf( website ) == -1 )
                     continue;
 
                 let data;
