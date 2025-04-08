@@ -6,6 +6,7 @@ MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 RUN apk --no-cache add \
     bash \
     mysql-client \
+    mariadb-connector-c \
     openssh-client \
     vim \
     git
