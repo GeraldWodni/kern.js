@@ -58,6 +58,9 @@ serverConfig.active = true;
 var Kern = function( callback, kernOpts ) {
     
     kernOpts = _.extend( serverConfig, kernOpts );
+    if( process.env.KERN_PORT )
+        kernOpts.port = parseInt( process.env.KERN_PORT );
+
     var status = {
         workerId: cluster.isMaster ? 0 : cluster.worker.id
     };
