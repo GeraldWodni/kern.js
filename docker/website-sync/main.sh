@@ -30,6 +30,11 @@ elif [ ! -d private/.git ]; then
     git clone $PRIVATE_REPO private
 fi
 
+if [ "$CLONE_AND_EXIT" = "true" ]; then
+    echo "Clone and exit set, bye bye"
+    exit 0
+fi
+
 trap terminate SIGHUP SIGINT SIGTERM
 
 function terminate {
