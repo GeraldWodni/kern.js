@@ -9,6 +9,8 @@ USERFILE=$DIR/users.json
 git config --global user.name "$GIT_NAME"
 git config --global user.email "$GIT_EMAIL"
 git config --global pull.rebase false
+git config --global init.defaultBranch main
+git config --global safe.directory $DIR
 
 # if repo does not exists clone it
 if [ ! -d $DIR/.git ]; then
