@@ -45,7 +45,7 @@ mixin styles()
             +style-tag(styleSource)
 
 mixin favicon(path)
-    link(rel="icon",href=path)
+    link(rel="icon",href=path)&attributes(attributes)
 
 mixin _field(name,type,value)
     input.form-control(type=type,name=name,value=value)&attributes(attributes)
