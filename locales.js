@@ -190,6 +190,12 @@ module.exports = function _locales( k, opts ) {
                 reload: reload,
                 getWebsites: function() { return getWebsites( req.kern.website ) },
                 __: function() { return __( req.kern.website, current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
+                _err: function( err ) {
+                    if( !Object.hasOwn( err, "__text" ) || !Object.hasOwn( err, "__values" ) )
+                        return __( req.kern.website, current, err.message );
+
+                    return __( req.kern.website, current, err.__text, [err.__values] );
+                },
                 _n: function( num, decimals ) {
                     let thousandsSeparator =__( req.kern.website, current, "numThousandsSeparator" );
                     let decimalSeparator =  __( req.kern.website, current, "numDecimalSeparator"   );

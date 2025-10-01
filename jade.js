@@ -45,6 +45,7 @@ module.exports = function _jade( k, opts ) {
         locals = _.extend( locals || {}, {
             __: req.locales.__,
             _n: req.locales._n,
+            _err: req.locales._err,
             _date: function( d, forceIso = false ) {
                 if( forceIso )
                     return moment( d ).format( "YYYY-MM-DD" );

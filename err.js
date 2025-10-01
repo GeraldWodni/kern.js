@@ -80,9 +80,23 @@ module.exports = function _err( k ) {
         });
     }
 
+    function locale( text, values = {} ) {
+        /* insert canonical message immediately */
+        let message = text;
+        Object.keys( values ).forEach( key => message = message.replace( new RegExp( `{${key}}`, "g" ), values[ key ] ) );
+
+        /* extend error for later translation */
+        const err = new Error( message );
+        err.__text = text;
+        err.__values = values;
+
+        return err;
+    }
+
     return {
         renderHttpStatus: renderHttpStatus,
         routeLog: routeLog,
-        route: route
+        route: route,
+        locale,
     }
 };
