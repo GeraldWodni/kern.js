@@ -364,5 +364,9 @@
     "Captcha not correct": "Captcha nicht korrekt",
     "The resource that is being accessed is locked.": "Die Ressource, auf die Sie zugreifen möchten, ist gesperrt.",
     "Locked": "Gesperrt",
-    "Remember Me": "Angemeldet bleiben"
+    "Remember Me": "Angemeldet bleiben",
+    "Email sent, please use the link in provided via email to reset Password": "Email gesendet, bitte verwenden Sie den Link in der Email um das Passwort neu zu setzen",
+    "Forgot password": "Passwort vergessen",
+    "Password reset pending, please check your inbox": "Passwortrücksetzung ausstehend, bitte prüfen Sie Ihr Postfach",
+    "Password reset: please change your password immediately": "Passwortrücksetzung: Bitte ändern Sie Ihr Passwort sofort"
 }

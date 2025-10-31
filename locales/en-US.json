@@ -371,5 +371,9 @@
     "Captcha not correct": "Captcha not correct",
     "The resource that is being accessed is locked.": "The resource that is being accessed is locked.",
     "Locked": "Locked",
-    "Remember Me": "Remember Me"
+    "Remember Me": "Remember Me",
+    "Email sent, please use the link in provided via email to reset Password": "Email sent, please use the link in provided via email to reset Password",
+    "Forgot password": "Forgot password",
+    "Password reset pending, please check your inbox": "Password reset pending, please check your inbox",
+    "Password reset: please change your password immediately": "Password reset: please change your password immediately"
 }
