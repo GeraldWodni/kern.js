@@ -2,7 +2,7 @@
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var mysql = require("mysql");
+var mysql = require("mysql2");
 var _     = require("underscore");
 
 module.exports = function _db( k ) {
@@ -36,6 +36,11 @@ module.exports = function _db( k ) {
             config.password = process.env.MYSQL_PASSWORD;
             console.log( "Mysql-password-env:".bold.magenta, config.password.replace(/./g, '*') );
         }
+        /* fix compatibility between mysql2 and mysql */
+        config = Object.assign( { 
+            decimalNumbers: true,
+            dateStrings: true,
+        }, config );
         const pool = mysql.createPool( config );
         pool.pQuery = function() {
             const args = Array.from( arguments );

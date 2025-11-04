@@ -2,7 +2,6 @@
 // (c)copyright 2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var mysql   = require("mysql");
 var moment  = require("moment");
 var _       = require("underscore");
 
