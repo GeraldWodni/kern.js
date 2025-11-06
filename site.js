@@ -9,6 +9,22 @@ var os      = require("os");
 var _       = require("underscore");
 var async   = require( "async" );
 
+/* generic promisify */
+function p() {
+    const args = [... arguments];
+    const target = args.shift();
+    return new Promise( (fulfill, reject) => {
+        const callback = ( err, data ) => {
+            if( err )
+                reject(err);
+            else
+                fulfill( data );
+        };
+        args.push( callback );
+        target.apply( null, args );
+    });
+}
+
 module.exports = function _site( k, opts ) {
 
     var websites = {};
@@ -159,6 +175,7 @@ module.exports = function _site( k, opts ) {
 
         var router = newRouter();
         target.setup({
+            p,
             db: k.db,
             getDb: function() {
                 return k.db.get( website );
