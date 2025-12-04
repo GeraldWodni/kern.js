@@ -192,8 +192,7 @@ module.exports = function _locales( k, opts ) {
                 __: function() { return __( req.kern.website, current, arguments[0], Array.prototype.slice.call( arguments, 1 ) ); },
                 _err: function( err ) {
                     if( !Object.hasOwn( err, "__text" ) || !Object.hasOwn( err, "__values" ) )
-                        return __( req.kern.website, current, err.message );
-
+                        return __( req.kern.website, current, typeof err == "string" ? err : err.message );
                     return __( req.kern.website, current, err.__text, [err.__values] );
                 },
                 _n: function( num, decimals ) {

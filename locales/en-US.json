@@ -375,5 +375,9 @@
     "Email sent, please use the link in provided via email to reset Password": "Email sent, please use the link in provided via email to reset Password",
     "Forgot password": "Forgot password",
     "Password reset pending, please check your inbox": "Password reset pending, please check your inbox",
-    "Password reset: please change your password immediately": "Password reset: please change your password immediately"
+    "Password reset: please change your password immediately": "Password reset: please change your password immediately",
+    "No username provided": "No username provided",
+    "Unknown user {name}. Multiple entries found, please contact us": "Unknown user {name}. Multiple entries found, please contact us",
+    "Unknown user {name}": "Unknown user {name}",
+    "Incorrect credentials": "Incorrect credentials"
 }

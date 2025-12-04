@@ -115,7 +115,7 @@ module.exports = function _users( k ) {
                 return next( err, null );
 
             if( userId != null )
-                return next( "Username exists", null );
+                return next( new Error( "Username exists" ), null );
 
             k.rdb.incr( userCounter, function( err, userId ) {
                 save( obj, prefix, userId, function( err ) {
@@ -186,7 +186,7 @@ module.exports = function _users( k ) {
 
             if( userId == null ) {
                 if( prefix == "default" )
-                   return next( new Error("Unknown user '" + name + "'"), null );
+                   return next( k.err.locale("Unknown user {name}", { name } ), null );
                 else
                    loadByName( "default", name, next );
             }
@@ -266,7 +266,7 @@ module.exports = function _users( k ) {
                     return next( err, null );
 
                 if( !correct )
-                    return next( "Incorrect credentials", null );
+                    return next( k.err.locale("Incorrect credentials"), null );
 
                 next( false, data );
             });
@@ -559,7 +559,7 @@ module.exports = function _users( k ) {
                                         }
                                         else
                                         /* user exists */
-                                            callback( req.locales.__("Username exists")  );
+                                            callback( new Error( "Username exists" ) );
                                     });
                                 },
                                 function _password( callback ) {
@@ -567,9 +567,9 @@ module.exports = function _users( k ) {
                                     /* check password */
                                     var password = req.postman.password();
                                     if( !req.postman.fieldsMatch( "password", "password2" ) )
-                                        callback( req.locales.__( "Passwords do not match" ) );
+                                        callback( new Error( "Passwords do not match" ) );
                                     else if( password.length < minPasswordLength )
-                                        callback( req.locales.__( "Password too short, minimum length {0}" ).format( minPasswordLength ) );
+                                        callback( new Error( "Password too short, minimum length {0}" ).format( minPasswordLength ) );
                                     else
                                         bcrypt.hash( password, null, null, function( err, passwordHash ) {
                                             if( err ) return callback( err );
@@ -588,7 +588,7 @@ module.exports = function _users( k ) {
                                                 callback( err );
                                             else {
                                                 results.email = form.email;
-                                                callback( req.locales.__( "Email address already registered" ) );
+                                                callback( new Error( "Email address already registered" ) );
                                             }
                                         });
                                     else
@@ -598,7 +598,7 @@ module.exports = function _users( k ) {
                                             if( err )
                                                 callback( err );
                                             else if( emailUser != null )
-                                                callback( req.locales.__( "Email address already registered" ) );
+                                                callback( new Error( "Email address already registered" ) );
                                             else {
                                                 results.email = form.email;
                                                 callback();
@@ -617,7 +617,7 @@ module.exports = function _users( k ) {
                                         if( err )
                                             callback( err );
                                         else if( key != "OK" )
-                                            callback( req.locales.__( "Username pending registration, please check your email" ) );
+                                            callback( new Error( "Username pending registration, please check your email" ) );
                                         else {
                                             results.usernameKey = usernameKey;
                                             callback();
@@ -634,7 +634,7 @@ module.exports = function _users( k ) {
                                         if( err )
                                             callback( err );
                                         else if( key != "OK" )
-                                            callback( req.locales.__( "Email address already pending registration, please check your email" ) );
+                                            callback( new Error( "Email address already pending registration, please check your email" ) );
                                         else {
                                             results.emailKey = emailKey;
                                             callback();

@@ -8,7 +8,7 @@
     "Logged Out": "Ausgelogged",
     "Authentification required": "Authentifikation erforderlich",
     "Users": "Benutzer",
-    "Have a nice day": "Haben sie einen schönen Tag",
+    "Have a nice day": "Haben Sie einen schönen Tag",
     "Logout": "Ausloggen",
     "Password": "Passwort",
     "Info": "Info",
@@ -368,5 +368,9 @@
     "Email sent, please use the link in provided via email to reset Password": "Email gesendet, bitte verwenden Sie den Link in der Email um das Passwort neu zu setzen",
     "Forgot password": "Passwort vergessen",
     "Password reset pending, please check your inbox": "Passwortrücksetzung ausstehend, bitte prüfen Sie Ihr Postfach",
-    "Password reset: please change your password immediately": "Passwortrücksetzung: Bitte ändern Sie Ihr Passwort sofort"
+    "Password reset: please change your password immediately": "Passwortrücksetzung: Bitte ändern Sie Ihr Passwort sofort",
+    "No username provided": "Kein Benutzername eingegeben",
+    "Unknown user {name}. Multiple entries found, please contact us": "Unbekannter Benutzer {name}. Mehrfache Einträge gefunden, bitte kontaktieren Sie uns",
+    "Unknown user {name}": "Unbekannter Benutzer {name}",
+    "Incorrect credentials": "Ungültige Zugangsdaten"
 }
