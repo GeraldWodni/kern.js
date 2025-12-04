@@ -42,8 +42,7 @@ $(function(){
 
     $(".crud-search .crud-show-all").click( function() {
         var $list = $(this).closest(".crud-list");
-        $list.find(".crud-search input").val("");
-        $list.find(".crud-item").show();
+        $list.find(".crud-search input").val("").trigger("keyup");
     });
 
     if($(".crud-items").hasClass("col-sm-4"))
