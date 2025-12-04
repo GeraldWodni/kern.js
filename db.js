@@ -40,6 +40,7 @@ module.exports = function _db( k ) {
         config = Object.assign( { 
             decimalNumbers: true,
             dateStrings: true,
+            charset: "utf8mb4_general_ci",
         }, config );
         const pool = mysql.createPool( config );
         pool.pQuery = function() {
