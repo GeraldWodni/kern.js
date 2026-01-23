@@ -1190,6 +1190,26 @@ module.exports = function _crud( k ) {
                             };
 
                             var jadeValues = await k.reg("admin").pValues( req, { messages: req.messages, title: opts.title, opts: jadeCrudOpts } );
+
+                            if( opts.editTitle ) {
+                                let parts = [];
+
+                                try  {
+                                if( opts.editTitle.boldDisplay )
+                                    parts.push( jadeValues.opts.values[ opts.editTitle.boldDisplay ] );
+
+                                if( opts.editTitle.display )
+                                    parts.push( jadeValues.opts.values[ opts.editTitle.display ] );
+
+                                if( opts.editTitle.text )
+                                    parts.push( req.locales.__( opts.editTitle.text ) );
+
+                                jadeValues.title = `=${parts.join(" - ")}`;
+                                } catch( err ) {
+                                    console.log( "OH NOES; ERROR" );
+                                }
+                            }
+
                             if( opts.renderExtender )
                                 opts.renderExtender( req, res, jadeValues, function _renderExtenderCallback( err, extendedValues ) {
                                     if( err )
