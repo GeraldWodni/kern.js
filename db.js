@@ -5,6 +5,8 @@
 var mysql = require("mysql2");
 var _     = require("underscore");
 
+const kernJsOptions = ["debugLog"];
+
 module.exports = function _db( k ) {
     var pools = {};
 
@@ -36,6 +38,11 @@ module.exports = function _db( k ) {
             config.password = process.env.MYSQL_PASSWORD;
             console.log( "Mysql-password-env:".bold.magenta, config.password.replace(/./g, '*') );
         }
+        /* remove unknown configuration options (warning in mysql2) */
+        for( const kernJsOption of kernJsOptions )
+            if( kernJsOption in config )
+                delete config[ kernJsOption ];
+
         /* fix compatibility between mysql2 and mysql */
         config = Object.assign( { 
             decimalNumbers: true,
