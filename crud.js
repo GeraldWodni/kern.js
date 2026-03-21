@@ -490,6 +490,7 @@ module.exports = function _crud( k ) {
                 upload:     "drop",
                 image:      "filepath",
                 hiddenId:   "id",
+                hiddenText: "text",
                 h3:         "drop",
                 h4:         "drop",
                 p:          "drop"
@@ -510,6 +511,7 @@ module.exports = function _crud( k ) {
                 upload:     "file-field",
                 image:      "enum-field",
                 hiddenId:   "hidden-field",
+                hiddenText: "hidden-field",
                 h3:         "h3",
                 h4:         "h4",
                 p:          "p"
