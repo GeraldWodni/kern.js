@@ -1,6 +1,6 @@
 ARG REG_HOSTNAME
 ARG REG_FOLDER
-FROM ${REG_HOSTNAME}/${REG_FOLDER}/node-big:20
+FROM ${REG_HOSTNAME}/${REG_FOLDER}/node-big:24
 MAINTAINER Gerald Wodni <gerald.wodni@gmail.com>
 
 EXPOSE 8000
