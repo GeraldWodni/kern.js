@@ -80,7 +80,7 @@ module.exports = function _session( k, opts ) {
     }
 
     function setExternalCookie( req, res ) {
-        console.log( "EXTERNAL COOKIE SETTYYYYYY!" );
+        console.log( "EXTERNAL COOKIE SETTYYYYYY!", req.sessionId );
         const cookieOpts = {
             sameSite: 'Lax',
             //secure: true,
