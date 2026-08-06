@@ -75,17 +75,13 @@ module.exports = function _postman( k ) {
             });
 
             req.on( "end", function() {
-                switch( contentType ) {
-                    case 'application/json':
-                        req.body = JSON.parse( body );
-                        break;
-                    case 'text/plain':
-                        req.body = body;
-                        break;
-                    /* assume post-data */
-                    default:
-                        addPostman( qs.parse( body, { parseArrays: false } ) );
-                }
+                req.rawBody = body;
+                if(      contentType != "undefined" && contentType.indexOf( "application/json" ) == 0 )
+                    req.body = JSON.parse( body );
+                else if( contentType != "undefined" && contentType.indexOf( "text/plain" ) == 0 )
+                    req.body = body;
+                else
+                    addPostman( qs.parse( body, { parseArrays: false } ) );
 
                 callback( req, res );
             });
