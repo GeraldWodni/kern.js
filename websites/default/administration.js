@@ -164,16 +164,21 @@ module.exports = {
 
             var subRouter = subModules[ website ][ opts.router || "main" ].router;
             var subMenu = subModules[ website ][ opts.menu || opts.router || "main" ].menu;
-            var target;
+            let target
+            let routerTarget;
             /* function passed directly */
             if( typeof filename === "function" )
-                target = filename;
-            else
-                target = k.siteModule( website, filename, opts ).router;
+                routerTarget = target = filename;
+            else {
+                target = k.siteModule( website, filename, opts );
+                routerTarget = target.router;
+            }
 
-            subRouter.use( "/" + link, target );
+            subRouter.use( "/" + link, routerTarget );
             if( link != "" && glyph != "" )
                 subMenu.push( { link: link, glyph: glyph, english: name, opts: opts } );
+
+            return target;
         };
 
         /* main admin modules */
@@ -265,7 +270,7 @@ module.exports = {
         return getPermissionTypes.apply( this, arguments );
     },
     addSiteModule: function() {
-        addSiteModule.apply( this, arguments );
+        return addSiteModule.apply( this, arguments );
     },
     getMenu: function() {
         return menu.apply( this, arguments );
