@@ -695,7 +695,7 @@ module.exports = function _crud( k ) {
                 });
             }
 
-            k.postman( req, res, postOpts, function() {
+            k.postman( req, res, postOpts, async function() {
 
                 try {
                     if( req.postman.exists( "add" ) || req.postman.exists( "addRetain" ) ) {
@@ -731,6 +731,28 @@ module.exports = function _crud( k ) {
                         var id = opts.getRequestId( req );
                         var obj = opts.readFields( req );
                         req.kern.crudId = id;
+
+                        /* HERE */
+                        for( const [ n2mKey, n2mObj ] of Object.entries( opts.getCrud(req).n2mKeys || {} ) ) {
+                            const rawValues = obj[ n2mKey ];
+                            if( !rawValues )
+                                continue;
+                            const values = rawValues.split(",");
+                            const insertValues = [];
+                            for( const value of values )
+                                insertValues.push([ id, value ]);
+
+                            await req.kern.db.pQuery( `
+                                DELETE FROM {#table} WHERE {#id}={idValue} AND {#value} NOT IN ({values});
+                                REPLACE INTO {#table} VALUES {insertValues}
+                            `, Object.assign( {
+                                    idValue: id,
+                                    values,
+                                    insertValues,
+                                }, n2mObj )
+                            );
+                            delete obj[ n2mKey ];
+                        }
 
                         var handleUpdate = function _handleUpdate( err ) {
                             if( err )
@@ -1250,7 +1272,7 @@ module.exports = function _crud( k ) {
                     /* query n2m values */
                     for( const [ n2mKey, n2mObj ] of Object.entries( renderCrud.n2mKeys || {} ) ) {
                         const n2mData = await req.kern.db.pQuery( `
-                            SELECT GROUP_CONCAT( {#value} SEPARATOR ';' ) AS value FROM {#table} WHERE {#id}={idValue}`,
+                            SELECT GROUP_CONCAT( {#value} SEPARATOR ',' ) AS value FROM {#table} WHERE {#id}={idValue}`,
                             Object.assign( {
                                 idValue: fullData[0][ renderCrud.key ],
                             }, n2mObj )
