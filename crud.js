@@ -1054,6 +1054,12 @@ module.exports = function _crud( k ) {
 
                 var fields = r.getFields( req );
 
+                for( const n2mKey of Object.keys( renderCrud.n2mKeys || {} ) )
+                    if( !Object.hasOwn( fields, n2mKey ) ) {
+                        console.log( "n2mKey not registered: ".bold.yellow, n2mKey )
+                        return next( new Error( "n2mKey not registered: " + n2mKey ) );
+                    }
+
                 async.map( _.keys( renderCrud.foreignKeys ), function( fkey, done ) {
 
                     if( !_.has( fields, fkey ) && ( opts.hiddenForeignKeys || [] ).indexOf( fkey ) < 0 )
@@ -1229,7 +1235,8 @@ module.exports = function _crud( k ) {
 
         k.router.get(opts.editPath, function( req, res, next ) {
             /* TODO: overwrite getCrud to set current req? */
-            r.getCrud( req ).read( r.getRequestId( req ), function( err, data, fullData ) {
+            const renderCrud = r.getCrud( req );
+            renderCrud.read( r.getRequestId( req ), async function( err, data, fullData ) {
                 if( err )
                     return next( err );
 
@@ -1239,8 +1246,19 @@ module.exports = function _crud( k ) {
                     renderAll( req, res, next );
                 }
                 /* dataset found, render "edit" */
-                else
+                else {
+                    /* query n2m values */
+                    for( const [ n2mKey, n2mObj ] of Object.entries( renderCrud.n2mKeys || {} ) ) {
+                        const n2mData = await req.kern.db.pQuery( `
+                            SELECT GROUP_CONCAT( {#value} SEPARATOR ';' ) AS value FROM {#table} WHERE {#id}={idValue}`,
+                            Object.assign( {
+                                idValue: fullData[0][ renderCrud.key ],
+                            }, n2mObj )
+                        );
+                        fullData[0][ n2mKey ] = n2mData[0].value;
+                    }
                     renderAll( req, res, next, data, fullData );
+                }
             });
         });
 
