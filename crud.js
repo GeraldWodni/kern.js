@@ -696,6 +696,34 @@ module.exports = function _crud( k ) {
             }
 
             k.postman( req, res, postOpts, async function() {
+                const n2mKeys = opts.getCrud(req).n2mKeys || {};
+
+                function deleteN2MKeys( obj ) {
+                    for( const n2mKey of Object.keys( n2mKeys ) )
+                        delete obj[ n2mKey ];
+                    return obj;
+                }
+                async function updateN2mKeys( id, obj ) {
+                    for( const [ n2mKey, n2mObj ] of Object.entries( n2mKeys ) ) {
+                        const rawValues = obj[ n2mKey ];
+                        if( !rawValues )
+                            continue;
+                        const values = rawValues.split(",");
+                        const insertValues = [];
+                        for( const value of values )
+                            insertValues.push([ id, value ]);
+
+                        await req.kern.db.pQuery( `
+                            DELETE FROM {#table} WHERE {#id}={idValue} AND {#value} NOT IN ({values});
+                            REPLACE INTO {#table} VALUES {insertValues}
+                        `, Object.assign( {
+                                idValue: id,
+                                values,
+                                insertValues,
+                            }, n2mObj )
+                        );
+                    }
+                }
 
                 try {
                     if( req.postman.exists( "add" ) || req.postman.exists( "addRetain" ) ) {
@@ -704,7 +732,7 @@ module.exports = function _crud( k ) {
                         if( req.postman.exists( "addRetain" ) )
                             req.retainValues = obj;
 
-                        var handleCreate = function _handleCreate( err, data ) {
+                        var handleCreate = async function _handleCreate( err, data ) {
                             if( err )
                                 return opts.__error( err, req, res, next );
 
@@ -713,6 +741,8 @@ module.exports = function _crud( k ) {
                             req.messages.push( { type: "success", title: req.locales.__("Success"), text: req.locales.__("Item added"),
                                 attributes: { "data-insert-id": insertId }
                             } );
+
+                            await updateN2mKeys( req.kern.crudId.toString(), obj );
 
                             /* on successfull insert: handle files */
                             if( opts.fileUpload )
@@ -724,7 +754,8 @@ module.exports = function _crud( k ) {
                         };
                         
                         opts.preCreateTrigger( req, obj, function( obj ) {
-                            opts.getCrud(req).create( obj, handleCreate );
+                            const insertObj = deleteN2MKeys( Object.assign({}, obj ) );
+                            opts.getCrud(req).create( insertObj, handleCreate );
                         });
                     }
                     else if( req.postman.exists( "update" ) ) {
@@ -732,27 +763,8 @@ module.exports = function _crud( k ) {
                         var obj = opts.readFields( req );
                         req.kern.crudId = id;
 
-                        /* HERE */
-                        for( const [ n2mKey, n2mObj ] of Object.entries( opts.getCrud(req).n2mKeys || {} ) ) {
-                            const rawValues = obj[ n2mKey ];
-                            if( !rawValues )
-                                continue;
-                            const values = rawValues.split(",");
-                            const insertValues = [];
-                            for( const value of values )
-                                insertValues.push([ id, value ]);
-
-                            await req.kern.db.pQuery( `
-                                DELETE FROM {#table} WHERE {#id}={idValue} AND {#value} NOT IN ({values});
-                                REPLACE INTO {#table} VALUES {insertValues}
-                            `, Object.assign( {
-                                    idValue: id,
-                                    values,
-                                    insertValues,
-                                }, n2mObj )
-                            );
-                            delete obj[ n2mKey ];
-                        }
+                        await updateN2mKeys( id, obj );
+                        deleteN2MKeys( obj );
 
                         var handleUpdate = function _handleUpdate( err ) {
                             if( err )
