@@ -30,6 +30,48 @@ var end = function _end() {
 
 /* module specification */
 var sections = {
+    session: {
+        list: function() {
+            rdb.keys( "session:*", (err, items ) => {
+                for( const item of items ) {
+                    const [ prefix, domain, sid ] = item.split(":");
+                    out( domain, sid );
+                }
+                end();
+            });
+        },
+        show: async function( sid ) {
+            for( const item of await rdb.q( "keys", `session:*${sid}` ) ) {
+                const [ prefix, domain, sid ] = item.split(":");
+                out( domain, sid );
+                for( const[ name, value ] of Object.entries(await rdb.q( "hgetall", `session:${domain}:${sid}` )) ) {
+                    out( `  ${name} => ${value} <`);
+                }
+            }
+            end();
+        },
+        change_user: async function( sid, targetUser ) {
+            for( const item of await rdb.q( "keys", `session:*${sid}` ) ) {
+                const [ prefix, domain, sid ] = item.split(":");
+                const session = await rdb.q( "hgetall", `session:${domain}:${sid}` );
+                const user = await rdb.q( "hget", `${domain}:usernames`, targetUser );
+                if( user == null )
+                    return showErr( new Error( "User not found" ) );
+
+                out( `  loggedInUserId:   ${session.loggedInUserId} => ${user}` );
+                out( `  loggedInUsername: ${session.loggedInUsername} => ${targetUser}` );
+                await( rdb.q( "hset", item, "loggedInUsername", targetUser.toString(), "loggedInUserId", user ) )
+            }
+            end();
+        },
+        del: async function( sid ) {
+            for( const item of await rdb.q( "keys", `session:*${sid}` ) ) {
+                out( "Deleting", item );
+                await( rdb.q( "del", item ) );
+            }
+            end();
+        }
+    },
     cache: {
         list: function() {
             rdb.keys( "cache:websites*", function( err, items ) {
@@ -428,6 +470,19 @@ function performQuery( argv ) {
         opts.host = process.env.REDIS_HOST;
     rdb = redis.createClient(opts);
     rdb.on("error", showErr );
+
+    rdb.q = function() {
+        const args = [... arguments];
+        const fun = args.shift();
+        const { promise, resolve, reject } = Promise.withResolvers();
+        args.push( (err, data) => {
+            if( err )
+                return reject( err );
+            resolve( data )
+        });
+        rdb[ fun ].apply( rdb, args );
+        return promise;
+    }
 
     sections[ section ][ command ]( website, params );
 }
