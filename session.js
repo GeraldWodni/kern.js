@@ -134,9 +134,15 @@ module.exports = function _session( k, opts ) {
         if( req.session ) {
             //console.log( "SAVE session", req.sessionId );
             var sKey = sessionKey( req );
-            _.map( req.session, function( value, key ) {
-                k.rdb.hset( sKey, key, value );
-            });
+            const args = [ sKey ];
+            for( const [key, value] of Object.entries( req.session ) ) {
+                if( typeof value == "undefined" )
+                    continue;
+                args.push( key );
+                args.push( value );
+            }
+            k.rdb.hset.apply( k.rdb, args, next );
+            return;
         }
 
         /* no need to wait for redis to finish */
