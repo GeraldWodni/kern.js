@@ -10,6 +10,7 @@ var md5             = require("md5");
 var nodemailer      = require("nodemailer");
 var smtpTransport   = require("nodemailer-smtp-transport");
 var url             = require("url");
+const { compileFile } = require("jade");
 
 module.exports = function _users( k ) {
     /* this keys are not stored in the database */
@@ -370,8 +371,9 @@ module.exports = function _users( k ) {
                     csrf: csrf
                 }
 
+                let computeVals = () => vals;
                 if( opts.vals )
-                    vals = opts.vals( req, vals );
+                    computeVals = () => opts.vals( req, vals );
 
                 /* already logged in, load user and resume */
                 if( req.session && req.session.loggedInUsername ) {
@@ -381,7 +383,7 @@ module.exports = function _users( k ) {
                             if( err.toString().indexOf( "Unknown user" ) >= 0 ) {
                                 console.log( "Login invalid, destroy session".red.bold, req.kern.website, req.session.loggedInUsername );
                                 return req.sessionInterface.destroy( req, res, function() {
-                                    executeOrRender( req, res, next, loginRenderer, vals );
+                                    executeOrRender( req, res, next, loginRenderer, computeVals() );
                                 });
                             }
                             else
@@ -432,7 +434,7 @@ module.exports = function _users( k ) {
                         /* start session */
                         return users.login( req.kern.website, user.username, "", { assumePasswordCorrect: true, loadByName: opts.loadByName }, function( err, data ) {
                             if( err )
-                                return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
+                                return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, computeVals() ) );
 
                             req.sessionInterface.start( req, res, async function() {
                                 req.session.loggedInUsername = user.username;
@@ -447,11 +449,11 @@ module.exports = function _users( k ) {
                             console.log( "Login invalid, destroy session".red.bold, err );
                             /* delete this long term series, display warning */
                             res.clearCookie( persistentLoginCookie );
-                            Object.assign( vals, {
+                            Object.assign( computeVals(), {
                                 error: err,
                             });
                             return req.sessionInterface.destroy( req, res, function() {
-                                executeOrRender( req, res, next, loginRenderer, vals );
+                                executeOrRender( req, res, next, loginRenderer, computeVals() );
                             });
                         }
                         else
@@ -468,7 +470,7 @@ module.exports = function _users( k ) {
                             console.log( "Login: ", username );
                             login( req.kern.website, username, req.postman.password(), { loadByName: opts.loadByName }, async function( err, data ) {
                                 if( err )
-                                    return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, vals ) );
+                                    return executeOrRender( req, res, next, loginRenderer, _.extend( { error: err }, computeVals() ) );
 
                                 if( persistentLoginDays && req.postman.exists("rememberMe") )
                                     await startPersistentLogin( req, res, username );
@@ -723,7 +725,7 @@ module.exports = function _users( k ) {
 
                                 if( err )
                                     return k.rdb.del( deleteKeys, function() {
-                                        executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, form, vals ) );
+                                        executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true }, form, computeVals() ) );
                                     });
 
                                 console.log( "REGISTRATION COMPLETE!" );
@@ -734,15 +736,15 @@ module.exports = function _users( k ) {
                                     return res.redirect( results.link );
                                 }
 
-                                executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, vals ) );
+                                executeOrRender( req, res, next, loginRenderer, _.extend( { error: err, hideLogin: true, hideRegister: true, success: success }, computeVals() ) );
                             });
                         }
                         else
-                            executeOrRender( req, res, next, loginRenderer, vals );
+                            executeOrRender( req, res, next, loginRenderer, computeVals() );
                     });
                 /* show login form */
                 else {
-                    executeOrRender( req, res, next, loginRenderer, vals );
+                    executeOrRender( req, res, next, loginRenderer, computeVals() );
                 }
 
             }); /* end csrf safe */
