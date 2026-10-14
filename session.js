@@ -111,6 +111,16 @@ module.exports = function _session( k, opts ) {
 
     };
 
+    function startP( req, res ) {
+        const { promise, reject, resolve } = Promise.withResolvers();
+        start( req, res, err => {
+            if( err )
+                return reject( err );
+            resolve();
+        });
+        return promise;
+    }
+
     function load( req, res, next ) {
 
         var key = sessionKey( req );
@@ -186,6 +196,7 @@ module.exports = function _session( k, opts ) {
             /* add interface hooks */
             req.sessionInterface = {
                 start: start,
+                startP,
                 save: save,
                 setExternalCookie,
                 destroyExternalCookie,
