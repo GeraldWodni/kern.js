@@ -69,9 +69,10 @@ module.exports = function _db( k ) {
                         return reject( err );
                     }
 
+                    var committed = false;
                     var aborted = false;
                     function abortTransaction() {
-                        if( aborted ) /* avoid double-abort */
+                        if( aborted || committed ) /* avoid double-abort or abort after commit */
                             return Promise.resolve();
                         aborted = true;
 
@@ -85,8 +86,12 @@ module.exports = function _db( k ) {
 
                     function commitTransaction() {
                         return new Promise( (fulfill, reject) => {
+                            if( committed )
+                                return fulfill();
+
                             connection.commit( err => {
                                 if( err ) return abortTransaction().then( () => reject( err ) );
+                                committed = true;
                                 connection.release();
                                 fulfill();
                             });
