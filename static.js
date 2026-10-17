@@ -13,7 +13,7 @@ var _           = require("underscore");
 module.exports = function _static( k, opts ) {
 
     var guardRegex = new RegExp( '\\' + path.sep, 'g' );
-    function guard( prefix, req, res, callback ) {
+    function guard( prefix, req, res, opts ) {
 
         /* normalize to os-independent path */
         var pathname = decodeURI( url.parse( req.url ).pathname );
@@ -24,7 +24,19 @@ module.exports = function _static( k, opts ) {
         if( pathname.indexOf( ".." ) >= 0 )
             return k.err.renderHttpStatus( req, res, 403 );
 
-        callback( pathname.indexOf( prefix ) == 0, pathname );
+        const webPathname = pathname;
+        let webPrefixOk = true;
+        if( opts?.webPrefix ) {
+            webPrefixOk = pathname.indexOf( opts.webPrefix ) == 0;
+            pathname = pathname.substring( opts.webPrefix.length );
+            prefix =   prefix.  substring( opts.webPrefix.length );
+        }
+
+        return {
+            prefixOkay: webPrefixOk && pathname.indexOf( prefix ) == 0,
+            pathname,
+            webPathname,
+        };
     };
 
     async function renderBrowseDirectory( req, res, prefix, dirpath, opts ) {
@@ -69,28 +81,27 @@ module.exports = function _static( k, opts ) {
     }
 
     function prefixServeStatic( router, prefix, opts = {} ) {
-        router.use( function( req, res, next ) {
-            guard( prefix, req, res, async function( prefixOkay, pathname ) {
-                if( prefixOkay ) {
-                    try {
-                        const filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-                        const stat = await fs.promises.stat( filepath );
+        router.use( async function( req, res, next ) {
+            const { prefixOkay, pathname, webPathname } = guard( prefix, req, res, opts );
+            if( prefixOkay ) {
+                try {
+                    const filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+                    const stat = await fs.promises.stat( filepath );
 
-                        if( !stat.isDirectory() )
-                            return res.sendfile( filepath );
+                    if( !stat.isDirectory() )
+                        return res.sendfile( filepath );
 
-                        /* list browsable directoy (if enable via opts.browse) */
-                        if( opts.browse )
-                            return renderBrowseDirectory( req, res, pathname, filepath, opts );
+                    /* list browsable directoy (if enable via opts.browse) */
+                    if( opts.browse )
+                        return renderBrowseDirectory( req, res, webPathname, filepath, opts );
 
-                        return k.err.renderHttpStatus( req, res, 404 );
-                    }
-                    catch( err )  {
-                        return next( err );
-                    }
+                    return k.err.renderHttpStatus( req, res, 404 );
                 }
-                next();
-            });
+                catch( err )  {
+                    return next( err );
+                }
+            }
+            next();
         });
     };
 
@@ -107,91 +118,90 @@ module.exports = function _static( k, opts ) {
         opts = opts || {};
         (opts.router || k.app).get( prefix + "*", function( req, res, next ) {
             /* capture esacape attempts */
-            guard( prefix, req, res, function( prefixOkay, pathname ) {
-                if( prefixOkay ) {
-                    /* rename source */
-                    var targetExtension = path.extname( pathname );
-                    if( opts.sourceExtension )
-                        pathname = pathname.slice( 0, -targetExtension.length ) + opts.sourceExtension;
+            let { prefixOkay, pathname } = guard( prefix, req, res, opts );
+            if( prefixOkay ) {
+                /* rename source */
+                var targetExtension = path.extname( pathname );
+                if( opts.sourceExtension )
+                    pathname = pathname.slice( 0, -targetExtension.length ) + opts.sourceExtension;
 
-                    /* get real prefixed path */
-                    pathname = pathname.replace( new RegExp( "^" + prefix ), originPrefix );
+                /* get real prefixed path */
+                pathname = pathname.replace( new RegExp( "^" + prefix ), originPrefix );
 
-                    /* rewrite pathes */
-                    var changeCacheExtension = false;
-                    if( opts.pathRewrite ) {
-                        const pathes = opts.pathRewrite( pathname );
-                        if( typeof pathes !== "string" ) {
-                            if( pathes.hasOwnProperty( "redirect" ) )
-                                return res.redirect( pathes.redirect );
+                /* rewrite pathes */
+                var changeCacheExtension = false;
+                if( opts.pathRewrite ) {
+                    const pathes = opts.pathRewrite( pathname );
+                    if( typeof pathes !== "string" ) {
+                        if( pathes.hasOwnProperty( "redirect" ) )
+                            return res.redirect( pathes.redirect );
 
-                            pathname = pathes.source;
-                            changeCacheExtension = pathes.targetExtension;
-                        }
-                        else
-                            pathname = pathes;
+                        pathname = pathes.source;
+                        changeCacheExtension = pathes.targetExtension;
+                    }
+                    else
+                        pathname = pathes;
+                }
+
+                /* get original and cache-filename */
+                var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
+                var cachepath = filepath.replace( /^websites\//, "cache" + prefix )
+
+                /* rename target (from hierarchy path to be safe) */
+                if( opts.sourceExtension )
+                    cachepath = cachepath.slice( 0, -opts.sourceExtension.length ) + targetExtension;
+
+                if( changeCacheExtension !== false )
+                    cachepath = cachepath.slice( 0, -path.extname( cachepath ).length ) + changeCacheExtension;
+
+                /* file cached? */
+                fs.stat( cachepath, function( err, cacheStat ) {
+                    function sendIt() {
+                        if( opts.contentType )
+                            res.header( 'Content-Type', opts.contentType );
+                        const fullpath = path.join( k.kernOpts.rootFolder, cachepath );
+                        res.sendFile( fullpath );
                     }
 
-                    /* get original and cache-filename */
-                    var filepath = k.hierarchy.lookupFileThrow( req.kern.website, pathname );
-                    var cachepath = filepath.replace( /^websites\//, "cache" + prefix )
+                    /* exists -> check age */
+                    if( err == null )
+                        return fs.stat( filepath, function( err, fileStat ) {
+                            /* send cached file */
+                            if( err || fileStat.mtimeMs <= cacheStat.mtimeMs )
+                                return sendIt();
 
-                    /* rename target (from hierarchy path to be safe) */
-                    if( opts.sourceExtension )
-                        cachepath = cachepath.slice( 0, -opts.sourceExtension.length ) + targetExtension;
-
-                    if( changeCacheExtension !== false )
-                        cachepath = cachepath.slice( 0, -path.extname( cachepath ).length ) + changeCacheExtension;
-
-                    /* file cached? */
-                    fs.stat( cachepath, function( err, cacheStat ) {
-                        function sendIt() {
-                            if( opts.contentType )
-                                res.header( 'Content-Type', opts.contentType );
-                            const fullpath = path.join( k.kernOpts.rootFolder, cachepath );
-                            res.sendFile( fullpath );
-                        }
-
-                        /* exists -> check age */
-                        if( err == null )
-                            return fs.stat( filepath, function( err, fileStat ) {
-                                /* send cached file */
-                                if( err || fileStat.mtimeMs <= cacheStat.mtimeMs )
-                                    return sendIt();
-
-                                /* generate */
-                                console.log( "Refresh prefixCache: " + filepath );
-                                generator( filepath, cachepath, function( err ) {
-                                    if( err ) {
-                                        console.log( "GeneratorRefresh-ERROR: ", err );
-                                        return next( err );
-                                    }
-
-                                    sendIt();
-                                });
-
-                            });
-
-                        /* create cache directory */
-                        mkdirp( path.dirname( cachepath ), function( err ) {
-                            if( err )
-                                return next( err );
-
+                            /* generate */
+                            console.log( "Refresh prefixCache: " + filepath );
                             generator( filepath, cachepath, function( err ) {
                                 if( err ) {
-                                    console.log( "Generator-ERROR: ", err );
+                                    console.log( "GeneratorRefresh-ERROR: ", err );
                                     return next( err );
                                 }
 
                                 sendIt();
                             });
+
                         });
 
+                    /* create cache directory */
+                    mkdirp( path.dirname( cachepath ), function( err ) {
+                        if( err )
+                            return next( err );
+
+                        generator( filepath, cachepath, function( err ) {
+                            if( err ) {
+                                console.log( "Generator-ERROR: ", err );
+                                return next( err );
+                            }
+
+                            sendIt();
+                        });
                     });
-                }
-                else
-                    next();
-            });
+
+                });
+            }
+            else
+                next();
         });
     }
 
